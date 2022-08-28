@@ -15,11 +15,11 @@ struct CommentsView: View {
     
     @State var comments = [Comment]()
     
-//    @State var commentAuthor: String? = nil
-//    @State var commentText: String? = nil
-//    @State var parentId: Int? = nil
-//    @State var commentDate: String? = nil
-//    @State var commentId: String? = nil
+    //    @State var commentAuthor: String? = nil
+    //    @State var commentText: String? = nil
+    //    @State var parentId: Int? = nil
+    //    @State var commentDate: String? = nil
+    //    @State var commentId: String? = nil
     
     @State var isExpanded = true
     
@@ -46,7 +46,7 @@ struct CommentsView: View {
                         .onTapGesture {
                             dismiss()
                         }
-                        
+                    
                     Spacer()
                 }
                 .padding([.horizontal, .bottom])
@@ -60,11 +60,11 @@ struct CommentsView: View {
                         
                         Text(storyTitle)
                             .font(.title2.weight(.bold))
-
                         
-                            Text("google.com")
-                                .font(.headline)
-                                .foregroundColor(.black.opacity(0.5))
+                        
+                        Text("google.com")
+                            .font(.headline)
+                            .foregroundColor(.black.opacity(0.5))
                         
                     }
                     
@@ -104,12 +104,7 @@ struct CommentsView: View {
                 ScrollView {
                     LazyVStack {
                         ForEach(comments) { comment in
-                            
-                            
-                            SingleCommentView(commentAuthor: comment.author, commentDate: comment.commentConvertedDate)
-//                            Text(comment.commentText)
-//                                .font(.body)
-//                                .padding(.vertical)
+                            SingleCommentView(commentAuthor: comment.author, commentDate: comment.commentDate, commentText: comment.text)
                         }
                     }
                     .padding()

@@ -46,13 +46,13 @@ class MainViewModel: ObservableObject {
     }
     
     func getComments(for postID: String) async throws -> [Comment] {
-        guard let url = URL(string: "https://hn.algolia.com/api/v1/search?tags=comment,story_\(postID)") else { return [] }
+        guard let url = URL(string: "https://hn.algolia.com/api/v1/items/\(postID)") else { return [] }
         
         let (data, _) = try await URLSession.shared.data(from: url)
         
         do {
-            let safeData = try JSONDecoder().decode(CommentResults.self, from: data)
-            return safeData.hits
+            let safeData = try JSONDecoder().decode(Item.self, from: data)
+            return safeData.children
         } catch let error {
             print("Decoding error: \(error)")
         }
