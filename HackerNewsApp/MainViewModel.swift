@@ -59,6 +59,11 @@ class MainViewModel: ObservableObject {
         return []
     }
     
+    func getUrlDomain(for url: String) -> String? {
+        let generatedUrl = URL(string: url)
+        return generatedUrl?.host ?? nil
+    }
+    
 
 }
 

@@ -52,21 +52,23 @@ extension PostListView {
             .frame(height: 200)
         //            .padding()
             .overlay {
-                VStack {
-                    HStack {
-                        Text("google.com")
-                            .font(.caption.weight(.medium))
-                            .padding(5)
-                            .background(.orange.opacity(0.4))
-                            .cornerRadius(4)
-                            .padding()
-                            .clipped()
+                if let urlDomain = vm.getUrlDomain(for: url) {
+                    VStack {
+                        HStack {
+                            Text(urlDomain)
+                                .font(.caption.weight(.medium))
+                                .padding(5)
+                                .background(.orange.opacity(0.4))
+                                .cornerRadius(4)
+                                .padding()
+                                .clipped()
+                            
+                            Spacer()
+                        }
                         
                         Spacer()
+                        
                     }
-                    
-                    Spacer()
-                    
                 }
             }
     }
@@ -109,7 +111,7 @@ extension PostListView {
             Spacer()
             
             NavigationLink {
-                CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id)
+                CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id, storyUrl: url)
             } label: {
                 CommentsButtonView(commentsCount: numComments)
                     .foregroundStyle(.primary)
