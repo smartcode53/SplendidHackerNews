@@ -17,7 +17,7 @@ struct Results: Codable {
 struct Story: Identifiable, Codable {
     let createdAt: String
     let title: String
-    let url: String
+    var url: String?
     let author: String
     let points: Int
     let numComments: Int
@@ -46,7 +46,7 @@ struct Story: Identifiable, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.createdAt = try container.decode(String.self, forKey: .createdAt)
         self.title = try container.decode(String.self, forKey: .title)
-        self.url = try container.decode(String.self, forKey: .url)
+        self.url = try container.decode(String?.self, forKey: .url)
         self.author = try container.decode(String.self, forKey: .author)
         self.points = try container.decode(Int.self, forKey: .points)
         self.numComments = try container.decode(Int.self, forKey: .numComments)
@@ -98,9 +98,9 @@ struct Item: Identifiable, Codable {
     let id: Int
     let createdAtI: Int
     let type: String
-    let author: String
+    let author: String?
     let title: String
-    let url: String
+    var url: String?
     let points: Int
     let children: [Comment]
     
@@ -125,9 +125,9 @@ struct Item: Identifiable, Codable {
         self.id = try container.decode(Int.self, forKey: .id)
         self.createdAtI = try container.decode(Int.self, forKey: .createdAtI)
         self.type = try container.decode(String.self, forKey: .type)
-        self.author = try container.decode(String.self, forKey: .author)
+        self.author = try container.decode(String?.self, forKey: .author)
         self.title = try container.decode(String.self, forKey: .title)
-        self.url = try container.decode(String.self, forKey: .url)
+        self.url = try container.decode(String?.self, forKey: .url)
         self.points = try container.decode(Int.self, forKey: .points)
         self.children = try container.decode([Comment].self, forKey: .children)
     }
@@ -137,11 +137,19 @@ struct Comment: Identifiable, Codable {
     let id: Int
     let createdAtI: Int
     let type: String
-    let author: String
-    let text: String
+    let author: String?
+    let text: String?
     let parentId: Int
-    let storyId: Int
+    let storyId: Int?
     let children: [Comment]
+    
+    var commentChildren: [Comment]? {
+        if children.isEmpty {
+            return nil
+        } else {
+            return children
+        }
+    }
     
     var commentDate: String {
         Date.unixToRegular(createdAtI)
@@ -164,8 +172,8 @@ struct Comment: Identifiable, Codable {
         self.id = try container.decode(Int.self, forKey: .id)
         self.createdAtI = try container.decode(Int.self, forKey: .createdAtI)
         self.type = try container.decode(String.self, forKey: .type)
-        self.author = try container.decode(String.self, forKey: .author)
-        self.text = try container.decode(String.self, forKey: .text)
+        self.author = try container.decode(String?.self, forKey: .author)
+        self.text = try container.decode(String?.self, forKey: .text)
         self.parentId = try container.decode(Int.self, forKey: .parentId)
         self.storyId = try container.decode(Int.self, forKey: .storyId)
         self.children = try container.decode([Comment].self, forKey: .children)

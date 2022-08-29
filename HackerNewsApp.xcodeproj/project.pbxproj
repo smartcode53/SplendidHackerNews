@@ -17,7 +17,7 @@
 		B478F9D328AD83C2002B893C /* PostListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D228AD83C2002B893C /* PostListView.swift */; };
 		B4ABA9E628B803AC006F1E11 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ABA9E528B803AC006F1E11 /* Extensions.swift */; };
 		B4ABA9E828B809E1006F1E11 /* CommentsButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ABA9E728B809E1006F1E11 /* CommentsButtonView.swift */; };
-		B4B7F6CA28BAA6E100737763 /* SingleCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B7F6C928BAA6E100737763 /* SingleCommentView.swift */; };
+		B4FFC92C28BD3ACB001D5AB3 /* UIKitViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FFC92B28BD3ACB001D5AB3 /* UIKitViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,7 +32,7 @@
 		B478F9D228AD83C2002B893C /* PostListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListView.swift; sourceTree = "<group>"; };
 		B4ABA9E528B803AC006F1E11 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		B4ABA9E728B809E1006F1E11 /* CommentsButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsButtonView.swift; sourceTree = "<group>"; };
-		B4B7F6C928BAA6E100737763 /* SingleCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentView.swift; sourceTree = "<group>"; };
+		B4FFC92B28BD3ACB001D5AB3 /* UIKitViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,7 +70,7 @@
 				B478F9D028AD8020002B893C /* MainViewModel.swift */,
 				B478F9C228AD77CA002B893C /* ContentView.swift */,
 				B47628C028B8B47C00E491D3 /* CommentsView.swift */,
-				B4B7F6C928BAA6E100737763 /* SingleCommentView.swift */,
+				B4FFC92B28BD3ACB001D5AB3 /* UIKitViews.swift */,
 				B4ABA9E528B803AC006F1E11 /* Extensions.swift */,
 				B4ABA9E728B809E1006F1E11 /* CommentsButtonView.swift */,
 				B478F9D228AD83C2002B893C /* PostListView.swift */,
@@ -160,8 +160,8 @@
 			files = (
 				B478F9CF28AD7E1E002B893C /* Model.swift in Sources */,
 				B4ABA9E628B803AC006F1E11 /* Extensions.swift in Sources */,
-				B4B7F6CA28BAA6E100737763 /* SingleCommentView.swift in Sources */,
 				B478F9C328AD77CA002B893C /* ContentView.swift in Sources */,
+				B4FFC92C28BD3ACB001D5AB3 /* UIKitViews.swift in Sources */,
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
 				B4ABA9E828B809E1006F1E11 /* CommentsButtonView.swift in Sources */,
 				B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */,

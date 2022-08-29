@@ -20,3 +20,27 @@ extension Date {
     }
 }
 
+extension String {
+    var toHTML: String {
+        let attr = try? NSAttributedString(data: Data(utf8), options: [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ], documentAttributes: nil)
+
+        return attr?.string ?? self
+    }
+    
+    var toCleanHTML: String {
+        let data = Data(self.utf8)
+        
+        do {
+            let attributedString = try NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil)
+            return attributedString.string
+        } catch {
+            print("There was an error converting the string from HTML to text")
+        }
+        
+        return "No Comment"
+    }
+}
+

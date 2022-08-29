@@ -24,7 +24,7 @@ struct ContentView: View {
                     if !vm.isLoading {
                         LazyVStack {
                             ForEach(vm.stories, id: \.self.id) { story in
-                                PostListView(vm: vm, title: story.title, url: story.url, author: story.author, points: story.points, numComments: story.numComments, id: story.id, storyDate: story.storyConvertedDate)
+                                PostListView(vm: vm, title: story.title, url: story.url ?? "google.com", author: story.author, points: story.points, numComments: story.numComments, id: story.id, storyDate: story.storyConvertedDate)
                             }
                         }
                     } else {

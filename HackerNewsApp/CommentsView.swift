@@ -101,25 +101,73 @@ struct CommentsView: View {
                 .padding(.horizontal)
                 .shadow(radius: 4)
                 
+//                ScrollView {
+//
+//                    OutlineGroup(comments, children: \.children) { comment in
+//                        VStack(alignment: .leading) {
+//                            HStack {
+//                                Text(comment.author ?? "Unknown Author")
+//                                    .padding(.trailing)
+//                                
+//                                Text(comment.commentDate)
+//                                
+//                                Spacer()
+//                            }
+//                            .foregroundColor(.orange)
+//                            .font(.body.weight(.bold))
+//                            
+//                            Text(comment.text?.toHTML ?? "Unable to parse comment")
+//                                .font(.body.weight(.medium))
+//                                .foregroundColor(.black)
+//                        }
+//                        
+//                    }
+//                    .background(.white)
+//                }
+                
+                
+//                List(comments, children: \.children) { comment in
+//                    VStack {
+//
+//                        HStack {
+//                            SingleCommentView(commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate)
+//                        }
+//
+//                        Text(comment.text?.toHTML ?? "No Text")
+//                            .font(.headline)
+//                    }
+//                }
+//                .listStyle(.plain)
+//                .tint(.orange)
+                
+//                ScrollView {
+//                    LazyVStack {
+//                        ForEach(comments) { comment in
+//                            SingleCommentView(commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate)
+//                                .onAppear {
+//                                    vm.commentIterator(comment: comment)
+//                        }
+//                    }
+//                    .padding()
+//                    .background(.white)
+//                    .cornerRadius(12)
+//                }
+//            }
+                
                 ScrollView {
-                    LazyVStack {
-                        ForEach(comments) { comment in
-                            SingleCommentView(commentAuthor: comment.author, commentDate: comment.commentDate, commentText: comment.text)
-                        }
+                    ForEach(comments) { comment in
+                        ExtractedView(commentText: comment.text ?? "No Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate)
                     }
-                    .padding()
-                    .background(.white)
-                    .cornerRadius(12)
                 }
+                
             }
-            
-        }
-        .navigationBarHidden(true)
-        .task {
-            do {
-                comments = try await vm.getComments(for: storyId)
-            } catch let error {
-                print("Error fetching data using task modifier on CommentsView: \(error)")
+            .navigationBarHidden(true)
+            .task {
+                do {
+                    comments = try await vm.getComments(for: storyId)
+                } catch let error {
+                    print("Error fetching data using task modifier on CommentsView: \(error)")
+                }
             }
         }
     }
@@ -128,5 +176,118 @@ struct CommentsView: View {
 struct CommentsView_Previews: PreviewProvider {
     static var previews: some View {
         CommentsView(vm: MainViewModel(), storyTitle: "Something you aren't aware of in technology", storyAuthor: "skrillex", points: 24, totalCommentCount: 12, storyDate: "Date", storyId: "someID")
+    }
+}
+
+struct ExtractedView: View {
+    
+    var commentText: String?
+    var commentReplies: [Comment]?
+    var commentAuthor: String
+    var commentDate: String
+    
+    @State var indentLevel: Double = 0
+    @State var isExpanded = true
+    
+    var animateArrow: Bool {
+        isExpanded
+    }
+    
+    var body: some View {
+        
+        if isExpanded {
+            VStack(alignment: .leading) {
+                
+                HStack {
+                    Text(commentAuthor)
+                        .padding(.trailing)
+                    
+                    Text(commentDate)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.up.square.fill")
+                        .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
+                }
+                .font(.headline.weight(.semibold))
+                .foregroundColor(.orange)
+                .padding(.bottom, 10)
+                .onTapGesture {
+                    withAnimation(.easeInOut) {
+                        isExpanded.toggle()
+                    }
+                    
+                }
+                
+                if let text = commentText {
+                    Text(text.toCleanHTML)
+                }
+                
+                
+                if commentReplies != nil {
+                    ForEach(commentReplies!) { comment in
+                        ExtractedView(commentText: comment.text ?? "Bad Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate, indentLevel: indentLevel + 1)
+                            .overlay(
+                                Capsule()
+                                    .fill(Color.orange)
+                                    .frame(width: 1)
+                                    ,
+                                alignment: .leading
+                            )
+                    }
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white)
+        } else {
+            VStack {
+                
+                HStack {
+                    Text(commentAuthor)
+                        .padding(.trailing)
+                    
+                    Text(commentDate)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.up.square.fill")
+                        .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
+                }
+                .font(.headline.weight(.semibold))
+                .foregroundColor(.orange)
+                .padding(.bottom, 10)
+                .onTapGesture {
+                    withAnimation(.easeInOut) {
+                        isExpanded.toggle()
+                    }
+                    
+                }
+                
+//                if let text = commentText {
+//                    Text(text.toCleanHTML)
+//                }
+                
+                
+//                if commentReplies != nil {
+//                    ForEach(commentReplies!) { comment in
+//                        ExtractedView(commentText: comment.text ?? "Bad Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate, indentLevel: indentLevel + 1, isExpanded: false)
+//                            .overlay(
+//                                Capsule()
+//                                    .fill(Color.orange)
+//                                    .frame(width: 1)
+//                                    ,
+//                                alignment: .leading
+//                            )
+//                    }
+//                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white)
+        }
+        
+        
+        
     }
 }

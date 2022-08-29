@@ -54,9 +54,11 @@ class MainViewModel: ObservableObject {
             let safeData = try JSONDecoder().decode(Item.self, from: data)
             return safeData.children
         } catch let error {
-            print("Decoding error: \(error)")
+            print("Decoding error in getComments: \(error)")
         }
         return []
     }
+    
+
 }
 
