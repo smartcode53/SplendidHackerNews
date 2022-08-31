@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import WebKit
 
 extension Date {
     static func unixToRegular(_ seconds: Int) -> String {
@@ -41,6 +42,15 @@ extension String {
         }
         
         return "No Comment"
+    }
+}
+
+extension WKWebView {
+    func load(_ urlString: String) {
+        if let url = URL(string: urlString) {
+            let request = URLRequest(url: url)
+            load(request)
+        }
     }
 }
 

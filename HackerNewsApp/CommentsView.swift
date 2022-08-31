@@ -46,62 +46,70 @@ struct CommentsView: View {
                 }
                 .padding([.horizontal, .bottom])
                 
-                
-                HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(storyDate)
-                            .font(.headline)
-                            .foregroundColor(.black.opacity(0.5))
-                        
-                        Text(storyTitle)
-                            .font(.title2.weight(.bold))
-                        
-                        if let urlDomain = vm.getUrlDomain(for: storyUrl) {
-                            Text(urlDomain)
+                ScrollView {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(storyDate)
                                 .font(.headline)
                                 .foregroundColor(.black.opacity(0.5))
+                            
+                            Text(storyTitle)
+                                .font(.title2.weight(.bold))
+                            
+                            if let urlDomain = vm.getUrlDomain(for: storyUrl) {
+                                Text(urlDomain)
+                                    .font(.headline)
+                                    .foregroundColor(.black.opacity(0.5))
+                            }
+                            
+                            
                         }
                         
+                        Spacer()
                         
+                        Image(systemName: "globe.europe.africa.fill")
+                            .font(.title.weight(.bold))
+                            .foregroundColor(.black)
+                    }
+                    .padding()
+                    .background(.white)
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                    .shadow(radius: 4)
+                    .padding(.bottom)
+                    .onTapGesture {
+                        vm.showStoryInComments = true
                     }
                     
-                    Spacer()
                     
-                    Image(systemName: "arrow.forward.square.fill")
-                        .font(.title.weight(.bold))
-                        .foregroundColor(.black)
-                }
-                .padding()
-                .background(.white)
-                .cornerRadius(12)
-                .padding(.horizontal)
-                .shadow(radius: 4)
-                .padding(.bottom)
-                
-                
-                
-                HStack {
-                    Label(storyAuthor, systemImage: "person.fill")
                     
-                    Spacer()
                     
-                    Text(points == 1 ? "\(points) Point" : "\(points) points")
-                    
-                    Spacer()
-                    
-                    Text(totalCommentCount == 1 ? "\(totalCommentCount) comment" : "\(totalCommentCount) comments")
-                }
-                .padding()
-                .background(.black)
-                .foregroundColor(.white)
-                .cornerRadius(12)
-                .padding(.horizontal)
-                .shadow(radius: 4)
-                
-                ScrollView {
-                    ForEach(comments) { comment in
-                        SingleCommentView(commentText: comment.text ?? "No Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate)
+                    HStack {
+                        Label(storyAuthor, systemImage: "person.fill")
+                        
+                        Spacer()
+                        
+                        Text(points == 1 ? "\(points) Point" : "\(points) points")
+                        
+                        Spacer()
+                        
+                        Text(totalCommentCount == 1 ? "\(totalCommentCount) comment" : "\(totalCommentCount) comments")
                     }
+                    .padding()
+                    .background(.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                    .shadow(radius: 4)
+                    
+                    if vm.isLoadingComments {
+                        ProgressView()
+                    } else {
+                        ForEach(comments) { comment in
+                            SingleCommentView(vm: vm, commentText: comment.text ?? "No Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate)
+                        }
+                    }
+                    
                 }
                 
             }
@@ -113,6 +121,9 @@ struct CommentsView: View {
                     print("Error fetching data using task modifier on CommentsView: \(error)")
                 }
             }
+        }
+        .fullScreenCover(isPresented: $vm.showStoryInComments) {
+            WebViewWrapper(vm: vm, url: storyUrl)
         }
     }
 }

@@ -17,6 +17,10 @@
 		B478F9D328AD83C2002B893C /* PostListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D228AD83C2002B893C /* PostListView.swift */; };
 		B4ABA9E628B803AC006F1E11 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ABA9E528B803AC006F1E11 /* Extensions.swift */; };
 		B4ABA9E828B809E1006F1E11 /* CommentsButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ABA9E728B809E1006F1E11 /* CommentsButtonView.swift */; };
+		B4C1426E28BFA13900585142 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426D28BFA13900585142 /* WebView.swift */; };
+		B4C1427028BFA14700585142 /* WebViewWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* WebViewWrapper.swift */; };
+		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
+		B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */; };
 		B4FFC92C28BD3ACB001D5AB3 /* UIKitViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FFC92B28BD3ACB001D5AB3 /* UIKitViews.swift */; };
 		B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */; };
 /* End PBXBuildFile section */
@@ -33,6 +37,9 @@
 		B478F9D228AD83C2002B893C /* PostListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListView.swift; sourceTree = "<group>"; };
 		B4ABA9E528B803AC006F1E11 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		B4ABA9E728B809E1006F1E11 /* CommentsButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsButtonView.swift; sourceTree = "<group>"; };
+		B4C1426D28BFA13900585142 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		B4C1426F28BFA14700585142 /* WebViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewWrapper.swift; sourceTree = "<group>"; };
+		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
 		B4FFC92B28BD3ACB001D5AB3 /* UIKitViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitViews.swift; sourceTree = "<group>"; };
 		B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -42,6 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,6 +77,7 @@
 			children = (
 				B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */,
 				B478F9CE28AD7E1E002B893C /* Model.swift */,
+				B4C1426F28BFA14700585142 /* WebViewWrapper.swift */,
 				B478F9D028AD8020002B893C /* MainViewModel.swift */,
 				B478F9C228AD77CA002B893C /* ContentView.swift */,
 				B47628C028B8B47C00E491D3 /* CommentsView.swift */,
@@ -76,6 +85,8 @@
 				B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */,
 				B4ABA9E528B803AC006F1E11 /* Extensions.swift */,
 				B4ABA9E728B809E1006F1E11 /* CommentsButtonView.swift */,
+				B4C1426D28BFA13900585142 /* WebView.swift */,
+				B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */,
 				B478F9D228AD83C2002B893C /* PostListView.swift */,
 				B478F9C428AD77CB002B893C /* Assets.xcassets */,
 				B478F9C628AD77CB002B893C /* Preview Content */,
@@ -107,6 +118,9 @@
 			dependencies = (
 			);
 			name = HackerNewsApp;
+			packageProductDependencies = (
+				B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */,
+			);
 			productName = HackerNewsApp;
 			productReference = B478F9BD28AD77CA002B893C /* HackerNewsApp.app */;
 			productType = "com.apple.product-type.application";
@@ -135,6 +149,9 @@
 				Base,
 			);
 			mainGroup = B478F9B428AD77CA002B893C;
+			packageReferences = (
+				B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+			);
 			productRefGroup = B478F9BE28AD77CA002B893C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -162,6 +179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B478F9CF28AD7E1E002B893C /* Model.swift in Sources */,
+				B4C1427028BFA14700585142 /* WebViewWrapper.swift in Sources */,
 				B4ABA9E628B803AC006F1E11 /* Extensions.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B478F9C328AD77CA002B893C /* ContentView.swift in Sources */,
@@ -170,6 +188,8 @@
 				B4ABA9E828B809E1006F1E11 /* CommentsButtonView.swift in Sources */,
 				B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
+				B4C1426E28BFA13900585142 /* WebView.swift in Sources */,
+				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,
 				B478F9D328AD83C2002B893C /* PostListView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -307,6 +327,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -336,6 +357,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -371,6 +393,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B478F9B528AD77CA002B893C /* Project object */;
 }

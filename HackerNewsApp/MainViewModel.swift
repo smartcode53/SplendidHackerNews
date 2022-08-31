@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftSoup
 
 enum StoryType: String {
     case topstories, newstories, beststories
@@ -15,7 +16,12 @@ enum StoryType: String {
 
 class MainViewModel: ObservableObject {
     @Published var stories = [Story]()
-    @Published var isLoading = false
+    @Published var isLoadingPosts = false
+    @Published var isLoadingComments = false
+    @Published var showStoryInPosts = false
+    @Published var showStoryInComments = false
+    
+    @Published var selectedStory: Story? = nil
     
     func getStories() async {
         guard let url = URL(string: "https://hn.algolia.com/api/v1/search?tags=front_page") else { return }
@@ -48,14 +54,24 @@ class MainViewModel: ObservableObject {
     func getComments(for postID: String) async throws -> [Comment] {
         guard let url = URL(string: "https://hn.algolia.com/api/v1/items/\(postID)") else { return [] }
         
+        DispatchQueue.main.async { [weak self] in
+            self?.isLoadingComments = true
+        }
+        
         let (data, _) = try await URLSession.shared.data(from: url)
         
         do {
             let safeData = try JSONDecoder().decode(Item.self, from: data)
+            DispatchQueue.main.async { [weak self] in
+                self?.isLoadingComments = false
+            }
+            
             return safeData.children
         } catch let error {
             print("Decoding error in getComments: \(error)")
         }
+        
+        isLoadingComments = false
         return []
     }
     
@@ -64,6 +80,23 @@ class MainViewModel: ObservableObject {
         return generatedUrl?.host ?? nil
     }
     
-
+    func returnSafeUrl(url: String) -> URL {
+        if let safeUrl = URL(string: url) {
+            return safeUrl
+        } else {
+            return URL(string: "")!
+        }
+    }
+    
+    func parseText(text: String) -> String {
+        do {
+            let document = try SwiftSoup.parse(text)
+            return try document.text(trimAndNormaliseWhitespace: true)
+        } catch let error {
+            print(error)
+        }
+        
+        return ""
+    }
 }
 

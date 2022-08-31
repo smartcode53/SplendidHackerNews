@@ -6,8 +6,11 @@
 //
 
 import SwiftUI
+import SwiftSoup
 
 struct SingleCommentView: View {
+    
+    @ObservedObject var vm: MainViewModel
     
     var commentText: String?
     var commentReplies: [Comment]?
@@ -46,14 +49,18 @@ struct SingleCommentView: View {
             }
             
             if isExpanded {
+//                if let text = commentText {
+//                    Text(text.toCleanHTML)
+//                }
                 if let text = commentText {
-                    Text(text.toCleanHTML)
+                    Text(vm.parseText(text: text))
                 }
+               
                 
                 
                 if commentReplies != nil {
                     ForEach(commentReplies!) { comment in
-                        SingleCommentView(commentText: comment.text ?? "Bad Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate, indentLevel: indentLevel + 1)
+                        SingleCommentView(vm: vm, commentText: comment.text ?? "Bad Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate, indentLevel: indentLevel + 1)
                             .overlay(
                                 Capsule()
                                     .fill(Color.orange)
@@ -73,6 +80,6 @@ struct SingleCommentView: View {
 
 struct SingleCommentView_Previews: PreviewProvider {
     static var previews: some View {
-        SingleCommentView(commentAuthor: "skrillex", commentDate: "12/11/11")
+        SingleCommentView(vm: MainViewModel(), commentAuthor: "skrillex", commentDate: "12/11/11")
     }
 }

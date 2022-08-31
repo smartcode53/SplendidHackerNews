@@ -21,11 +21,18 @@ struct ContentView: View {
         ZStack {
             NavigationView {
                 ScrollView {
-                    if !vm.isLoading {
+                    if !vm.isLoadingPosts {
                         LazyVStack {
                             ForEach(vm.stories, id: \.self.id) { story in
-                                PostListView(vm: vm, title: story.title, url: story.url ?? "google.com", author: story.author, points: story.points, numComments: story.numComments, id: story.id, storyDate: story.storyConvertedDate)
+                                PostListView(vm: vm, storyObject: story, title: story.title, url: story.url ?? "google.com", author: story.author, points: story.points, numComments: story.numComments, id: story.id, storyDate: story.storyConvertedDate)
                             }
+                            
+                        }
+                        .fullScreenCover(item: $vm.selectedStory) { story in
+                            if let storyUrl = story.url {
+                                WebViewWrapper(vm: vm, url: storyUrl)
+                            }
+                            
                         }
                     } else {
                         ProgressView()

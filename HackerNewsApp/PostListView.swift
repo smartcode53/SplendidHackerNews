@@ -11,6 +11,8 @@ struct PostListView: View {
     
     @ObservedObject var vm: MainViewModel
     
+    let storyObject: Story
+    
     let title: String
     let url: String
     let author: String
@@ -22,7 +24,12 @@ struct PostListView: View {
     var body: some View {
         VStack {
             
+            
+            
             imagePlaceholder
+                .onTapGesture {
+                    vm.selectedStory = storyObject
+                }
             
             dateAndScoreLabels
             
@@ -47,15 +54,15 @@ struct PostListView: View {
 extension PostListView {
     
     var imagePlaceholder: some View {
+        
         RoundedRectangle(cornerRadius: 12)
             .fill(.thickMaterial)
             .frame(height: 200)
-        //            .padding()
             .overlay {
                 if let urlDomain = vm.getUrlDomain(for: url) {
                     VStack {
                         HStack {
-                            Text(urlDomain)
+                            Label(urlDomain, systemImage: "arrow.up.forward.app")
                                 .font(.caption.weight(.medium))
                                 .padding(5)
                                 .background(.orange.opacity(0.4))
@@ -71,6 +78,7 @@ extension PostListView {
                     }
                 }
             }
+
     }
     
     var dateAndScoreLabels: some View {
@@ -124,9 +132,9 @@ extension PostListView {
     }
 }
 
-struct PostListView_Previews: PreviewProvider {
-    
-    static var previews: some View {
-        PostListView(vm: MainViewModel(), title: "The effictiveness of the SwiftUI Codable Protocol is unparalleled", url: "google.com", author: "skrillex", points: 12, numComments: 245, id: "456", storyDate: "29894899")
-    }
-}
+//struct PostListView_Previews: PreviewProvider {
+//
+//    static var previews: some View {
+//        PostListView(vm: MainViewModel(), storyObject: , title: "The effictiveness of the SwiftUI Codable Protocol is unparalleled", url: "google.com", author: "skrillex", points: 12, numComments: 245, id: "456", storyDate: "29894899")
+//    }
+//}
