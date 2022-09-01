@@ -12,7 +12,7 @@ extension CommentsView {
     
     var backButton: some View {
         HStack {
-            Image(systemName: "arrow.turn.down.left")
+            Image(systemName: "arrow.backward")
                 .font(.title.weight(.semibold))
                 .onTapGesture {
                     dismiss()
@@ -26,7 +26,7 @@ extension CommentsView {
     var titlePalate: some View {
         HStack {
             VStack(alignment: .leading, spacing: 5) {
-                Text(storyDate)
+                Text(Date.getTimeInterval(with: storyDate))
                     .font(.headline)
                     .foregroundColor(.black.opacity(0.5))
                 

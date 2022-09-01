@@ -10,38 +10,40 @@ import SwiftUI
 
 extension PostListView {
     
-    var image: some View {
-        
-        RoundedRectangle(cornerRadius: 12)
-            .fill(.thickMaterial)
-            .frame(height: 200)
-            .overlay {
-                if let urlDomain = vm.getUrlDomain(for: url) {
-                    VStack {
-                        HStack {
-                            Label(urlDomain, systemImage: "arrow.up.forward.app")
-                                .font(.caption.weight(.medium))
-                                .padding(5)
-                                .background(.orange.opacity(0.4))
-                                .cornerRadius(4)
-                                .padding()
-                                .clipped()
-                            
-                            Spacer()
-                        }
-                        
-                        Spacer()
-                        
-                    }
-                }
-            }
-        
-    }
+//    var image: some View {
+//        
+//        
+//        
+//        RoundedRectangle(cornerRadius: 12)
+//            .fill(.thickMaterial)
+//            .frame(height: 200)
+//            .overlay {
+//                if let urlDomain = vm.getUrlDomain(for: url) {
+//                    VStack {
+//                        HStack {
+//                            Label(urlDomain, systemImage: "arrow.up.forward.app")
+//                                .font(.caption.weight(.medium))
+//                                .padding(5)
+//                                .background(.orange.opacity(0.4))
+//                                .cornerRadius(4)
+//                                .padding()
+//                                .clipped()
+//
+//                            Spacer()
+//                        }
+//
+//                        Spacer()
+//
+//                    }
+//                }
+//            }
+//        
+//    }
     
     var dateAndScoreLabels: some View {
         HStack {
             
-            Text(storyDate)
+            Text(Date.getTimeInterval(with: storyDate))
                 .font(.subheadline.weight(.heavy))
             
             Spacer()
@@ -74,6 +76,7 @@ extension PostListView {
                 .foregroundStyle(.secondary)
             
             Spacer()
+            
             
             NavigationLink {
                 CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id, storyUrl: url)

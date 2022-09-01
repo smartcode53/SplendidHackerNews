@@ -16,7 +16,7 @@ struct Story: Identifiable, Codable {
     var url: String?
     let author: String
     let points: Int
-    let numComments: Int
+    let numComments: Int?
     let objectID: String
     let createdAtI: Int
     

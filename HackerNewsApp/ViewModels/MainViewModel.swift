@@ -98,5 +98,35 @@ class MainViewModel: ObservableObject {
         
         return ""
     }
+    
+    func getImage(from url: String) {
+        guard let safeUrl = URL(string: url) else { return }
+        
+//        safeUrl.oca.fetchInformation { information, error in
+//            if let information {
+//                print(String(describing: information.imageURL))
+//            } else if let error {
+//                print("\(error)")
+//            }
+//        }
+        
+        
+//        do {
+//            let htmlString = try String(contentsOf: safeUrl, encoding: .utf8)
+//            let doc = try SwiftSoup.parse(htmlString)
+//            guard let firstImage = try doc.select("a[href~=(?i)\\.(png|jpe?g)]").first() else { return nil }
+//
+//            guard let imageUrl = URL(string: try firstImage.attr("href")) else { return nil }
+//
+//            return imageUrl
+//
+//
+//
+//        } catch let error {
+//            print("There was an error converting the website data to HTML: \(error)")
+//        }
+        
+//        return nil
+    }
 }
 

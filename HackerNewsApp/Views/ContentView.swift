@@ -12,8 +12,7 @@ struct ContentView: View {
     @StateObject var vm = MainViewModel()
     
     var body: some View {
-        NavigationView {
-            
+        NavigationStack {
             ScrollView {
                 if !vm.isLoadingPosts {
                     posts
@@ -26,6 +25,7 @@ struct ContentView: View {
             .background(.orange)
             
         }
+        .tint(.white)
         .task {
             await vm.getStories()
         }

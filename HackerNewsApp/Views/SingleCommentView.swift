@@ -15,7 +15,7 @@ struct SingleCommentView: View {
     var commentText: String?
     var commentReplies: [Comment]?
     var commentAuthor: String
-    var commentDate: String
+    var commentDate: Int
     
     @State var indentLevel: Double = 0
     @State var isExpanded = true
@@ -30,25 +30,29 @@ struct SingleCommentView: View {
             
             commentMetaInfo
             
+            
             if isExpanded {
                 
                 if let text = commentText {
                     Text(vm.parseText(text: text))
                         .multilineTextAlignment(.leading)
-                        .minimumScaleFactor(0.5)
+                        .minimumScaleFactor(0.7)
                 }
                 
+                Spacer()
                 
                 if commentReplies != nil {
-                    ForEach(commentReplies!) { comment in
-                        SingleCommentView(vm: vm, commentText: comment.text ?? "Bad Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate, indentLevel: indentLevel + 1)
-                            .overlay(
-                                Capsule()
-                                    .fill(Color.orange)
-                                    .frame(width: 1)
-                                    ,
-                                alignment: .leading
-                            )
+                    LazyVStack {
+                        ForEach(commentReplies!) { comment in
+                            SingleCommentView(vm: vm, commentText: comment.text ?? "Bad Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.createdAtI, indentLevel: indentLevel + 1)
+                                .overlay(
+                                    Capsule()
+                                        .fill(Color.orange)
+                                        .frame(width: 1)
+                                        ,
+                                    alignment: .leading
+                                )
+                        }
                     }
                 }
             }
@@ -61,6 +65,6 @@ struct SingleCommentView: View {
 
 struct SingleCommentView_Previews: PreviewProvider {
     static var previews: some View {
-        SingleCommentView(vm: MainViewModel(), commentAuthor: "skrillex", commentDate: "12/11/11")
+        SingleCommentView(vm: MainViewModel(), commentAuthor: "skrillex", commentDate: 122344334)
     }
 }

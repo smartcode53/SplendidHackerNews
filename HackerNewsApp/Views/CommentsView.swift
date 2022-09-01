@@ -13,12 +13,13 @@ struct CommentsView: View {
     @ObservedObject var vm: MainViewModel
     @State var comments = [Comment]()
     @State var isExpanded = true
+    @GestureState var dragOffset = CGSize.zero
     
     let storyTitle: String
     let storyAuthor: String
     let points: Int
     let totalCommentCount: Int
-    let storyDate: String
+    let storyDate: Int
     let storyId: String
     let storyUrl: String
     
@@ -41,15 +42,17 @@ struct CommentsView: View {
                     if vm.isLoadingComments {
                         ProgressView()
                     } else {
-                        ForEach(comments) { comment in
-                            SingleCommentView(vm: vm, commentText: comment.text ?? "No Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.commentDate)
+                        LazyVStack {
+                            ForEach(comments) { comment in
+                                if let commentText = comment.text {
+                                    SingleCommentView(vm: vm, commentText: commentText, commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.createdAtI)
+                                }
+                            }
                         }
                     }
-                    
                 }
-                
             }
-            .navigationBarHidden(true)
+            
             .task {
                 do {
                     comments = try await vm.getComments(for: storyId)
@@ -61,12 +64,18 @@ struct CommentsView: View {
         .fullScreenCover(isPresented: $vm.showStoryInComments) {
             SafariView(vm: vm, url: storyUrl)
         }
+        .toolbar(.hidden, in: .navigationBar)
+        .gesture(DragGesture().updating($dragOffset, body: { value, state, transaction in
+            if value.startLocation.x < 20 && value.translation.width > 100 {
+                dismiss()
+            }
+        }))
     }
 }
 
 struct CommentsView_Previews: PreviewProvider {
     static var previews: some View {
-        CommentsView(vm: MainViewModel(), storyTitle: "Something you aren't aware of in technology", storyAuthor: "skrillex", points: 24, totalCommentCount: 12, storyDate: "Date", storyId: "someID", storyUrl: "google.com")
+        CommentsView(vm: MainViewModel(), storyTitle: "Something you aren't aware of in technology", storyAuthor: "skrillex", points: 24, totalCommentCount: 12, storyDate: 343434525, storyId: "someID", storyUrl: "google.com")
     }
 }
 

@@ -10,6 +10,7 @@ import SwiftUI
 struct PostListView: View {
     
     @ObservedObject var vm: MainViewModel
+    @State var downloadedImageURL: URL?
     
     let storyObject: Story
     
@@ -19,15 +20,29 @@ struct PostListView: View {
     let points: Int
     let numComments: Int
     let id: String
-    let storyDate: String
+    let storyDate: Int
+    
     
     var body: some View {
         VStack {
             
-            image
-                .onTapGesture {
-                    vm.selectedStory = storyObject
+            if let safeUrl = downloadedImageURL {
+                AsyncImage(url: safeUrl) { image in
+                    image
+                        .resizable()
+                        .frame(height: 200)
+                        .cornerRadius(12)
+                        .onTapGesture {
+                            vm.selectedStory = storyObject
+                        }
+                } placeholder: {
+                    ProgressView()
                 }
+                
+            } else {
+                EmptyView()
+            }
+                
             
             dateAndScoreLabels
             
@@ -45,6 +60,9 @@ struct PostListView: View {
         .cornerRadius(12)
         .padding(.horizontal)
         .padding(.vertical, 5)
+//        .task {
+//            downloadedImageURL = await vm.getImage(from: url)
+//        }
     }
 }
 

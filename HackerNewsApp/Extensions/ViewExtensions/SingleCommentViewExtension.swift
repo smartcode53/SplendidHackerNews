@@ -15,14 +15,14 @@ extension SingleCommentView {
             Text(commentAuthor)
                 .padding(.trailing)
             
-            Text(commentDate)
+            Text(Date.getTimeInterval(with: commentDate))
             
             Spacer()
             
-            Image(systemName: "arrow.up.square.fill")
+            Image(systemName: "chevron.up")
                 .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
         }
-        .font(.headline.weight(.semibold))
+        .font(.callout)
         .foregroundColor(.orange)
         .padding(.bottom, 10)
         .onTapGesture {
@@ -32,5 +32,4 @@ extension SingleCommentView {
             
         }
     }
-    
 }
