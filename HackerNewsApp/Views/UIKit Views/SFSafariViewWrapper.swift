@@ -10,9 +10,9 @@ import SwiftUI
 import SafariServices
 
 struct SFSafariViewWrapper: UIViewControllerRepresentable {
-    @Environment(\.dismiss) var dismissButton
     
     let url: URL
+    
     var safariViewController: SFSafariViewController {
         let controller = SFSafariViewController(url: url)
         controller.preferredControlTintColor = .white
@@ -27,15 +27,5 @@ struct SFSafariViewWrapper: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
         return
-    }
-    
-    func makeCoordinator() -> SFSafariCoordinator {
-        SFSafariCoordinator()
-    }
-    
-    class SFSafariCoordinator: NSObject, SFSafariViewControllerDelegate {
-        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
-            
-        }
     }
 }

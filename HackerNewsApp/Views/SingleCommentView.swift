@@ -27,35 +27,16 @@ struct SingleCommentView: View {
     var body: some View {
         
         VStack(alignment: .leading) {
-            HStack {
-                Text(commentAuthor)
-                    .padding(.trailing)
-                
-                Text(commentDate)
-                
-                Spacer()
-                
-                Image(systemName: "arrow.up.square.fill")
-                    .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
-            }
-            .font(.headline.weight(.semibold))
-            .foregroundColor(.orange)
-            .padding(.bottom, 10)
-            .onTapGesture {
-                withAnimation(.easeInOut) {
-                    isExpanded.toggle()
-                }
-                
-            }
+            
+            commentMetaInfo
             
             if isExpanded {
-//                if let text = commentText {
-//                    Text(text.toCleanHTML)
-//                }
+                
                 if let text = commentText {
                     Text(vm.parseText(text: text))
+                        .multilineTextAlignment(.leading)
+                        .minimumScaleFactor(0.5)
                 }
-               
                 
                 
                 if commentReplies != nil {
