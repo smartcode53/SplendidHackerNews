@@ -21,11 +21,11 @@
 		B4F0327528C07B6E00E463BF /* Story.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327428C07B6E00E463BF /* Story.swift */; };
 		B4F0327728C07C0B00E463BF /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327628C07C0B00E463BF /* Item.swift */; };
 		B4F0327928C07C9300E463BF /* Comment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327828C07C9300E463BF /* Comment.swift */; };
-		B4F0327F28C07DA200E463BF /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327E28C07DA200E463BF /* DateExtension.swift */; };
 		B4F0328428C0805400E463BF /* ContentViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328328C0805400E463BF /* ContentViewExtension.swift */; };
 		B4F0328628C081DA00E463BF /* PostListViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328528C081DA00E463BF /* PostListViewExtension.swift */; };
 		B4F0328928C083CF00E463BF /* CommentsViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328828C083CF00E463BF /* CommentsViewExtension.swift */; };
 		B4F0328B28C0883D00E463BF /* SingleCommentViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328A28C0883D00E463BF /* SingleCommentViewExtension.swift */; };
+		B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328C28C08FC500E463BF /* DateExtension.swift */; };
 		B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,11 +44,11 @@
 		B4F0327428C07B6E00E463BF /* Story.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Story.swift; sourceTree = "<group>"; };
 		B4F0327628C07C0B00E463BF /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		B4F0327828C07C9300E463BF /* Comment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comment.swift; sourceTree = "<group>"; };
-		B4F0327E28C07DA200E463BF /* DateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
 		B4F0328328C0805400E463BF /* ContentViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewExtension.swift; sourceTree = "<group>"; };
 		B4F0328528C081DA00E463BF /* PostListViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListViewExtension.swift; sourceTree = "<group>"; };
 		B4F0328828C083CF00E463BF /* CommentsViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewExtension.swift; sourceTree = "<group>"; };
 		B4F0328A28C0883D00E463BF /* SingleCommentViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentViewExtension.swift; sourceTree = "<group>"; };
+		B4F0328C28C08FC500E463BF /* DateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
 		B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -137,7 +137,7 @@
 			isa = PBXGroup;
 			children = (
 				B4F0328228C07FAA00E463BF /* ViewExtensions */,
-				B4F0327E28C07DA200E463BF /* DateExtension.swift */,
+				B4F0328C28C08FC500E463BF /* DateExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -247,6 +247,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
+				B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */,
 				B4F0328928C083CF00E463BF /* CommentsViewExtension.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
@@ -255,7 +256,6 @@
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
 				B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */,
 				B4F0328428C0805400E463BF /* ContentViewExtension.swift in Sources */,
-				B4F0327F28C07DA200E463BF /* DateExtension.swift in Sources */,
 				B4F0328B28C0883D00E463BF /* SingleCommentViewExtension.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
