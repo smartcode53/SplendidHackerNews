@@ -30,6 +30,7 @@ struct PostListView: View {
                 AsyncImage(url: safeUrl) { image in
                     image
                         .resizable()
+                        .scaledToFill()
                         .frame(height: 200)
                         .cornerRadius(12)
                         .onTapGesture {
@@ -60,9 +61,10 @@ struct PostListView: View {
         .cornerRadius(12)
         .padding(.horizontal)
         .padding(.vertical, 5)
-//        .task {
-//            downloadedImageURL = await vm.getImage(from: url)
-//        }
+        .task {
+            downloadedImageURL = await vm.getImage(from: url)
+//            await vm.getImage(from: url)
+        }
     }
 }
 

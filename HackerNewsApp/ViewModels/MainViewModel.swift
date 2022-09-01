@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftSoup
+import OpenGraph
 
 enum StoryType: String {
     case topstories, newstories, beststories
@@ -99,34 +100,23 @@ class MainViewModel: ObservableObject {
         return ""
     }
     
-    func getImage(from url: String) {
-        guard let safeUrl = URL(string: url) else { return }
-        
-//        safeUrl.oca.fetchInformation { information, error in
-//            if let information {
-//                print(String(describing: information.imageURL))
-//            } else if let error {
-//                print("\(error)")
-//            }
-//        }
+    func getImage(from url: String) async -> URL? {
+        let atsSecureUrl = url.contains("https") ? url : url.replacingOccurrences(of: "http", with: "https")
+        guard let safeUrl = URL(string: atsSecureUrl) else { return nil }
         
         
-//        do {
-//            let htmlString = try String(contentsOf: safeUrl, encoding: .utf8)
-//            let doc = try SwiftSoup.parse(htmlString)
-//            guard let firstImage = try doc.select("a[href~=(?i)\\.(png|jpe?g)]").first() else { return nil }
-//
-//            guard let imageUrl = URL(string: try firstImage.attr("href")) else { return nil }
-//
-//            return imageUrl
-//
-//
-//
-//        } catch let error {
-//            print("There was an error converting the website data to HTML: \(error)")
-//        }
+        do {
+            let og = try await OpenGraph.fetch(url: safeUrl)
+            guard let ogUrl = og[.image] else { return nil }
+            if let finalUrl = URL(string: ogUrl) {
+                return finalUrl
+            }
+            
+        } catch let error {
+            print("There was an error fetching the image: \(error)")
+        }
         
-//        return nil
+        return nil
     }
 }
 

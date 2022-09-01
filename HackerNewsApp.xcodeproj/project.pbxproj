@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */ = {isa = PBXBuildFile; productRef = B46356EB28C1055D00D97E84 /* OpenGraph */; };
 		B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47628C028B8B47C00E491D3 /* CommentsView.swift */; };
 		B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */; };
 		B478F9C328AD77CA002B893C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9C228AD77CA002B893C /* ContentView.swift */; };
@@ -71,6 +72,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */,
+				B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +212,7 @@
 			name = HackerNewsApp;
 			packageProductDependencies = (
 				B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */,
+				B46356EB28C1055D00D97E84 /* OpenGraph */,
 			);
 			productName = HackerNewsApp;
 			productReference = B478F9BD28AD77CA002B893C /* HackerNewsApp.app */;
@@ -241,6 +244,7 @@
 			mainGroup = B478F9B428AD77CA002B893C;
 			packageReferences = (
 				B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */,
 			);
 			productRefGroup = B478F9BE28AD77CA002B893C /* Products */;
 			projectDirPath = "";
@@ -427,7 +431,6 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				"OTHER_LDFLAGS[sdk=iphoneos*]" = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -458,7 +461,6 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				"OTHER_LDFLAGS[sdk=iphoneos*]" = "-lxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -491,6 +493,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/satoshi-takano/OpenGraph";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
@@ -502,6 +512,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		B46356EB28C1055D00D97E84 /* OpenGraph */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */;
+			productName = OpenGraph;
+		};
 		B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */;
