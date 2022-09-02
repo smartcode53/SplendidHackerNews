@@ -13,7 +13,8 @@ extension ContentView  {
     var posts: some View {
         LazyVStack {
             ForEach(vm.stories, id: \.self.id) { story in
-                PostListView(vm: vm, storyObject: story, title: story.title, url: story.url ?? "google.com", author: story.author, points: story.points, numComments: story.numComments ?? 0, id: story.id, storyDate: story.createdAtI)
+                PostListView(vm: vm, storyObject: story, title: story.title, url: story.url, author: story.author, points: story.points, numComments: story.numComments, id: story.id, storyDate: story.createdAtI)
+                    .shadow(radius: 2)
             }
             
         }

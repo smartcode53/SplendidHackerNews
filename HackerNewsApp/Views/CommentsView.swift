@@ -18,10 +18,10 @@ struct CommentsView: View {
     let storyTitle: String
     let storyAuthor: String
     let points: Int
-    let totalCommentCount: Int
+    let totalCommentCount: Int?
     let storyDate: Int
     let storyId: String
-    let storyUrl: String
+    let storyUrl: String?
     
     var body: some View {
         ZStack {

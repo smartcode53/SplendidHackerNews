@@ -33,9 +33,9 @@ class MainViewModel: ObservableObject {
             let (data, _) = try await URLSession.shared.data(from: url)
             print("Data recieved back from the server successfully")
             
-//            let decoder = JSONDecoder()
-//            decoder.keyDecodingStrategy = .convertFromSnakeCase
-//
+            //            let decoder = JSONDecoder()
+            //            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            //
             print("Decoder configured successfully")
             
             do {
@@ -77,8 +77,10 @@ class MainViewModel: ObservableObject {
     }
     
     func getUrlDomain(for url: String) -> String? {
-        let generatedUrl = URL(string: url)
-        return generatedUrl?.host ?? nil
+        if let generatedUrl = URL(string: url) {
+            return generatedUrl.host
+        }
+        return nil
     }
     
     func returnSafeUrl(url: String) -> URL {
@@ -101,7 +103,7 @@ class MainViewModel: ObservableObject {
     }
     
     func getImage(from url: String) async -> URL? {
-        let atsSecureUrl = url.contains("https") ? url : url.replacingOccurrences(of: "http", with: "https")
+        let atsSecureUrl = url.contains("https") ? url : url.replacingOccurrences(of: "http", with: "https", range: url.startIndex..<url.index(url.startIndex, offsetBy: 6))
         guard let safeUrl = URL(string: atsSecureUrl) else { return nil }
         
         

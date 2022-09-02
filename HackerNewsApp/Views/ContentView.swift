@@ -13,19 +13,49 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                if !vm.isLoadingPosts {
-                    posts
-                } else {
-                    ProgressView()
+            
+            ZStack {
+                
+                Color("BackgroundColor")
+                
+                VStack(spacing: 0) {
+                    
+                    ZStack {
+                        HStack {
+                            
+                            Text("Stories")
+                                .font(.largeTitle.weight(.bold))
+                                .underline(true, pattern: .solid, color: .orange)
+                            
+                            Spacer()
+                        }
+                        .padding()
+                    }
+                    .background(Color("CardColor"))
+                    
+                    Rectangle()
+                        .fill(Color("NavigationSeparatorLine"))
+                        .frame(height: 2)
+                    
+                    ScrollView {
+                        if !vm.isLoadingPosts {
+                            posts
+                                .padding(.top)
+                        } else {
+                            ProgressView()
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .toolbar(.hidden)
                 }
             }
-            .navigationTitle("Stories")
-            .frame(maxWidth: .infinity)
-            .background(.orange)
+            
+            
+            
+            
+            
             
         }
-        .tint(.white)
         .task {
             await vm.getStories()
         }

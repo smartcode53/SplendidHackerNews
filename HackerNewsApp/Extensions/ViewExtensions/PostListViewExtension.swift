@@ -77,13 +77,18 @@ extension PostListView {
             
             Spacer()
             
-            
-            NavigationLink {
-                CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id, storyUrl: url)
-            } label: {
+            if let numComments {
+                NavigationLink {
+                    CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id, storyUrl: url)
+                } label: {
+                    commentsButton
+                        .foregroundStyle(.primary)
+                }
+            } else {
                 commentsButton
                     .foregroundStyle(.primary)
             }
+            
             
             
         }
@@ -96,13 +101,13 @@ extension PostListView {
             Image(systemName: "text.bubble.fill")
                 .font(.title3.weight(.heavy))
             
-            Text(String(numComments))
+            Text(String(numComments ?? 0))
                 .font(.headline.weight(.heavy))
             
         }
         .padding()
-        .background(.orange)
+        .background(.black)
         .cornerRadius(12)
-        .foregroundColor(.white)
+        .foregroundColor(.orange)
     }
 }

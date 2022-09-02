@@ -33,7 +33,7 @@ extension CommentsView {
                 Text(storyTitle)
                     .font(.title2.weight(.bold))
                 
-                if let urlDomain = vm.getUrlDomain(for: storyUrl) {
+                if let urlDomain = vm.getUrlDomain(for: storyUrl ?? "https://google.com") {
                     Text(urlDomain)
                         .font(.headline)
                         .foregroundColor(.black.opacity(0.5))
@@ -69,7 +69,7 @@ extension CommentsView {
             
             Spacer()
             
-            Text(totalCommentCount == 1 ? "\(totalCommentCount) comment" : "\(totalCommentCount) comments")
+            Text(totalCommentCount == 1 ? "\(totalCommentCount ?? 0) comment" : "\(totalCommentCount ?? 0) comments")
         }
         .padding()
         .background(.black)
