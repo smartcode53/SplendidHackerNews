@@ -43,6 +43,7 @@ struct PostListView: View {
                 // Story Title
                 Text(url != nil ? "\(title) \(Image(systemName: "arrow.up.forward.app"))" : "\(title)")
                     .font(.title2.weight(.bold))
+                    .foregroundColor(Color("PostTitle"))
                     .padding(.bottom, 16)
                     .onTapGesture {
                         if url != nil {
@@ -73,6 +74,7 @@ struct PostListView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(maxWidth: .infinity, maxHeight: 300)
+                        .frame(height: 200)
                 } placeholder: {
                     ProgressView()
                 }
@@ -87,16 +89,23 @@ struct PostListView: View {
                     
                     Spacer()
                     
-                    Image(systemName: "square.and.arrow.up.fill")
-                        .actionButton()
+                    if let url {
+                        ShareLink(item: url) {
+                            Image(systemName: "square.and.arrow.up.fill")
+                        }
+                        .createPressableButton()
+                    }
+                    
+                    
+                    
                     
                     if let numComments {
                         NavigationLink {
                             CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id, storyUrl: url ?? nil)
                         } label: {
                             Label(String(numComments), systemImage: "bubble.right.fill")
-                                .actionButton()
                         }
+                        .createPressableButton()
                     }
                 }
                 .padding()

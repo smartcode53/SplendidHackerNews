@@ -34,6 +34,9 @@ struct CommentsView: View {
                 Image(systemName: "arrow.left")
                     .font(.title.weight(.semibold))
                     .foregroundColor(.primary)
+                    .onTapGesture {
+                        dismiss()
+                    }
                 
                 Spacer()
             }
@@ -57,6 +60,7 @@ struct CommentsView: View {
                         Text(storyUrl == nil ? "\(storyTitle)" : "\(storyTitle) \(Image(systemName: "arrow.up.forward.app"))")
                             .font(.title2.weight(.bold))
                             .padding(.bottom, 12)
+                            .foregroundColor(Color("PostTitle"))
                             .onTapGesture {
                                 vm.showStoryInComments = true
                             }
@@ -87,8 +91,14 @@ struct CommentsView: View {
                         
                         Spacer()
                         
-                        Image(systemName: "square.and.arrow.up.fill")
-                            .actionButton()
+                        if let storyUrl {
+                            ShareLink(item: storyUrl) {
+                                Image(systemName: "square.and.arrow.up.fill")
+                            }
+                            .createPressableButton()
+                        }
+                        
+                        
                     }
                     .padding()
                     
@@ -121,7 +131,7 @@ struct CommentsView: View {
                         }
                     }
                 }
-                .background(.white)
+                .background(Color("BackgroundColor"))
                 .task {
                     do {
                         comments = try await vm.getComments(for: storyId)

@@ -16,6 +16,7 @@
 		B478F9C828AD77CB002B893C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C728AD77CB002B893C /* Preview Assets.xcassets */; };
 		B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D028AD8020002B893C /* MainViewModel.swift */; };
 		B478F9D328AD83C2002B893C /* PostListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D228AD83C2002B893C /* PostListView.swift */; };
+		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
 		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
 		B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */; };
@@ -54,6 +55,7 @@
 		B478F9C728AD77CB002B893C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B478F9D028AD8020002B893C /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		B478F9D228AD83C2002B893C /* PostListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListView.swift; sourceTree = "<group>"; };
+		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
 		B4F0327228C07B4300E463BF /* Results.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Results.swift; sourceTree = "<group>"; };
@@ -172,6 +174,7 @@
 				B4191D3A28C3299F00B86618 /* ViewModifiers */,
 				B4F0328228C07FAA00E463BF /* ViewExtensions */,
 				B4F0328C28C08FC500E463BF /* DateExtension.swift */,
+				B4B8427428C34520000D2D8F /* PressableButton.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -289,6 +292,7 @@
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
 				B4F0327928C07C9300E463BF /* Comment.swift in Sources */,
+				B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */,
 				B478F9C328AD77CA002B893C /* ContentView.swift in Sources */,
 				B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */,
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,

@@ -59,7 +59,7 @@ struct SingleCommentView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
+        .background(Color("CardColor"))
     }
 }
 

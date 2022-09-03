@@ -24,7 +24,7 @@ extension SingleCommentView {
                 .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
         }
         .font(.callout)
-        .background(.white)
+        .background(Color("CardColor"))
         .padding(.bottom, 10)
         .foregroundColor(.orange)
         .onTapGesture {
