@@ -30,6 +30,7 @@ struct PostListView: View {
         VStack {
             
             VStack(alignment: .leading, spacing: 0) {
+                
                 // Domain Name
                 if let urlDomain {
                     Text(urlDomain)
@@ -50,7 +51,6 @@ struct PostListView: View {
                         
                     }
                 
-                
                 // Meta info
                 HStack {
                     Text(Date.getTimeInterval(with: storyDate))
@@ -65,7 +65,6 @@ struct PostListView: View {
                 .font(.subheadline)
             }
             .padding([.horizontal, .top])
-            
             
             // Story Image
             if let downloadedImageURL {
@@ -89,25 +88,15 @@ struct PostListView: View {
                     Spacer()
                     
                     Image(systemName: "square.and.arrow.up.fill")
-                        .font(.title3.weight(.bold))
-                        .padding(.horizontal)
-                        .background(
-                            Color.orange
-                                .frame(height: 40)
-                                .cornerRadius(10)
-                        )
+                        .actionButton()
                     
                     if let numComments {
-                        
-                        Label(String(numComments), systemImage: "bubble.right.fill")
-                            .font(.title3.weight(.bold))
-                            .padding(.horizontal)
-                            .background(
-                                Color.orange
-                                    .frame(height: 40)
-                                    .cornerRadius(10)
-                            )
-                        
+                        NavigationLink {
+                            CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id, storyUrl: url ?? nil)
+                        } label: {
+                            Label(String(numComments), systemImage: "bubble.right.fill")
+                                .actionButton()
+                        }
                     }
                 }
                 .padding()
@@ -127,55 +116,6 @@ struct PostListView: View {
                 downloadedImageURL = await vm.getImage(from: url)
             }
         }
-        
-        //        VStack {
-        //            if url != nil {
-        //                if let downloadedImageURL {
-        //                    AsyncImage(url: downloadedImageURL) { image in
-        //                        image
-        //                            .resizable()
-        //                            .scaledToFill()
-        //                            .frame(height: 200)
-        //                            .cornerRadius(1)
-        //                            .onTapGesture {
-        //                                vm.selectedStory = storyObject
-        //                            }
-        //                    } placeholder: {
-        //                        ProgressView()
-        //                    }
-        //
-        //                } else {
-        //                    ZStack {
-        //                        ProgressView()
-        //                    }
-        //                    .frame(height: 200)
-        //                    .cornerRadius(12)
-        //                }
-        //            }
-        //
-        //
-        //
-        //            dateAndScoreLabels
-        //
-        //            VStack(alignment: .leading) {
-        //
-        //                storyTitle
-        //
-        //                userAndCommentsLabels
-        //
-        //            }
-        //            .padding(.horizontal)
-        //
-        //        }
-        //        .background(.white)
-        //        .cornerRadius(12)
-        //        .padding(.horizontal)
-        //        .padding(.vertical, 5)
-        //        .task {
-        //            if let url {
-        //                downloadedImageURL = await vm.getImage(from: url)
-        //            }
-        //        }
     }
 }
 

@@ -34,7 +34,7 @@ struct ContentView: View {
                     .background(Color("CardColor"))
                     
                     Rectangle()
-                        .fill(Color("NavigationSeparatorLine"))
+                        .fill(.primary)
                         .frame(height: 2)
                     
                     ScrollView {

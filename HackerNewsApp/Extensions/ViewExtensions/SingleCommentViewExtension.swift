@@ -19,12 +19,14 @@ extension SingleCommentView {
             
             Spacer()
             
+            
             Image(systemName: "chevron.up")
                 .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
         }
         .font(.callout)
-        .foregroundColor(.orange)
+        .background(.white)
         .padding(.bottom, 10)
+        .foregroundColor(.orange)
         .onTapGesture {
             withAnimation(.easeInOut) {
                 isExpanded.toggle()

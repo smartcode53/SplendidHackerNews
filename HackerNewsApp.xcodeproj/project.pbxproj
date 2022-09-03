@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */; };
 		B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */ = {isa = PBXBuildFile; productRef = B46356EB28C1055D00D97E84 /* OpenGraph */; };
 		B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47628C028B8B47C00E491D3 /* CommentsView.swift */; };
 		B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */; };
@@ -44,6 +45,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonsViewModifier.swift; sourceTree = "<group>"; };
 		B47628C028B8B47C00E491D3 /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsView.swift; sourceTree = "<group>"; };
 		B478F9BD28AD77CA002B893C /* HackerNewsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HackerNewsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HackerNewsAppApp.swift; sourceTree = "<group>"; };
@@ -79,6 +81,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B4191D3A28C3299F00B86618 /* ViewModifiers */ = {
+			isa = PBXGroup;
+			children = (
+				B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */,
+			);
+			path = ViewModifiers;
+			sourceTree = "<group>";
+		};
 		B46E0AF928C0FFDC00ECAD45 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -159,6 +169,7 @@
 		B4F0327B28C07D8E00E463BF /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				B4191D3A28C3299F00B86618 /* ViewModifiers */,
 				B4F0328228C07FAA00E463BF /* ViewExtensions */,
 				B4F0328C28C08FC500E463BF /* DateExtension.swift */,
 			);
@@ -279,6 +290,7 @@
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
 				B4F0327928C07C9300E463BF /* Comment.swift in Sources */,
 				B478F9C328AD77CA002B893C /* ContentView.swift in Sources */,
+				B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */,
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
 				B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */,
 				B4F0328428C0805400E463BF /* ContentViewExtension.swift in Sources */,

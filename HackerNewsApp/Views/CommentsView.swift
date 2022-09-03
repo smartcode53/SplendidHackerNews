@@ -12,6 +12,7 @@ struct CommentsView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var vm: MainViewModel
     @State var comments = [Comment]()
+    @State var urlDomain: String?
     @State var isExpanded = true
     @GestureState var dragOffset = CGSize.zero
     
@@ -24,23 +25,92 @@ struct CommentsView: View {
     let storyUrl: String?
     
     var body: some View {
-        ZStack {
+        
+        VStack(spacing: 0) {
             
-            Color.orange
-                .ignoresSafeArea()
+            // Navigation Back Button
+            HStack {
+                
+                Image(systemName: "arrow.left")
+                    .font(.title.weight(.semibold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
+            .padding(.bottom, 30)
+            .padding(.leading, 10)
+            .background(Color("CardColor"))
             
-            VStack {
+            ScrollView {
+                // Top section (Info Card with back navigation button)
+                VStack {
+                    
+                    // Domain, Title, and meta info
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let urlDomain {
+                            Text(urlDomain)
+                                .foregroundColor(Color("PostDateName"))
+                                .font(.headline)
+                                .padding(.bottom, 5)
+                        }
+                        
+                        Text(storyUrl == nil ? "\(storyTitle)" : "\(storyTitle) \(Image(systemName: "arrow.up.forward.app"))")
+                            .font(.title2.weight(.bold))
+                            .padding(.bottom, 12)
+                            .onTapGesture {
+                                vm.showStoryInComments = true
+                            }
+                        
+                        HStack {
+                            Text(Date.getTimeInterval(with: storyDate))
+                            Text("|")
+                                .foregroundColor(Color("DateNameSeparator"))
+                            Text(storyAuthor)
+                            
+                            Spacer()
+                        }
+                        .foregroundColor(Color("PostDateName"))
+                        .font(.subheadline)
+                    }
+                    .padding(.bottom, 35)
+                    .padding(.horizontal)
+                    
+                    Rectangle()
+                        .fill(.orange.opacity(0.21))
+                        .frame(height: 2)
+                    
+                    // Points and Action Button
+                    HStack {
+                        Text(points == 1 ? "\(points) point" : "\(points) points")
+                            .foregroundColor(.orange)
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "square.and.arrow.up.fill")
+                            .actionButton()
+                    }
+                    .padding()
+                    
+                    Rectangle()
+                        .frame(height: 2)
+                        .foregroundColor(.primary)
+                }
+                .background(Color("CardColor"))
                 
-                backButton
+                // Comment count
+                HStack {
+                    Text("\(totalCommentCount ?? 0) comments")
+                        .padding()
+                        .font(.title2.weight(.bold))
+                    
+                    Spacer()
+                }
                 
-                ScrollView {
-                    
-                    titlePalate
-                    
-                    metaInfoPalate
-                    
+                VStack {
                     if vm.isLoadingComments {
                         ProgressView()
+                            
                     } else {
                         LazyVStack {
                             ForEach(comments) { comment in
@@ -51,14 +121,25 @@ struct CommentsView: View {
                         }
                     }
                 }
+                .background(.white)
+                .task {
+                    do {
+                        comments = try await vm.getComments(for: storyId)
+                    } catch let error {
+                        print("Error fetching data using task modifier on CommentsView: \(error)")
+                    }
+                }
+                
+                Spacer()
             }
             
-            .task {
-                do {
-                    comments = try await vm.getComments(for: storyId)
-                } catch let error {
-                    print("Error fetching data using task modifier on CommentsView: \(error)")
-                }
+            
+            
+        }
+        .background(Color("BackgroundColor"))
+        .onAppear {
+            if let storyUrl {
+                urlDomain = vm.getUrlDomain(for: storyUrl)
             }
         }
         .fullScreenCover(isPresented: $vm.showStoryInComments) {
@@ -70,6 +151,28 @@ struct CommentsView: View {
                 dismiss()
             }
         }))
+        
+//        ZStack {
+//
+//            Color.orange
+//                .ignoresSafeArea()
+//
+//            VStack {
+//
+//                backButton
+//
+//                ScrollView {
+//
+//                    titlePalate
+//
+//                    metaInfoPalate
+//
+             
+//                }
+//            }
+//
+            
+//        }
     }
 }
 

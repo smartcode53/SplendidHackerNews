@@ -53,7 +53,7 @@ struct Story: Identifiable, Codable {
         self.url = try container.decode(String?.self, forKey: .url)
         self.author = try container.decode(String.self, forKey: .author)
         self.points = try container.decode(Int.self, forKey: .points)
-        self.numComments = try container.decode(Int.self, forKey: .numComments)
+        self.numComments = try container.decode(Int?.self, forKey: .numComments)
         self.objectID = try container.decode(String.self, forKey: .objectID)
         self.createdAtI = try container.decode(Int.self, forKey: .createdAtI)
     }
