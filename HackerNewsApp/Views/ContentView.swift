@@ -57,9 +57,9 @@ struct ContentView: View {
             
             
         }
-        .task {
-            await vm.getStories()
-        }
+//        .task {
+//            await vm.getStories()
+//        }
     }
 }
 

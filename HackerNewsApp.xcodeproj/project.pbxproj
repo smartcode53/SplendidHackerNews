@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */; };
+		B4304C5E28C5397600071713 /* Cache in Frameworks */ = {isa = PBXBuildFile; productRef = B4304C5D28C5397600071713 /* Cache */; };
+		B4304C6028C5399E00071713 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4304C5F28C5399E00071713 /* NetworkManager.swift */; };
 		B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */ = {isa = PBXBuildFile; productRef = B46356EB28C1055D00D97E84 /* OpenGraph */; };
 		B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47628C028B8B47C00E491D3 /* CommentsView.swift */; };
 		B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */; };
@@ -16,6 +18,7 @@
 		B478F9C828AD77CB002B893C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C728AD77CB002B893C /* Preview Assets.xcassets */; };
 		B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D028AD8020002B893C /* MainViewModel.swift */; };
 		B478F9D328AD83C2002B893C /* PostListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D228AD83C2002B893C /* PostListView.swift */; };
+		B496DD7728C386140068EC15 /* CacheType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B496DD7628C386140068EC15 /* CacheType.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
 		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
@@ -47,6 +50,7 @@
 
 /* Begin PBXFileReference section */
 		B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonsViewModifier.swift; sourceTree = "<group>"; };
+		B4304C5F28C5399E00071713 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		B47628C028B8B47C00E491D3 /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsView.swift; sourceTree = "<group>"; };
 		B478F9BD28AD77CA002B893C /* HackerNewsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HackerNewsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HackerNewsAppApp.swift; sourceTree = "<group>"; };
@@ -55,6 +59,7 @@
 		B478F9C728AD77CB002B893C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B478F9D028AD8020002B893C /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		B478F9D228AD83C2002B893C /* PostListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListView.swift; sourceTree = "<group>"; };
+		B496DD7628C386140068EC15 /* CacheType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheType.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
@@ -75,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4304C5E28C5397600071713 /* Cache in Frameworks */,
 				B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */,
 				B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */,
 			);
@@ -118,6 +124,7 @@
 		B478F9BF28AD77CA002B893C /* HackerNewsApp */ = {
 			isa = PBXGroup;
 			children = (
+				B496DD7528C385D50068EC15 /* Cache */,
 				B4F0328128C07F6D00E463BF /* Other */,
 				B4F0327B28C07D8E00E463BF /* Extensions */,
 				B4F0327A28C07D6800E463BF /* ViewModels */,
@@ -134,6 +141,14 @@
 				B478F9C728AD77CB002B893C /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		B496DD7528C385D50068EC15 /* Cache */ = {
+			isa = PBXGroup;
+			children = (
+				B496DD7628C386140068EC15 /* CacheType.swift */,
+			);
+			path = Cache;
 			sourceTree = "<group>";
 		};
 		B4F0327028C07ACF00E463BF /* Views */ = {
@@ -191,6 +206,7 @@
 			isa = PBXGroup;
 			children = (
 				B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */,
+				B4304C5F28C5399E00071713 /* NetworkManager.swift */,
 				B478F9C428AD77CB002B893C /* Assets.xcassets */,
 			);
 			path = Other;
@@ -227,6 +243,7 @@
 			packageProductDependencies = (
 				B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */,
 				B46356EB28C1055D00D97E84 /* OpenGraph */,
+				B4304C5D28C5397600071713 /* Cache */,
 			);
 			productName = HackerNewsApp;
 			productReference = B478F9BD28AD77CA002B893C /* HackerNewsApp.app */;
@@ -259,6 +276,7 @@
 			packageReferences = (
 				B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */,
+				B4304C5C28C5397600071713 /* XCRemoteSwiftPackageReference "Cache" */,
 			);
 			productRefGroup = B478F9BE28AD77CA002B893C /* Products */;
 			projectDirPath = "";
@@ -289,6 +307,7 @@
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
 				B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */,
 				B4F0328928C083CF00E463BF /* CommentsViewExtension.swift in Sources */,
+				B4304C6028C5399E00071713 /* NetworkManager.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
 				B4F0327928C07C9300E463BF /* Comment.swift in Sources */,
@@ -298,6 +317,7 @@
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
 				B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */,
 				B4F0328428C0805400E463BF /* ContentViewExtension.swift in Sources */,
+				B496DD7728C386140068EC15 /* CacheType.swift in Sources */,
 				B4F0328B28C0883D00E463BF /* SingleCommentViewExtension.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
@@ -509,6 +529,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		B4304C5C28C5397600071713 /* XCRemoteSwiftPackageReference "Cache" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hyperoslo/Cache.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
 		B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/satoshi-takano/OpenGraph";
@@ -528,6 +556,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		B4304C5D28C5397600071713 /* Cache */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B4304C5C28C5397600071713 /* XCRemoteSwiftPackageReference "Cache" */;
+			productName = Cache;
+		};
 		B46356EB28C1055D00D97E84 /* OpenGraph */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */;

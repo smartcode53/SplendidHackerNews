@@ -16,13 +16,25 @@ enum StoryType: String {
 
 
 class MainViewModel: ObservableObject {
-    @Published var stories = [Story]()
+    @Published var stories: [Story]? = nil
     @Published var isLoadingPosts = false
     @Published var isLoadingComments = false
     @Published var showStoryInPosts = false
     @Published var showStoryInComments = false
-    
     @Published var selectedStory: Story? = nil
+    
+    let networkManager = NetworkManager.instance
+    
+    init() {
+        
+        Task {
+            let results = await networkManager.getStories()
+            await MainActor.run {
+                stories = results
+            }
+        }
+        
+    }
     
     func getStories() async {
         guard let url = URL(string: "https://hn.algolia.com/api/v1/search?tags=front_page") else { return }
@@ -33,9 +45,7 @@ class MainViewModel: ObservableObject {
             let (data, _) = try await URLSession.shared.data(from: url)
             print("Data recieved back from the server successfully")
             
-            //            let decoder = JSONDecoder()
-            //            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            //
+            
             print("Decoder configured successfully")
             
             do {
@@ -60,6 +70,7 @@ class MainViewModel: ObservableObject {
         }
         
         let (data, _) = try await URLSession.shared.data(from: url)
+        
         
         do {
             let safeData = try JSONDecoder().decode(Item.self, from: data)
@@ -120,5 +131,6 @@ class MainViewModel: ObservableObject {
         
         return nil
     }
+    
 }
 
