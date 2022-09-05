@@ -7,16 +7,16 @@
 
 import SwiftUI
 
-struct SafariView: View {
+struct SafariView<T>: View where T: SafariViewLoader {
     
-    @ObservedObject var vm: MainViewModel
+    @ObservedObject var vm: T
     
     let url: String?
     
     var body: some View {
         VStack {
             if let url {
-                SFSafariViewWrapper(url: vm.returnSafeUrl(url: url))
+                SFSafariViewWrapper(url: vm.returnSafelyLoadedUrl(url: url))
                     .ignoresSafeArea()
                     .toolbar(.hidden)
             }
@@ -29,6 +29,6 @@ struct SafariView: View {
 
 struct WebViewWrapper_Previews: PreviewProvider {
     static var previews: some View {
-        SafariView(vm: MainViewModel(), url: "google.com")
+        SafariView(vm: ContentViewModel(), url: "google.com")
     }
 }

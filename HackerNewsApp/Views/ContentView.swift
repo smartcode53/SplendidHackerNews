@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @StateObject var vm = MainViewModel()
+    @StateObject var vm = ContentViewModel()
+    @State var selectedStory: Story? = nil
     
     var body: some View {
         NavigationStack {
@@ -39,29 +40,42 @@ struct ContentView: View {
                         .frame(height: 2)
                     
                     ScrollView {
-                        if !vm.isLoadingPosts {
-                            posts
-                                .padding(.top)
-                        } else {
-                            ProgressView()
-                        }
+                        posts
+                            .padding(.top)
                     }
                     .frame(maxWidth: .infinity)
                     .toolbar(.hidden)
                 }
             }
-            
-            
-            
-            
-            
-            
         }
-//        .task {
-//            await vm.getStories()
-//        }
+        .onAppear {
+            vm.loadStories()
+        }
     }
 }
+
+extension ContentView  {
+    
+    var posts: some View {
+        LazyVStack {
+            if let stories = vm.stories {
+                ForEach(stories, id: \.self.id) { story in
+                    PostListView(selectedStory: $selectedStory, item: story)
+                        .shadow(radius: 2)
+                }
+            } else {
+                ProgressView()
+            }
+        }
+        .fullScreenCover(item: $selectedStory) { story in
+            if let storyUrl = story.url {
+                SafariView(vm: vm, url: storyUrl)
+            }
+            
+        }
+    }
+}
+    
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

@@ -10,19 +10,22 @@ import SwiftUI
 struct CommentsView: View {
     
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var vm: MainViewModel
-    @State var comments = [Comment]()
-    @State var urlDomain: String?
-    @State var isExpanded = true
+    @StateObject var vm = CommentsViewModel()
     @GestureState var dragOffset = CGSize.zero
     
-    let storyTitle: String
-    let storyAuthor: String
-    let points: Int
-    let totalCommentCount: Int?
+    
+    // MARK: Bindings
+    @Binding var numComments: Int?
+    @Binding var points: Int
+    
+    
+    let story: Story
+    let urlDomain: String?
     let storyDate: Int
-    let storyId: String
-    let storyUrl: String?
+    let title: String
+    let author: String
+    let id: String
+    let url: String?
     
     var body: some View {
         
@@ -57,7 +60,7 @@ struct CommentsView: View {
                                 .padding(.bottom, 5)
                         }
                         
-                        Text(storyUrl == nil ? "\(storyTitle)" : "\(storyTitle) \(Image(systemName: "arrow.up.forward.app"))")
+                        Text(story.url == nil ? "\(story.title)" : "\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
                             .font(.title2.weight(.bold))
                             .padding(.bottom, 12)
                             .foregroundColor(Color("PostTitle"))
@@ -69,7 +72,7 @@ struct CommentsView: View {
                             Text(Date.getTimeInterval(with: storyDate))
                             Text("|")
                                 .foregroundColor(Color("DateNameSeparator"))
-                            Text(storyAuthor)
+                            Text(story.author)
                             
                             Spacer()
                         }
@@ -85,13 +88,13 @@ struct CommentsView: View {
                     
                     // Points and Action Button
                     HStack {
-                        Text(points == 1 ? "\(points) point" : "\(points) points")
+                        Text(story.points == 1 ? "\(story.points) point" : "\(story.points) points")
                             .foregroundColor(.orange)
                             .font(.headline)
                         
                         Spacer()
                         
-                        if let storyUrl {
+                        if let storyUrl = story.url {
                             ShareLink(item: storyUrl) {
                                 Image(systemName: "square.and.arrow.up.fill")
                             }
@@ -110,7 +113,7 @@ struct CommentsView: View {
                 
                 // Comment count
                 HStack {
-                    Text("\(totalCommentCount ?? 0) comments")
+                    Text("\(story.numComments ?? 0) comments")
                         .padding()
                         .font(.title2.weight(.bold))
                     
@@ -118,26 +121,28 @@ struct CommentsView: View {
                 }
                 
                 VStack {
-                    if vm.isLoadingComments {
-                        ProgressView()
-                            
-                    } else {
+                    if let comments = vm.item?.children {
                         LazyVStack {
                             ForEach(comments) { comment in
-                                if let commentText = comment.text {
-                                    SingleCommentView(vm: vm, commentText: commentText, commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.createdAtI)
+                                if let _ = comment.text {
+                                    SingleCommentView(comment: comment)
                                 }
                             }
                         }
+                    } else {
+                        ProgressView()
                     }
                 }
                 .background(Color("BackgroundColor"))
+                .onAppear {
+                    vm.loadComments(forPost: id)
+                }
                 .task {
-                    do {
-                        comments = try await vm.getComments(for: storyId)
-                    } catch let error {
-                        print("Error fetching data using task modifier on CommentsView: \(error)")
+                    if let (numComments, points) = await vm.getCommentAndPointsCount(forPost: id) {
+                        self.numComments = numComments
+                        self.points = points
                     }
+                    
                 }
                 
                 Spacer()
@@ -147,13 +152,8 @@ struct CommentsView: View {
             
         }
         .background(Color("BackgroundColor"))
-        .onAppear {
-            if let storyUrl {
-                urlDomain = vm.getUrlDomain(for: storyUrl)
-            }
-        }
         .fullScreenCover(isPresented: $vm.showStoryInComments) {
-            SafariView(vm: vm, url: storyUrl)
+            SafariView(vm: vm, url: url)
         }
         .toolbar(.hidden, in: .navigationBar)
         .gesture(DragGesture().updating($dragOffset, body: { value, state, transaction in
@@ -161,35 +161,99 @@ struct CommentsView: View {
                 dismiss()
             }
         }))
+    }
+}
         
-//        ZStack {
-//
-//            Color.orange
-//                .ignoresSafeArea()
-//
-//            VStack {
-//
-//                backButton
-//
-//                ScrollView {
-//
-//                    titlePalate
-//
-//                    metaInfoPalate
-//
-             
-//                }
-//            }
-//
+extension CommentsView {
             
-//        }
-    }
-}
+            var backButton: some View {
+                HStack {
+                    Image(systemName: "arrow.backward")
+                        .font(.title.weight(.semibold))
+                        .onTapGesture {
+                            dismiss()
+                        }
+                    
+                    Spacer()
+                }
+                .padding([.horizontal, .bottom])
+            }
+            
+            var titlePalate: some View {
+                HStack {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(Date.getTimeInterval(with: storyDate))
+                            .font(.headline)
+                            .foregroundColor(.black.opacity(0.5))
+                        
+                        Text(title)
+                            .font(.title2.weight(.bold))
+                        
+                        if let urlDomain {
+                            Text(urlDomain)
+                                .font(.headline)
+                                .foregroundColor(.black.opacity(0.5))
+                        }
+                        
+                        
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "globe.europe.africa.fill")
+                        .font(.title.weight(.bold))
+                        .foregroundColor(.black)
+                }
+                .padding()
+                .background(.white)
+                .cornerRadius(12)
+                .padding(.horizontal)
+                .shadow(radius: 4)
+                .padding(.bottom)
+                .onTapGesture {
+                    vm.showStoryInComments = true
+                }
+            }
+            
+            var metaInfoPalate: some View {
+                HStack {
+                    Label(author, systemImage: "person.fill")
+                    
+                    Spacer()
+                    
+                    Text(points == 1 ? "\(points) Point" : "\(points) points")
+                    
+                    Spacer()
+                    
+                    Text(numComments == 1 ? "\(numComments ?? 0) comment" : "\(numComments ?? 0) comments")
+                }
+                .padding()
+                .background(.black)
+                .foregroundColor(.white)
+                .cornerRadius(12)
+                .padding(.horizontal)
+                .shadow(radius: 4)
+            }
+            
+            init(story: Story, numComments: Binding<Int?>, points: Binding<Int>, urlDomain: String?) {
+                self.story = story
+                self._numComments = Binding(projectedValue: numComments)
+                self._points = Binding(projectedValue: points)
+                self.urlDomain = urlDomain
+                self.storyDate = story.createdAtI
+                self.title = story.title
+                self.author = story.author
+                self.id = story.id
+                self.url = story.url
+            }
+            
+        }
 
-struct CommentsView_Previews: PreviewProvider {
-    static var previews: some View {
-        CommentsView(vm: MainViewModel(), storyTitle: "Something you aren't aware of in technology", storyAuthor: "skrillex", points: 24, totalCommentCount: 12, storyDate: 343434525, storyId: "someID", storyUrl: "google.com")
-    }
-}
+
+//struct CommentsView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        CommentsView(numComments: .constant(20), points: .constant(25), story: <#T##Story#>, urlDomain: <#T##String?#>, storyDate: <#T##Int#>, title: <#T##String#>, author: <#T##String#>, id: <#T##String#>, url: <#T##String?#>)
+//    }
+//}
 
 

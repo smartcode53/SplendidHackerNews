@@ -10,18 +10,19 @@ import SwiftSoup
 
 struct SingleCommentView: View {
     
-    @ObservedObject var vm: MainViewModel
+    @StateObject var vm = SingleCommentViewModel()
     
     var commentText: String?
     var commentReplies: [Comment]?
-    var commentAuthor: String
+    var commentAuthor: String?
     var commentDate: Int
     
-    @State var indentLevel: Double = 0
-    @State var isExpanded = true
+    
+//    @State var indentLevel: Double = 0
+//    @State var isExpanded = true
     
     var animateArrow: Bool {
-        isExpanded
+        vm.isExpanded
     }
     
     var body: some View {
@@ -31,10 +32,10 @@ struct SingleCommentView: View {
             commentMetaInfo
             
             
-            if isExpanded {
+            if vm.isExpanded {
                 
                 if let text = commentText {
-                    Text(vm.parseText(text: text))
+                    Text(text.parsedText)
                         .multilineTextAlignment(.leading)
                         .minimumScaleFactor(0.7)
                 }
@@ -44,7 +45,7 @@ struct SingleCommentView: View {
                 if commentReplies != nil {
                     LazyVStack {
                         ForEach(commentReplies!) { comment in
-                            SingleCommentView(vm: vm, commentText: comment.text ?? "Bad Comment", commentReplies: comment.commentChildren ?? nil, commentAuthor: comment.author ?? "Unknown", commentDate: comment.createdAtI, indentLevel: indentLevel + 1)
+                            SingleCommentView(comment: comment, indentLevel: vm.indentLevel + 1)
                                 .overlay(
                                     Capsule()
                                         .fill(Color.orange)
@@ -63,8 +64,43 @@ struct SingleCommentView: View {
     }
 }
 
-struct SingleCommentView_Previews: PreviewProvider {
-    static var previews: some View {
-        SingleCommentView(vm: MainViewModel(), commentAuthor: "skrillex", commentDate: 122344334)
+extension SingleCommentView {
+    
+    var commentMetaInfo: some View {
+        HStack {
+            Text(commentAuthor ?? "Unknown")
+                .padding(.trailing)
+            
+            Text(Date.getTimeInterval(with: commentDate))
+            
+            Spacer()
+            
+            
+            Image(systemName: "chevron.up")
+                .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
+        }
+        .font(.callout)
+        .background(Color("CardColor"))
+        .padding(.bottom, 10)
+        .foregroundColor(.orange)
+        .onTapGesture {
+            withAnimation(.easeInOut) {
+                vm.isExpanded.toggle()
+            }
+            
+        }
+    }
+    
+    init(comment: Comment, indentLevel: Double = 0) {
+        self.commentText = comment.text
+        self.commentReplies = comment.commentChildren
+        self.commentAuthor = comment.author
+        self.commentDate = comment.createdAtI
     }
 }
+
+//struct SingleCommentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        SingleCommentView(comment: <#T##Comment#>)
+//    }
+//}

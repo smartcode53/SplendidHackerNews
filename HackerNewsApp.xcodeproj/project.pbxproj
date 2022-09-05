@@ -16,21 +16,22 @@
 		B478F9C328AD77CA002B893C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9C228AD77CA002B893C /* ContentView.swift */; };
 		B478F9C528AD77CB002B893C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C428AD77CB002B893C /* Assets.xcassets */; };
 		B478F9C828AD77CB002B893C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C728AD77CB002B893C /* Preview Assets.xcassets */; };
-		B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D028AD8020002B893C /* MainViewModel.swift */; };
+		B478F9D128AD8020002B893C /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D028AD8020002B893C /* ContentViewModel.swift */; };
 		B478F9D328AD83C2002B893C /* PostListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D228AD83C2002B893C /* PostListView.swift */; };
 		B496DD7728C386140068EC15 /* CacheType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B496DD7628C386140068EC15 /* CacheType.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
 		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
 		B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */; };
+		B4E6C9E428C5D8AC00A2982B /* PostListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */; };
+		B4E6C9E628C5E43C00A2982B /* CommentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E528C5E43C00A2982B /* CommentsViewModel.swift */; };
+		B4E6C9E828C639E300A2982B /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E728C639E300A2982B /* Protocols.swift */; };
+		B4E6C9EA28C63E0000A2982B /* SingleCommentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */; };
+		B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9EB28C63EA600A2982B /* StringExtension.swift */; };
 		B4F0327328C07B4300E463BF /* Results.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327228C07B4300E463BF /* Results.swift */; };
 		B4F0327528C07B6E00E463BF /* Story.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327428C07B6E00E463BF /* Story.swift */; };
 		B4F0327728C07C0B00E463BF /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327628C07C0B00E463BF /* Item.swift */; };
 		B4F0327928C07C9300E463BF /* Comment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327828C07C9300E463BF /* Comment.swift */; };
-		B4F0328428C0805400E463BF /* ContentViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328328C0805400E463BF /* ContentViewExtension.swift */; };
-		B4F0328628C081DA00E463BF /* PostListViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328528C081DA00E463BF /* PostListViewExtension.swift */; };
-		B4F0328928C083CF00E463BF /* CommentsViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328828C083CF00E463BF /* CommentsViewExtension.swift */; };
-		B4F0328B28C0883D00E463BF /* SingleCommentViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328A28C0883D00E463BF /* SingleCommentViewExtension.swift */; };
 		B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328C28C08FC500E463BF /* DateExtension.swift */; };
 		B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */; };
 /* End PBXBuildFile section */
@@ -57,20 +58,21 @@
 		B478F9C228AD77CA002B893C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B478F9C428AD77CB002B893C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B478F9C728AD77CB002B893C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		B478F9D028AD8020002B893C /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		B478F9D028AD8020002B893C /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
 		B478F9D228AD83C2002B893C /* PostListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListView.swift; sourceTree = "<group>"; };
 		B496DD7628C386140068EC15 /* CacheType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheType.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
+		B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListViewModel.swift; sourceTree = "<group>"; };
+		B4E6C9E528C5E43C00A2982B /* CommentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewModel.swift; sourceTree = "<group>"; };
+		B4E6C9E728C639E300A2982B /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
+		B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentViewModel.swift; sourceTree = "<group>"; };
+		B4E6C9EB28C63EA600A2982B /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		B4F0327228C07B4300E463BF /* Results.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Results.swift; sourceTree = "<group>"; };
 		B4F0327428C07B6E00E463BF /* Story.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Story.swift; sourceTree = "<group>"; };
 		B4F0327628C07C0B00E463BF /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		B4F0327828C07C9300E463BF /* Comment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comment.swift; sourceTree = "<group>"; };
-		B4F0328328C0805400E463BF /* ContentViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewExtension.swift; sourceTree = "<group>"; };
-		B4F0328528C081DA00E463BF /* PostListViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListViewExtension.swift; sourceTree = "<group>"; };
-		B4F0328828C083CF00E463BF /* CommentsViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewExtension.swift; sourceTree = "<group>"; };
-		B4F0328A28C0883D00E463BF /* SingleCommentViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentViewExtension.swift; sourceTree = "<group>"; };
 		B4F0328C28C08FC500E463BF /* DateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
 		B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -124,6 +126,7 @@
 		B478F9BF28AD77CA002B893C /* HackerNewsApp */ = {
 			isa = PBXGroup;
 			children = (
+				B4191D3A28C3299F00B86618 /* ViewModifiers */,
 				B496DD7528C385D50068EC15 /* Cache */,
 				B4F0328128C07F6D00E463BF /* Other */,
 				B4F0327B28C07D8E00E463BF /* Extensions */,
@@ -178,7 +181,10 @@
 		B4F0327A28C07D6800E463BF /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				B478F9D028AD8020002B893C /* MainViewModel.swift */,
+				B478F9D028AD8020002B893C /* ContentViewModel.swift */,
+				B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */,
+				B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */,
+				B4E6C9E528C5E43C00A2982B /* CommentsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -186,9 +192,8 @@
 		B4F0327B28C07D8E00E463BF /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				B4191D3A28C3299F00B86618 /* ViewModifiers */,
-				B4F0328228C07FAA00E463BF /* ViewExtensions */,
 				B4F0328C28C08FC500E463BF /* DateExtension.swift */,
+				B4E6C9EB28C63EA600A2982B /* StringExtension.swift */,
 				B4B8427428C34520000D2D8F /* PressableButton.swift */,
 			);
 			path = Extensions;
@@ -206,21 +211,11 @@
 			isa = PBXGroup;
 			children = (
 				B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */,
+				B4E6C9E728C639E300A2982B /* Protocols.swift */,
 				B4304C5F28C5399E00071713 /* NetworkManager.swift */,
 				B478F9C428AD77CB002B893C /* Assets.xcassets */,
 			);
 			path = Other;
-			sourceTree = "<group>";
-		};
-		B4F0328228C07FAA00E463BF /* ViewExtensions */ = {
-			isa = PBXGroup;
-			children = (
-				B4F0328328C0805400E463BF /* ContentViewExtension.swift */,
-				B4F0328528C081DA00E463BF /* PostListViewExtension.swift */,
-				B4F0328828C083CF00E463BF /* CommentsViewExtension.swift */,
-				B4F0328A28C0883D00E463BF /* SingleCommentViewExtension.swift */,
-			);
-			path = ViewExtensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -306,7 +301,6 @@
 			files = (
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
 				B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */,
-				B4F0328928C083CF00E463BF /* CommentsViewExtension.swift in Sources */,
 				B4304C6028C5399E00071713 /* NetworkManager.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
@@ -314,16 +308,18 @@
 				B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */,
 				B478F9C328AD77CA002B893C /* ContentView.swift in Sources */,
 				B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */,
+				B4E6C9E828C639E300A2982B /* Protocols.swift in Sources */,
+				B4E6C9EA28C63E0000A2982B /* SingleCommentViewModel.swift in Sources */,
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
-				B478F9D128AD8020002B893C /* MainViewModel.swift in Sources */,
-				B4F0328428C0805400E463BF /* ContentViewExtension.swift in Sources */,
+				B478F9D128AD8020002B893C /* ContentViewModel.swift in Sources */,
+				B4E6C9E628C5E43C00A2982B /* CommentsViewModel.swift in Sources */,
 				B496DD7728C386140068EC15 /* CacheType.swift in Sources */,
-				B4F0328B28C0883D00E463BF /* SingleCommentViewExtension.swift in Sources */,
+				B4E6C9E428C5D8AC00A2982B /* PostListViewModel.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
-				B4F0328628C081DA00E463BF /* PostListViewExtension.swift in Sources */,
 				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,
 				B478F9D328AD83C2002B893C /* PostListView.swift in Sources */,
+				B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */,
 				B4F0327528C07B6E00E463BF /* Story.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

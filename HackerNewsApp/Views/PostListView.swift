@@ -9,21 +9,19 @@ import SwiftUI
 
 struct PostListView: View {
     
-    @ObservedObject var vm: MainViewModel
+    @StateObject var vm = PostListViewModel()
     @State var downloadedImageURL: URL?
-    @State var urlDomain: String?
+    @Binding var selectedStory: Story?
     
-    let storyObject: Story
+    @State var points: Int
+    @State var numComments: Int?
     
     let title: String
     let url: String?
     let author: String
-    let points: Int
-    let numComments: Int?
     let id: String
     let storyDate: Int
-    
-    
+    let story: Story
     
     var body: some View {
         
@@ -32,7 +30,7 @@ struct PostListView: View {
             VStack(alignment: .leading, spacing: 0) {
                 
                 // Domain Name
-                if let urlDomain {
+                if let urlDomain = vm.urlDomain {
                     Text(urlDomain)
                         .font(.caption.weight(.bold))
                         .foregroundColor(.orange)
@@ -47,7 +45,7 @@ struct PostListView: View {
                     .padding(.bottom, 16)
                     .onTapGesture {
                         if url != nil {
-                            vm.selectedStory = storyObject
+                            selectedStory = story
                         }
                         
                     }
@@ -68,16 +66,16 @@ struct PostListView: View {
             .padding([.horizontal, .top])
             
             // Story Image
-            if let downloadedImageURL {
-                AsyncImage(url: downloadedImageURL) { image in
+            if let imageUrl = vm.imageUrl {
+                AsyncImage(url: imageUrl) { image in
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(maxWidth: .infinity, maxHeight: 300)
-                        .frame(height: 200)
+                        .frame(maxWidth: .infinity, maxHeight: 200)
                 } placeholder: {
                     ProgressView()
                 }
+                .frame(height: 200)
                 
             }
             
@@ -96,12 +94,9 @@ struct PostListView: View {
                         .createPressableButton()
                     }
                     
-                    
-                    
-                    
                     if let numComments {
                         NavigationLink {
-                            CommentsView(vm: vm, storyTitle: title, storyAuthor: author, points: points, totalCommentCount: numComments, storyDate: storyDate, storyId: id, storyUrl: url ?? nil)
+                            CommentsView(story: story, numComments: $numComments, points: $points, urlDomain: vm.urlDomain)
                         } label: {
                             Label(String(numComments), systemImage: "bubble.right.fill")
                         }
@@ -116,16 +111,32 @@ struct PostListView: View {
         .padding(.horizontal, 5)
         .onAppear {
             if let url {
-                urlDomain = vm.getUrlDomain(for: url)
+                vm.loadUrlDomain(forUrl: url)
             }
             
         }
         .task {
             if let url {
-                downloadedImageURL = await vm.getImage(from: url)
+                vm.loadImage(fromUrl: url)
             }
         }
     }
+}
+
+extension PostListView {
+    
+    init(selectedStory: Binding<Story?>, item: Story) {
+        self._selectedStory = Binding(projectedValue: selectedStory)
+        self._points = State(initialValue: item.points)
+        self._numComments = State(initialValue: item.numComments)
+        self.title = item.title
+        self.url = item.url
+        self.author = item.author
+        self.id = item.id
+        self.storyDate = item.createdAtI
+        self.story = item
+    }
+    
 }
 
 
