@@ -13,20 +13,58 @@ class NetworkManager {
     
     static let instance = NetworkManager()
     
-    
-    func getStories() async -> [Story]? {
-        guard let url = URL(string: "https://hn.algolia.com/api/v1/search?tags=front_page") else { return nil}
+    func getStoryIds() async -> [Int]? {
+        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/topstories.json") else {return nil}
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            do {
-                let response = try JSONDecoder().decode(Results.self, from: data)
-                return response.hits
-            } catch let error {
-                print("There was an error decoding the front-page stories downloaded from the API. Here's the error description: \(error)")
+            if let safeData = try? JSONDecoder().decode([Int].self, from: data) {
+                return safeData
             }
         } catch let error {
-            print("There was an error fetching the front-page stories from the server. Here's the error description: \(error)")
+            print(error)
+        }
+        
+        return nil
+    }
+    
+    func downloadStories(using idArray: [Int]) async -> [Story]? {
+        
+        do {
+            let stories = try await withThrowingTaskGroup(of: Story?.self, body: { group in
+                var storyArray = [Story]()
+                
+                for id in idArray {
+                    group.addTask {
+                        return await self.fetchStory(with: id)
+                    }
+                }
+                
+                for try await story in group {
+                    if let story {
+                        storyArray.append(story)
+                    }
+                }
+                
+                return storyArray
+            })
+            
+            return stories
+        } catch let error {
+            print("\(error)")
+        }
+        
+        return nil
+    }
+    
+    func fetchStory(with id: Int) async -> Story? {
+        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/item/\(id).json") else {return nil}
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let safeStory = try? JSONDecoder().decode(Story.self, from: data)
+            return safeStory
+        } catch let error {
+            print("There was an error fetching stories from the server: \(error)")
         }
         return nil
     }
@@ -39,9 +77,7 @@ class NetworkManager {
     }
     
     func getImage(fromUrl url: String) async -> URL? {
-        let atsSecureUrl = url.contains("https") ? url : url.replacingOccurrences(of: "http", with: "https", range: url.startIndex..<url.index(url.startIndex, offsetBy: 6))
-        guard let safeUrl = URL(string: atsSecureUrl) else { return nil }
-        
+        guard let safeUrl = URL(string: getSecureUrlString(url: url)) else { return nil }
         
         do {
             let og = try await OpenGraph.fetch(url: safeUrl)
@@ -57,7 +93,12 @@ class NetworkManager {
         return nil
     }
     
-    func getComments(forId id: String) async -> Item? {
+    func getSecureUrlString(url: String) -> String {
+        let atsSecureUrl = url.contains("https") ? url : url.replacingOccurrences(of: "http", with: "https", range: url.startIndex..<url.index(url.startIndex, offsetBy: 6))
+        return atsSecureUrl
+    }
+    
+    func getComments(forId id: Int) async -> Item? {
         guard let url = URL(string: "https://hn.algolia.com/api/v1/items/\(id)") else { return nil }
         
         do {
@@ -76,11 +117,13 @@ class NetworkManager {
     }
     
     func safelyLoadUrl(url: String) -> URL {
-        if let safeUrl = URL(string: url) {
+        let atsSecureUrlString = getSecureUrlString(url: url)
+        if let safeUrl = URL(string: atsSecureUrlString) {
             return safeUrl
         } else {
             return URL(string: "")!
         }
     }
-
+    
 }
+

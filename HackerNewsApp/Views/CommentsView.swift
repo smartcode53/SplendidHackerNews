@@ -23,8 +23,8 @@ struct CommentsView: View {
     let urlDomain: String?
     let storyDate: Int
     let title: String
-    let author: String
-    let id: String
+    let author: String?
+    let id: Int
     let url: String?
     
     var body: some View {
@@ -60,7 +60,7 @@ struct CommentsView: View {
                                 .padding(.bottom, 5)
                         }
                         
-                        Text(story.url == nil ? "\(story.title)" : "\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
+                        Text(url == nil ? "\(title)" : "\(title) \(Image(systemName: "arrow.up.forward.app"))")
                             .font(.title2.weight(.bold))
                             .padding(.bottom, 12)
                             .foregroundColor(Color("PostTitle"))
@@ -70,9 +70,11 @@ struct CommentsView: View {
                         
                         HStack {
                             Text(Date.getTimeInterval(with: storyDate))
+                            
                             Text("|")
                                 .foregroundColor(Color("DateNameSeparator"))
-                            Text(story.author)
+                            
+                            if let author { Text(author) }
                             
                             Spacer()
                         }
@@ -88,13 +90,13 @@ struct CommentsView: View {
                     
                     // Points and Action Button
                     HStack {
-                        Text(story.points == 1 ? "\(story.points) point" : "\(story.points) points")
+                        Text(points == 1 ? "\(points) point" : "\(points) points")
                             .foregroundColor(.orange)
                             .font(.headline)
                         
                         Spacer()
                         
-                        if let storyUrl = story.url {
+                        if let storyUrl = url {
                             ShareLink(item: storyUrl) {
                                 Image(systemName: "square.and.arrow.up.fill")
                             }
@@ -113,7 +115,7 @@ struct CommentsView: View {
                 
                 // Comment count
                 HStack {
-                    Text("\(story.numComments ?? 0) comments")
+                    Text("\(numComments ?? 0) comments")
                         .padding()
                         .font(.title2.weight(.bold))
                     
@@ -135,14 +137,13 @@ struct CommentsView: View {
                 }
                 .background(Color("BackgroundColor"))
                 .onAppear {
-                    vm.loadComments(forPost: id)
+                    vm.loadComments(forId: id)
                 }
                 .task {
-                    if let (numComments, points) = await vm.getCommentAndPointsCount(forPost: id) {
+                    if let (numComments, points) = await vm.getCommentAndPointCounts(forPostId: id) {
                         self.numComments = numComments
                         self.points = points
                     }
-                    
                 }
                 
                 Spacer()
@@ -155,7 +156,7 @@ struct CommentsView: View {
         .fullScreenCover(isPresented: $vm.showStoryInComments) {
             SafariView(vm: vm, url: url)
         }
-        .toolbar(.hidden, in: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
         .gesture(DragGesture().updating($dragOffset, body: { value, state, transaction in
             if value.startLocation.x < 20 && value.translation.width > 100 {
                 dismiss()
@@ -217,7 +218,9 @@ extension CommentsView {
             
             var metaInfoPalate: some View {
                 HStack {
-                    Label(author, systemImage: "person.fill")
+                    if let author {
+                        Label(author, systemImage: "person.fill")
+                    }
                     
                     Spacer()
                     
@@ -240,9 +243,9 @@ extension CommentsView {
                 self._numComments = Binding(projectedValue: numComments)
                 self._points = Binding(projectedValue: points)
                 self.urlDomain = urlDomain
-                self.storyDate = story.createdAtI
+                self.storyDate = story.time
                 self.title = story.title
-                self.author = story.author
+                self.author = story.by
                 self.id = story.id
                 self.url = story.url
             }

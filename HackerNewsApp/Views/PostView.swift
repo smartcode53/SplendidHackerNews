@@ -1,27 +1,26 @@
 //
-//  PostListView.swift
+//  PostView.swift
 //  HackerNewsApp
 //
-//  Created by Taha Broachwala on 8/18/22.
+//  Created by Taha Broachwala on 9/8/22.
 //
 
 import SwiftUI
 
-struct PostListView: View {
+struct PostView: View {
     
     @StateObject var vm = PostListViewModel()
-    @State var downloadedImageURL: URL?
     @Binding var selectedStory: Story?
+    @State var downloadedImageURL: URL?
     
+    @State var commentCount: Int?
     @State var points: Int
-    @State var numComments: Int?
     
+    let story: Story
     let title: String
     let url: String?
     let author: String
-    let id: String
-    let storyDate: Int
-    let story: Story
+    let date: Int
     
     var body: some View {
         
@@ -52,7 +51,7 @@ struct PostListView: View {
                 
                 // Meta info
                 HStack {
-                    Text(Date.getTimeInterval(with: storyDate))
+                    Text(Date.getTimeInterval(with: date))
                     Text("|")
                         .foregroundColor(Color("DateNameSeparator"))
                     Text(author)
@@ -71,12 +70,12 @@ struct PostListView: View {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(maxWidth: .infinity, maxHeight: 200)
+                        .frame(width: UIScreen.main.bounds.width * 0.977)
+                        .frame(height: 220)
+                        .clipped()
                 } placeholder: {
                     ProgressView()
                 }
-                .frame(height: 200)
-                
             }
             
             // Points and Actionable Buttons
@@ -94,14 +93,15 @@ struct PostListView: View {
                         .createPressableButton()
                     }
                     
-                    if let numComments {
+                    if let commentCount {
                         NavigationLink {
-                            CommentsView(story: story, numComments: $numComments, points: $points, urlDomain: vm.urlDomain)
+                            CommentsView(story: story, numComments: $commentCount, points: $points, urlDomain: vm.urlDomain)
                         } label: {
-                            Label(String(numComments), systemImage: "bubble.right.fill")
+                            Label(String(commentCount), systemImage: "bubble.right.fill")
                         }
                         .createPressableButton()
                     }
+                    
                 }
                 .padding()
             }
@@ -123,29 +123,21 @@ struct PostListView: View {
     }
 }
 
-extension PostListView {
-    
-    init(selectedStory: Binding<Story?>, item: Story) {
+extension PostView {
+    init(story: Story, selectedStory: Binding<Story?>) {
         self._selectedStory = Binding(projectedValue: selectedStory)
-        self._points = State(initialValue: item.points)
-        self._numComments = State(initialValue: item.numComments)
-        self.title = item.title
-        self.url = item.url
-        self.author = item.author
-        self.id = item.id
-        self.storyDate = item.createdAtI
-        self.story = item
+        self._commentCount = State(initialValue: story.descendants)
+        self._points = State(initialValue: story.score)
+        self.title = story.title
+        self.url = story.url
+        self.author = story.by
+        self.date = story.time
+        self.story = story
     }
-    
 }
 
-
-
-
-//struct PostListView_Previews: PreviewProvider {
-//
+//struct PostView_Previews: PreviewProvider {
 //    static var previews: some View {
-//        PostListView(vm: MainViewModel(), title: "The effictiveness of the SwiftUI Codable Protocol is unparalleled", url: "google.com", author: "skrillex", points: 12, numComments: 245, id: "456", storyDate: 909090)
-//            .preferredColorScheme(.dark)
+//        PostView()
 //    }
 //}

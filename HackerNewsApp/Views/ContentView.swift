@@ -40,38 +40,48 @@ struct ContentView: View {
                         .frame(height: 2)
                     
                     ScrollView {
-                        posts
+                        
+                        newPosts
                             .padding(.top)
+                        
                     }
                     .frame(maxWidth: .infinity)
                     .toolbar(.hidden)
                 }
             }
         }
-        .onAppear {
-            vm.loadStories()
-        }
     }
 }
 
 extension ContentView  {
     
-    var posts: some View {
+    var newPosts: some View {
         LazyVStack {
-            if let stories = vm.stories {
-                ForEach(stories, id: \.self.id) { story in
-                    PostListView(selectedStory: $selectedStory, item: story)
-                        .shadow(radius: 2)
+            if !vm.stories.isEmpty {
+                ForEach(Array(vm.stories.enumerated()), id: \.element.id) { index, story in
+                    PostView(story: story, selectedStory: $selectedStory)
+                        .onAppear {
+                            print("current index: \(index), stories count: \(vm.stories.count)")
+                            if index == vm.stories.count - 1 {
+                                vm.loadInfinitely()
+                            }
+                        }
+                    
+                    if vm.isLoading {
+                        ProgressView()
+                    }
                 }
             } else {
                 ProgressView()
             }
         }
+        .task {
+            await vm.loadStoriesTheFirstTime()
+        }
         .fullScreenCover(item: $selectedStory) { story in
             if let storyUrl = story.url {
                 SafariView(vm: vm, url: storyUrl)
             }
-            
         }
     }
 }
