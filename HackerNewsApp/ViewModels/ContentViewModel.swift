@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 enum StoryType: String {
-    case topstories, newstories, beststories
+    case topstories, newstories, beststories, askstories, showstories
 }
 
 
@@ -22,12 +22,25 @@ class ContentViewModel: SafariViewLoader {
         didSet {
             if oldValue.isEmpty {
                 Task {
-                    return await networkManager.getStoryIds()
+                    return await networkManager.getStoryIds(ofType: storyType)
                 }
             }
         }
     }
-    @Published var stories = [Story]()
+    
+    // Different Story Arrays
+    @Published var topStories = [Story]()
+    
+    @Published var storyType = StoryType.topstories {
+        didSet {
+            print("storyType changed")
+            topStories.removeAll()
+            Task {
+                await loadStoriesTheFirstTime()
+            }
+        }
+    }
+    
 
     
     @Published var isLoading = false
@@ -38,7 +51,7 @@ class ContentViewModel: SafariViewLoader {
     var buffer = [Int]()
     
     func loadStoriesTheFirstTime() async {
-        let idArray = await networkManager.getStoryIds()
+        let idArray = await networkManager.getStoryIds(ofType: storyType)
         print("idArray.count: \(String(describing: idArray?.count))")
         if let idArray {
             await MainActor.run { [weak self] in
@@ -60,7 +73,7 @@ class ContentViewModel: SafariViewLoader {
     
     func initialIdsFetch() {
         Task {
-            let idArray = await networkManager.getStoryIds()
+            let idArray = await networkManager.getStoryIds(ofType: storyType)
             print("idArray count: \(String(describing: idArray?.count))")
             if let idArray {
                 await MainActor.run { [weak self] in
@@ -74,14 +87,14 @@ class ContentViewModel: SafariViewLoader {
         
         print("Entered the taskGroupStories function.")
         
-        if let cachedStories = cacheManager.getFromCache(withKey: "storyArray") {
+        if let cachedStories = cacheManager.getFromCache(withKey: storyType.rawValue) {
             Task {
                 await MainActor.run { [weak self] in
-                    self?.stories = cachedStories
+                    self?.topStories = cachedStories
                 }
             }
             
-            print("Stories loaded from Cache. Count of elements in stories array: \(String(describing: stories.count))")
+            print("Stories loaded from Cache. Count of elements in stories array: \(String(describing: topStories.count))")
         } else {
             print("Loading from cache failed... Now initiating loading process from the server")
             print("Count of storyIds array before initiating the download process: \(storyIds.count)")
@@ -98,8 +111,8 @@ class ContentViewModel: SafariViewLoader {
                 let items = await networkManager.downloadStories(using: initialItems)
                 if let items {
                     await MainActor.run { [weak self] in
-                        self?.stories.append(contentsOf: items)
-                        cacheManager.saveToCache(stories, withKey: "storyArray")
+                        self?.topStories.append(contentsOf: items)
+                        cacheManager.saveToCache(topStories, withKey: storyType.rawValue)
                     }
                 }
                 
@@ -121,29 +134,49 @@ extension ContentViewModel {
         
         static let instance = StoriesCache()
         
+        private let dateProvider: () -> Date = Date.init
+        private let entryLifetime: TimeInterval = 12 * 60 * 60
+        
         private init() {}
         
         let cache = NSCache<NSString, StoriesCacheValueWrapper<[Story]>>()
         
         func getFromCache(withKey key: String) -> [Story]? {
-            let returnedCache = cache.object(forKey: key as NSString)
-            return returnedCache?.value
+            
+            guard let returnedCacheObject = cache.object(forKey: key as NSString) else {
+                return nil
+            }
+            
+            guard dateProvider() < returnedCacheObject.expirationDate else {
+                removeFromCache(key: key)
+                return nil
+            }
+            
+            return returnedCacheObject.value
         }
         
         func saveToCache(_ object: [Story], withKey key: String) {
-            cache.setObject(StoriesCacheValueWrapper(object), forKey: key as NSString)
+            let date = dateProvider().addingTimeInterval(entryLifetime)
+            let wrapper = StoriesCacheValueWrapper(object, expirationDate: date)
+            cache.setObject(wrapper, forKey: key as NSString)
         }
         
         func clearCache() {
             cache.removeAllObjects()
         }
+        
+        func removeFromCache(key: String) {
+            cache.removeObject(forKey: key as NSString)
+        }
     }
     
     class StoriesCacheValueWrapper<T> {
         let value: T
+        let expirationDate: Date
         
-        init(_ value: T) {
+        init(_ value: T, expirationDate: Date) {
             self.value = value
+            self.expirationDate = expirationDate
         }
     }
 }

@@ -13,6 +13,7 @@ struct ContentView: View {
     @State var selectedStory: Story? = nil
     
     var body: some View {
+        
         NavigationStack {
             
             ZStack {
@@ -30,6 +31,28 @@ struct ContentView: View {
                                 .underline(true, pattern: .solid, color: .orange)
                             
                             Spacer()
+                            
+                            Menu(vm.storyType.rawValue) {
+                                Button(StoryType.topstories.rawValue) {
+                                    vm.storyType = .topstories
+                                }
+                                
+                                Button(StoryType.newstories.rawValue) {
+                                    vm.storyType = .newstories
+                                }
+                                
+                                Button(StoryType.beststories.rawValue) {
+                                    vm.storyType = .beststories
+                                }
+                                
+                                Button(StoryType.askstories.rawValue) {
+                                    vm.storyType = .askstories
+                                }
+                                
+                                Button(StoryType.showstories.rawValue) {
+                                    vm.storyType = .showstories
+                                }
+                            }
                         }
                         .padding()
                     }
@@ -57,12 +80,12 @@ extension ContentView  {
     
     var newPosts: some View {
         LazyVStack {
-            if !vm.stories.isEmpty {
-                ForEach(Array(vm.stories.enumerated()), id: \.element.id) { index, story in
+            if !vm.topStories.isEmpty {
+                ForEach(Array(vm.topStories.enumerated()), id: \.element.id) { index, story in
                     PostView(story: story, selectedStory: $selectedStory)
                         .onAppear {
-                            print("current index: \(index), stories count: \(vm.stories.count)")
-                            if index == vm.stories.count - 1 {
+                            print("current index: \(index), stories count: \(vm.topStories.count)")
+                            if index == vm.topStories.count - 1 {
                                 vm.loadInfinitely()
                             }
                         }

@@ -13,8 +13,9 @@ class NetworkManager {
     
     static let instance = NetworkManager()
     
-    func getStoryIds() async -> [Int]? {
-        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/topstories.json") else {return nil}
+    func getStoryIds(ofType type: StoryType) async -> [Int]? {
+        
+        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(type.rawValue).json") else {return nil}
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
