@@ -35,7 +35,7 @@ struct SingleCommentView: View {
             if vm.isExpanded {
                 
                 if let text = commentText {
-                    Text(text.parsedText)
+                    Text(text.parsedBodyFragment)
                         .multilineTextAlignment(.leading)
                         .minimumScaleFactor(0.7)
                 }

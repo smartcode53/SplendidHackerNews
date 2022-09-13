@@ -11,6 +11,8 @@ struct ContentView: View {
     
     @StateObject var vm = ContentViewModel()
     @State var selectedStory: Story? = nil
+    @State var contentType: String = "Top Stories"
+    @Namespace var namespace
     
     var body: some View {
         
@@ -26,35 +28,57 @@ struct ContentView: View {
                     ZStack {
                         HStack {
                             
-                            Text("Stories")
+                            Text(vm.storyTypeString)
                                 .font(.largeTitle.weight(.bold))
                                 .underline(true, pattern: .solid, color: .orange)
                             
                             Spacer()
                             
-                            Menu(vm.storyType.rawValue) {
-                                Button(StoryType.topstories.rawValue) {
-                                    vm.storyType = .topstories
-                                }
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color("CardColor"))
+                                    .matchedGeometryEffect(id: "feedSwitcher", in: namespace)
+                                    .frame(width: 150, height: 40)
                                 
-                                Button(StoryType.newstories.rawValue) {
-                                    vm.storyType = .newstories
-                                }
-                                
-                                Button(StoryType.beststories.rawValue) {
-                                    vm.storyType = .beststories
-                                }
-                                
-                                Button(StoryType.askstories.rawValue) {
-                                    vm.storyType = .askstories
-                                }
-                                
-                                Button(StoryType.showstories.rawValue) {
-                                    vm.storyType = .showstories
+                                Text("Switch Feed")
+                                    .foregroundColor(.orange)
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                            }
+                            .zIndex(100)
+                            .onTapGesture {
+                                withAnimation(.spring()) {
+                                    vm.showStoryPicker = true
                                 }
                             }
+                            
+//                            Menu(vm.storyType.rawValue) {
+//                                Button(StoryType.topstories.rawValue) {
+//                                    vm.storyType = .topstories
+//                                }
+//
+//                                Button(StoryType.newstories.rawValue) {
+//                                    vm.storyType = .newstories
+//                                }
+//
+//                                Button(StoryType.beststories.rawValue) {
+//                                    vm.storyType = .beststories
+//                                }
+//
+//                                Button(StoryType.askstories.rawValue) {
+//                                    vm.storyType = .askstories
+//                                }
+//
+//                                Button(StoryType.showstories.rawValue) {
+//                                    vm.storyType = .showstories
+//                                }
+//                            }
                         }
                         .padding()
+                        
+                        if vm.showStoryPicker {
+                            switchController
+                        }
                     }
                     .background(Color("CardColor"))
                     
@@ -105,6 +129,68 @@ extension ContentView  {
             if let storyUrl = story.url {
                 SafariView(vm: vm, url: storyUrl)
             }
+        }
+    }
+    
+    var switchController: some View {
+        ZStack {
+            
+            Rectangle()
+                .fill(Color("CardColor"))
+                .ignoresSafeArea()
+                .matchedGeometryEffect(id: "feedSwitcher", in: namespace)
+            
+            VStack(spacing: 20) {
+                ForEach(StoryType.stringArray, id: \.self) { storyType in
+                    ZStack {
+                        
+                        if storyType == vm.storyTypeString {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.white)
+                                .frame(width: 200, height: 50)
+                                .matchedGeometryEffect(id: "storySelector", in: namespace)
+                                
+                        }
+                        
+                        
+                        Text(storyType)
+                            .padding()
+                            .foregroundColor(.black)
+                            .fontWeight(.semibold)
+                            .onTapGesture {
+                                
+                                withAnimation(.easeInOut) {
+                                    switch storyType {
+                                    case "Top Stories":
+                                        vm.storyType = .topstories
+                                    case "New Stories":
+                                        vm.storyType = .newstories
+                                    case "Show HN":
+                                        vm.storyType = .showstories
+                                    case "Ask HN":
+                                        vm.storyType = .askstories
+                                    case "Best Stories":
+                                        vm.storyType = .beststories
+                                    default:
+                                        print("Default case ran")
+                                        vm.storyType = .topstories
+                                    }
+                                }
+                                
+                                withAnimation(.spring()) {
+                                    vm.showStoryPicker = false
+                                }
+                                
+                            }
+                    }
+                    
+                }
+            }
+            .padding()
+            .padding(.horizontal)
+            .background(.orange.gradient)
+            .cornerRadius(12)
+            .padding(.vertical)
         }
     }
 }

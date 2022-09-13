@@ -10,6 +10,7 @@ import SwiftUI
 
 enum StoryType: String {
     case topstories, newstories, beststories, askstories, showstories
+    static let stringArray: [String] = ["Top Stories", "New Stories", "Best Stories", "Ask HN", "Show HN"]
 }
 
 
@@ -30,16 +31,14 @@ class ContentViewModel: SafariViewLoader {
     
     // Different Story Arrays
     @Published var topStories = [Story]()
-    
+
     @Published var storyType = StoryType.topstories {
         didSet {
-            print("storyType changed")
-            topStories.removeAll()
-            Task {
-                await loadStoriesTheFirstTime()
-            }
+            switchStoryType()
         }
     }
+    
+    @Published var storyTypeString: String = "Top Stories"
     
 
     
@@ -47,8 +46,30 @@ class ContentViewModel: SafariViewLoader {
     @Published var showStoryInComments = false
     @Published var selectedStory: Story? = nil
     @Published var pageNo: Int = 0
+    @Published var showStoryPicker: Bool = false
     
     var buffer = [Int]()
+    
+    func switchStoryType() {
+        
+        switch storyType {
+        case .topstories:
+            storyTypeString = "Top Stories"
+        case .newstories:
+            storyTypeString = "New Stories"
+        case .beststories:
+            storyTypeString = "Best Stories"
+        case .showstories:
+            storyTypeString = "Show HN"
+        case .askstories:
+            storyTypeString = "Ask HN"
+        }
+        
+        topStories.removeAll()
+        Task {
+            await loadStoriesTheFirstTime()
+        }
+    }
     
     func loadStoriesTheFirstTime() async {
         let idArray = await networkManager.getStoryIds(ofType: storyType)
@@ -179,6 +200,30 @@ extension ContentViewModel {
             self.expirationDate = expirationDate
         }
     }
+}
+
+// Extension for implementing sorting functions
+extension ContentViewModel {
+    
+    enum SortDirection {
+        case ascending, descending
+    }
+    
+    func sortByPoints(array: [Story], direction: SortDirection) {
+        var arrayToSort = array
+        
+        arrayToSort.sort { story1, story2 in
+            if direction == .ascending {
+                return story1.score < story2.score
+            } else {
+                return story1.score > story2.score
+            }
+        }
+        
+        topStories = arrayToSort
+    }
+    
+    
 }
 
 

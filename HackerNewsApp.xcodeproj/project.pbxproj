@@ -19,6 +19,7 @@
 		B478F9C528AD77CB002B893C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C428AD77CB002B893C /* Assets.xcassets */; };
 		B478F9C828AD77CB002B893C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C728AD77CB002B893C /* Preview Assets.xcassets */; };
 		B478F9D128AD8020002B893C /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D028AD8020002B893C /* ContentViewModel.swift */; };
+		B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
 		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
@@ -60,6 +61,7 @@
 		B478F9C428AD77CB002B893C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B478F9C728AD77CB002B893C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B478F9D028AD8020002B893C /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
+		B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InclusiveTextView.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 			isa = PBXGroup;
 			children = (
 				B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */,
+				B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */,
 			);
 			path = "UIKit Views";
 			sourceTree = "<group>";
@@ -290,6 +293,7 @@
 			files = (
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
 				B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */,
+				B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */,
 				B4304C6028C5399E00071713 /* NetworkManager.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
