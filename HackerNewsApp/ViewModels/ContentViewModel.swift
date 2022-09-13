@@ -8,9 +8,12 @@
 import Foundation
 import SwiftUI
 
-enum StoryType: String {
-    case topstories, newstories, beststories, askstories, showstories
-    static let stringArray: [String] = ["Top Stories", "New Stories", "Best Stories", "Ask HN", "Show HN"]
+enum StoryType: String, CaseIterable {
+    case topstories = "Top Stories"
+    case newstories = "New Stories"
+    case beststories = "Best Stories"
+    case askstories = "Ask HN"
+    case showstories = "Show HN"
 }
 
 
@@ -38,33 +41,18 @@ class ContentViewModel: SafariViewLoader {
         }
     }
     
-    @Published var storyTypeString: String = "Top Stories"
+    @Published var selectedStory: Story? = nil
     
-
-    
+    // MARK: Boolean Values
     @Published var isLoading = false
     @Published var showStoryInComments = false
-    @Published var selectedStory: Story? = nil
-    @Published var pageNo: Int = 0
     @Published var showStoryPicker: Bool = false
+    @Published var showSortSheet = false
+    
     
     var buffer = [Int]()
     
     func switchStoryType() {
-        
-        switch storyType {
-        case .topstories:
-            storyTypeString = "Top Stories"
-        case .newstories:
-            storyTypeString = "New Stories"
-        case .beststories:
-            storyTypeString = "Best Stories"
-        case .showstories:
-            storyTypeString = "Show HN"
-        case .askstories:
-            storyTypeString = "Ask HN"
-        }
-        
         topStories.removeAll()
         Task {
             await loadStoriesTheFirstTime()
@@ -210,19 +198,34 @@ extension ContentViewModel {
     }
     
     func sortByPoints(array: [Story], direction: SortDirection) {
-        var arrayToSort = array
-        
-        arrayToSort.sort { story1, story2 in
+        topStories = array.sorted { story1, story2 in
             if direction == .ascending {
                 return story1.score < story2.score
             } else {
                 return story1.score > story2.score
             }
         }
-        
-        topStories = arrayToSort
     }
     
+    func sortByNumberOfComments(array: [Story], direction: SortDirection) {
+        topStories = array.sorted { story1, story2 in
+            if direction == .ascending {
+                return story1.descendants ?? 0 < story2.descendants ?? 0
+            } else {
+               return story1.descendants ?? 0 > story2.descendants ?? 0
+            }
+        }
+    }
+    
+    func sortByTime(array: [Story], direction: SortDirection) {
+        topStories = array.sorted { story1, story2 in
+            if direction == .ascending {
+                return story1.time > story2.time
+            } else {
+                return story1.time < story2.time
+            }
+        }
+    }
     
 }
 

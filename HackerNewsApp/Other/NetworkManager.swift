@@ -15,7 +15,22 @@ class NetworkManager {
     
     func getStoryIds(ofType type: StoryType) async -> [Int]? {
         
-        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(type.rawValue).json") else {return nil}
+        let urlStoryType: String
+        
+        switch type {
+        case .askstories:
+            urlStoryType = "askstories"
+        case .beststories:
+            urlStoryType = "beststories"
+        case .newstories:
+            urlStoryType = "newstories"
+        case .showstories:
+            urlStoryType = "showstories"
+        case .topstories:
+            urlStoryType = "topstories"
+        }
+        
+        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(urlStoryType).json") else {return nil}
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)

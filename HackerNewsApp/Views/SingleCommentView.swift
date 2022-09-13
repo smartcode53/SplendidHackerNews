@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftSoup
+import Atributika
 
 struct SingleCommentView: View {
     
@@ -35,7 +36,11 @@ struct SingleCommentView: View {
             if vm.isExpanded {
                 
                 if let text = commentText {
-                    Text(text.parsedBodyFragment)
+//                    InclusiveTextView(text: text)
+//                        .multilineTextAlignment(.leading)
+//                        .minimumScaleFactor(0.7)
+                    
+                    Text("\(text.parsedBodyFragment.styleLinks(Style.foregroundColor(.orange)).attributedString)")
                         .multilineTextAlignment(.leading)
                         .minimumScaleFactor(0.7)
                 }

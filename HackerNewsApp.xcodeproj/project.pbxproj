@@ -22,6 +22,8 @@
 		B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
+		B4D2473228D0C0F800E6CDEB /* Atributika in Frameworks */ = {isa = PBXBuildFile; productRef = B4D2473128D0C0F800E6CDEB /* Atributika */; };
+		B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D2473328D1005C00E6CDEB /* FilterButton.swift */; };
 		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
 		B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */; };
 		B4E6C9E428C5D8AC00A2982B /* PostListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */; };
@@ -64,6 +66,7 @@
 		B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InclusiveTextView.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
+		B4D2473328D1005C00E6CDEB /* FilterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterButton.swift; sourceTree = "<group>"; };
 		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
 		B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListViewModel.swift; sourceTree = "<group>"; };
 		B4E6C9E528C5E43C00A2982B /* CommentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewModel.swift; sourceTree = "<group>"; };
@@ -84,6 +87,7 @@
 			files = (
 				B4304C5E28C5397600071713 /* Cache in Frameworks */,
 				B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */,
+				B4D2473228D0C0F800E6CDEB /* Atributika in Frameworks */,
 				B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -186,6 +190,7 @@
 				B4F0328C28C08FC500E463BF /* DateExtension.swift */,
 				B4E6C9EB28C63EA600A2982B /* StringExtension.swift */,
 				B4B8427428C34520000D2D8F /* PressableButton.swift */,
+				B4D2473328D1005C00E6CDEB /* FilterButton.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -231,6 +236,7 @@
 				B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */,
 				B46356EB28C1055D00D97E84 /* OpenGraph */,
 				B4304C5D28C5397600071713 /* Cache */,
+				B4D2473128D0C0F800E6CDEB /* Atributika */,
 			);
 			productName = HackerNewsApp;
 			productReference = B478F9BD28AD77CA002B893C /* HackerNewsApp.app */;
@@ -264,6 +270,7 @@
 				B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */,
 				B4304C5C28C5397600071713 /* XCRemoteSwiftPackageReference "Cache" */,
+				B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */,
 			);
 			productRefGroup = B478F9BE28AD77CA002B893C /* Products */;
 			projectDirPath = "";
@@ -309,6 +316,7 @@
 				B46F2CFD28C9E49C00DE0D19 /* PostView.swift in Sources */,
 				B4E6C9E628C5E43C00A2982B /* CommentsViewModel.swift in Sources */,
 				B4E6C9E428C5D8AC00A2982B /* PostListViewModel.swift in Sources */,
+				B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
 				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,
@@ -533,6 +541,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/psharanda/Atributika.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 		B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
@@ -553,6 +569,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */;
 			productName = OpenGraph;
+		};
+		B4D2473128D0C0F800E6CDEB /* Atributika */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */;
+			productName = Atributika;
 		};
 		B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;

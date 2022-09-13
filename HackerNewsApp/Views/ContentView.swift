@@ -9,76 +9,48 @@ import SwiftUI
 
 struct ContentView: View {
     
+    // MARK: ContentView Properties
     @StateObject var vm = ContentViewModel()
     @State var selectedStory: Story? = nil
     @State var contentType: String = "Top Stories"
     @Namespace var namespace
     
+    
+    // MARK: ContentView Body
     var body: some View {
         
         NavigationStack {
             
             ZStack {
                 
+                // MARK: View Background
                 Color("BackgroundColor")
                     .ignoresSafeArea()
                 
+                // MARK: View Foreground
                 VStack(spacing: 0) {
                     
+                    // MARK: Masthead
                     ZStack {
                         HStack {
                             
-                            Text(vm.storyTypeString)
+                            Text(vm.storyType.rawValue)
                                 .font(.largeTitle.weight(.bold))
                                 .underline(true, pattern: .solid, color: .orange)
                             
                             Spacer()
                             
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color("CardColor"))
-                                    .matchedGeometryEffect(id: "feedSwitcher", in: namespace)
-                                    .frame(width: 150, height: 40)
                                 
-                                Text("Switch Feed")
-                                    .foregroundColor(.orange)
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                            }
-                            .zIndex(100)
-                            .onTapGesture {
-                                withAnimation(.spring()) {
-                                    vm.showStoryPicker = true
+                            Menu("Switch Feed") {
+                                ForEach(StoryType.allCases, id: \.self) { type in
+                                    Button(type.rawValue) {
+                                        vm.storyType = type
+                                    }
                                 }
                             }
-                            
-//                            Menu(vm.storyType.rawValue) {
-//                                Button(StoryType.topstories.rawValue) {
-//                                    vm.storyType = .topstories
-//                                }
-//
-//                                Button(StoryType.newstories.rawValue) {
-//                                    vm.storyType = .newstories
-//                                }
-//
-//                                Button(StoryType.beststories.rawValue) {
-//                                    vm.storyType = .beststories
-//                                }
-//
-//                                Button(StoryType.askstories.rawValue) {
-//                                    vm.storyType = .askstories
-//                                }
-//
-//                                Button(StoryType.showstories.rawValue) {
-//                                    vm.storyType = .showstories
-//                                }
-//                            }
+                            .tint(.orange)
                         }
                         .padding()
-                        
-                        if vm.showStoryPicker {
-                            switchController
-                        }
                     }
                     .background(Color("CardColor"))
                     
@@ -86,10 +58,41 @@ struct ContentView: View {
                         .fill(.primary)
                         .frame(height: 2)
                     
+                    // MARK: List of stories
                     ScrollView {
                         
+                        if vm.storyType == .askstories || vm.storyType == .showstories {
+                            HStack {
+                                
+                                Spacer()
+                                
+                                Button {
+                                    vm.showSortSheet = true
+                                } label: {
+                                    Label("Sort Stories", systemImage: "shippingbox")
+                                }
+                                .createFilterButton()
+                                .sheet(isPresented: $vm.showSortSheet) {
+                                    Text("Some text")
+                                        .presentationDetents([.medium])
+                                }
+                                
+                                Button {
+                                    
+                                } label: {
+                                    Label("Ascending", systemImage: "arrow.up")
+                                }
+                                .createFilterButton()
+                                
+                                
+                                
+                            }
+                            .padding()
+                            .fontWeight(.bold)
+                        }
+                        
                         newPosts
-                            .padding(.top)
+                            .padding(.top, vm.storyType == .askstories || vm.storyType == .showstories ?  0 : 20)
                         
                     }
                     .frame(maxWidth: .infinity)
@@ -102,6 +105,7 @@ struct ContentView: View {
 
 extension ContentView  {
     
+    // MARK: Story array
     var newPosts: some View {
         LazyVStack {
             if !vm.topStories.isEmpty {
@@ -132,6 +136,7 @@ extension ContentView  {
         }
     }
     
+    // MARK: Optional story type switcher
     var switchController: some View {
         ZStack {
             
@@ -141,10 +146,10 @@ extension ContentView  {
                 .matchedGeometryEffect(id: "feedSwitcher", in: namespace)
             
             VStack(spacing: 20) {
-                ForEach(StoryType.stringArray, id: \.self) { storyType in
+                ForEach(StoryType.allCases, id: \.self) { storyType in
                     ZStack {
                         
-                        if storyType == vm.storyTypeString {
+                        if storyType == vm.storyType {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(.white)
                                 .frame(width: 200, height: 50)
@@ -153,28 +158,14 @@ extension ContentView  {
                         }
                         
                         
-                        Text(storyType)
+                        Text(storyType.rawValue)
                             .padding()
                             .foregroundColor(.black)
                             .fontWeight(.semibold)
                             .onTapGesture {
                                 
                                 withAnimation(.easeInOut) {
-                                    switch storyType {
-                                    case "Top Stories":
-                                        vm.storyType = .topstories
-                                    case "New Stories":
-                                        vm.storyType = .newstories
-                                    case "Show HN":
-                                        vm.storyType = .showstories
-                                    case "Ask HN":
-                                        vm.storyType = .askstories
-                                    case "Best Stories":
-                                        vm.storyType = .beststories
-                                    default:
-                                        print("Default case ran")
-                                        vm.storyType = .topstories
-                                    }
+                                    vm.storyType = storyType
                                 }
                                 
                                 withAnimation(.spring()) {
