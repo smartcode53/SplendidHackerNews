@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B416169B28D1E96A0085101A /* SortOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B416169A28D1E96A0085101A /* SortOptionsView.swift */; };
 		B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */; };
 		B4304C5E28C5397600071713 /* Cache in Frameworks */ = {isa = PBXBuildFile; productRef = B4304C5D28C5397600071713 /* Cache */; };
 		B4304C6028C5399E00071713 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4304C5F28C5399E00071713 /* NetworkManager.swift */; };
@@ -52,6 +53,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B416169A28D1E96A0085101A /* SortOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortOptionsView.swift; sourceTree = "<group>"; };
 		B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonsViewModifier.swift; sourceTree = "<group>"; };
 		B4304C5F28C5399E00071713 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		B46F2CFA28C9DEF300DE0D19 /* Story.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Story.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 			children = (
 				B4F0328028C07F4C00E463BF /* UIKit Views */,
 				B478F9C228AD77CA002B893C /* ContentView.swift */,
+				B416169A28D1E96A0085101A /* SortOptionsView.swift */,
 				B46F2CFC28C9E49C00DE0D19 /* PostView.swift */,
 				B47628C028B8B47C00E491D3 /* CommentsView.swift */,
 				B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */,
@@ -321,6 +324,7 @@
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
 				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,
 				B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */,
+				B416169B28D1E96A0085101A /* SortOptionsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

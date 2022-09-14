@@ -73,8 +73,8 @@ struct ContentView: View {
                                 }
                                 .createFilterButton()
                                 .sheet(isPresented: $vm.showSortSheet) {
-                                    Text("Some text")
-                                        .presentationDetents([.medium])
+                                    SortOptionsView(vm: vm)
+                                        .presentationDetents([.fraction(0.2)])
                                 }
                                 
                                 Button {
