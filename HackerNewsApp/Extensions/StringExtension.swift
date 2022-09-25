@@ -32,4 +32,11 @@ extension String {
         return ""
     }
     
+    var urlDomain: String? {
+        if let generatedUrl = URL(string: self) {
+            return generatedUrl.host
+        }
+        return nil
+    }
+    
 }

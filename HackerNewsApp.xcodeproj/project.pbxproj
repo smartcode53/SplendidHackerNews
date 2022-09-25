@@ -7,10 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B416169B28D1E96A0085101A /* SortOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B416169A28D1E96A0085101A /* SortOptionsView.swift */; };
 		B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */; };
-		B4304C5E28C5397600071713 /* Cache in Frameworks */ = {isa = PBXBuildFile; productRef = B4304C5D28C5397600071713 /* Cache */; };
+		B41CD14028DEF0AA0091E865 /* TabEnclosingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */; };
+		B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD14628DF3DF30091E865 /* BookmarksView.swift */; };
+		B41CD14928DF3E1C0091E865 /* BookmarksViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */; };
 		B4304C6028C5399E00071713 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4304C5F28C5399E00071713 /* NetworkManager.swift */; };
+		B44EB1D328DD8D6100CC72EE /* CommentsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44EB1D228DD8D6100CC72EE /* CommentsCache.swift */; };
+		B44EB1D728DDF6BC00CC72EE /* CommentsButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44EB1D628DDF6BC00CC72EE /* CommentsButtonView.swift */; };
+		B45131E728DF87E20022CAA8 /* SingleBookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45131E628DF87E20022CAA8 /* SingleBookmarkView.swift */; };
+		B45131E928DF88770022CAA8 /* SingleBookmarkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45131E828DF88770022CAA8 /* SingleBookmarkViewModel.swift */; };
 		B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */ = {isa = PBXBuildFile; productRef = B46356EB28C1055D00D97E84 /* OpenGraph */; };
 		B46F2CFB28C9DEF300DE0D19 /* Story.swift in Sources */ = {isa = PBXBuildFile; fileRef = B46F2CFA28C9DEF300DE0D19 /* Story.swift */; };
 		B46F2CFD28C9E49C00DE0D19 /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B46F2CFC28C9E49C00DE0D19 /* PostView.swift */; };
@@ -20,6 +25,7 @@
 		B478F9C528AD77CB002B893C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C428AD77CB002B893C /* Assets.xcassets */; };
 		B478F9C828AD77CB002B893C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B478F9C728AD77CB002B893C /* Preview Assets.xcassets */; };
 		B478F9D128AD8020002B893C /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D028AD8020002B893C /* ContentViewModel.swift */; };
+		B489E3EB28DCAED60071B869 /* UltimatePostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B489E3EA28DCAED60071B869 /* UltimatePostViewModel.swift */; };
 		B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
@@ -27,8 +33,9 @@
 		B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D2473328D1005C00E6CDEB /* FilterButton.swift */; };
 		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
 		B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */; };
-		B4E6C9E428C5D8AC00A2982B /* PostListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */; };
-		B4E6C9E628C5E43C00A2982B /* CommentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E528C5E43C00A2982B /* CommentsViewModel.swift */; };
+		B4E6128A28E04A8A003D8A0E /* GlobalSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6128928E04A8A003D8A0E /* GlobalSettingsViewModel.swift */; };
+		B4E6128C28E0577D003D8A0E /* FileManagerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6128B28E0577D003D8A0E /* FileManagerExtension.swift */; };
+		B4E6128E28E0614B003D8A0E /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6128D28E0614B003D8A0E /* Bookmark.swift */; };
 		B4E6C9E828C639E300A2982B /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E728C639E300A2982B /* Protocols.swift */; };
 		B4E6C9EA28C63E0000A2982B /* SingleCommentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */; };
 		B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9EB28C63EA600A2982B /* StringExtension.swift */; };
@@ -53,9 +60,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		B416169A28D1E96A0085101A /* SortOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortOptionsView.swift; sourceTree = "<group>"; };
 		B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonsViewModifier.swift; sourceTree = "<group>"; };
+		B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabEnclosingView.swift; sourceTree = "<group>"; };
+		B41CD14628DF3DF30091E865 /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
+		B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksViewModel.swift; sourceTree = "<group>"; };
 		B4304C5F28C5399E00071713 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
+		B44EB1D228DD8D6100CC72EE /* CommentsCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsCache.swift; sourceTree = "<group>"; };
+		B44EB1D628DDF6BC00CC72EE /* CommentsButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsButtonView.swift; sourceTree = "<group>"; };
+		B45131E628DF87E20022CAA8 /* SingleBookmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleBookmarkView.swift; sourceTree = "<group>"; };
+		B45131E828DF88770022CAA8 /* SingleBookmarkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleBookmarkViewModel.swift; sourceTree = "<group>"; };
 		B46F2CFA28C9DEF300DE0D19 /* Story.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Story.swift; sourceTree = "<group>"; };
 		B46F2CFC28C9E49C00DE0D19 /* PostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostView.swift; sourceTree = "<group>"; };
 		B47628C028B8B47C00E491D3 /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsView.swift; sourceTree = "<group>"; };
@@ -65,13 +78,15 @@
 		B478F9C428AD77CB002B893C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B478F9C728AD77CB002B893C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B478F9D028AD8020002B893C /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
+		B489E3EA28DCAED60071B869 /* UltimatePostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimatePostViewModel.swift; sourceTree = "<group>"; };
 		B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InclusiveTextView.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		B4D2473328D1005C00E6CDEB /* FilterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterButton.swift; sourceTree = "<group>"; };
 		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
-		B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListViewModel.swift; sourceTree = "<group>"; };
-		B4E6C9E528C5E43C00A2982B /* CommentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewModel.swift; sourceTree = "<group>"; };
+		B4E6128928E04A8A003D8A0E /* GlobalSettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalSettingsViewModel.swift; sourceTree = "<group>"; };
+		B4E6128B28E0577D003D8A0E /* FileManagerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtension.swift; sourceTree = "<group>"; };
+		B4E6128D28E0614B003D8A0E /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
 		B4E6C9E728C639E300A2982B /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
 		B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentViewModel.swift; sourceTree = "<group>"; };
 		B4E6C9EB28C63EA600A2982B /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
@@ -87,7 +102,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B4304C5E28C5397600071713 /* Cache in Frameworks */,
 				B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */,
 				B4D2473228D0C0F800E6CDEB /* Atributika in Frameworks */,
 				B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */,
@@ -103,6 +117,69 @@
 				B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */,
 			);
 			path = ViewModifiers;
+			sourceTree = "<group>";
+		};
+		B41CD13C28DEC1A60091E865 /* Subviews */ = {
+			isa = PBXGroup;
+			children = (
+				B46F2CFC28C9E49C00DE0D19 /* PostView.swift */,
+				B47628C028B8B47C00E491D3 /* CommentsView.swift */,
+				B44EB1D628DDF6BC00CC72EE /* CommentsButtonView.swift */,
+				B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */,
+			);
+			path = Subviews;
+			sourceTree = "<group>";
+		};
+		B41CD14228DF3D7F0091E865 /* TabView */ = {
+			isa = PBXGroup;
+			children = (
+				B41CD14528DF3DD20091E865 /* BookmarksView */,
+				B44EB1D828DDFAA600CC72EE /* ContentView */,
+				B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */,
+			);
+			path = TabView;
+			sourceTree = "<group>";
+		};
+		B41CD14328DF3DA30091E865 /* Reusable Views */ = {
+			isa = PBXGroup;
+			children = (
+				B4C1426F28BFA14700585142 /* SafariView.swift */,
+			);
+			path = "Reusable Views";
+			sourceTree = "<group>";
+		};
+		B41CD14528DF3DD20091E865 /* BookmarksView */ = {
+			isa = PBXGroup;
+			children = (
+				B45131E528DF87C90022CAA8 /* Subviews */,
+				B41CD14628DF3DF30091E865 /* BookmarksView.swift */,
+			);
+			path = BookmarksView;
+			sourceTree = "<group>";
+		};
+		B44EB1D128DD8D4800CC72EE /* Cache */ = {
+			isa = PBXGroup;
+			children = (
+				B44EB1D228DD8D6100CC72EE /* CommentsCache.swift */,
+			);
+			path = Cache;
+			sourceTree = "<group>";
+		};
+		B44EB1D828DDFAA600CC72EE /* ContentView */ = {
+			isa = PBXGroup;
+			children = (
+				B478F9C228AD77CA002B893C /* ContentView.swift */,
+				B41CD13C28DEC1A60091E865 /* Subviews */,
+			);
+			path = ContentView;
+			sourceTree = "<group>";
+		};
+		B45131E528DF87C90022CAA8 /* Subviews */ = {
+			isa = PBXGroup;
+			children = (
+				B45131E628DF87E20022CAA8 /* SingleBookmarkView.swift */,
+			);
+			path = Subviews;
 			sourceTree = "<group>";
 		};
 		B46E0AF928C0FFDC00ECAD45 /* Frameworks */ = {
@@ -132,6 +209,7 @@
 		B478F9BF28AD77CA002B893C /* HackerNewsApp */ = {
 			isa = PBXGroup;
 			children = (
+				B44EB1D128DD8D4800CC72EE /* Cache */,
 				B4191D3A28C3299F00B86618 /* ViewModifiers */,
 				B4F0328128C07F6D00E463BF /* Other */,
 				B4F0327B28C07D8E00E463BF /* Extensions */,
@@ -154,13 +232,9 @@
 		B4F0327028C07ACF00E463BF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B41CD14328DF3DA30091E865 /* Reusable Views */,
+				B41CD14228DF3D7F0091E865 /* TabView */,
 				B4F0328028C07F4C00E463BF /* UIKit Views */,
-				B478F9C228AD77CA002B893C /* ContentView.swift */,
-				B416169A28D1E96A0085101A /* SortOptionsView.swift */,
-				B46F2CFC28C9E49C00DE0D19 /* PostView.swift */,
-				B47628C028B8B47C00E491D3 /* CommentsView.swift */,
-				B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */,
-				B4C1426F28BFA14700585142 /* SafariView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -172,6 +246,7 @@
 				B46F2CFA28C9DEF300DE0D19 /* Story.swift */,
 				B4F0327628C07C0B00E463BF /* Item.swift */,
 				B4F0327828C07C9300E463BF /* Comment.swift */,
+				B4E6128D28E0614B003D8A0E /* Bookmark.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -181,8 +256,10 @@
 			children = (
 				B478F9D028AD8020002B893C /* ContentViewModel.swift */,
 				B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */,
-				B4E6C9E328C5D8AC00A2982B /* PostListViewModel.swift */,
-				B4E6C9E528C5E43C00A2982B /* CommentsViewModel.swift */,
+				B489E3EA28DCAED60071B869 /* UltimatePostViewModel.swift */,
+				B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */,
+				B45131E828DF88770022CAA8 /* SingleBookmarkViewModel.swift */,
+				B4E6128928E04A8A003D8A0E /* GlobalSettingsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -194,6 +271,7 @@
 				B4E6C9EB28C63EA600A2982B /* StringExtension.swift */,
 				B4B8427428C34520000D2D8F /* PressableButton.swift */,
 				B4D2473328D1005C00E6CDEB /* FilterButton.swift */,
+				B4E6128B28E0577D003D8A0E /* FileManagerExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -238,7 +316,6 @@
 			packageProductDependencies = (
 				B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */,
 				B46356EB28C1055D00D97E84 /* OpenGraph */,
-				B4304C5D28C5397600071713 /* Cache */,
 				B4D2473128D0C0F800E6CDEB /* Atributika */,
 			);
 			productName = HackerNewsApp;
@@ -272,7 +349,6 @@
 			packageReferences = (
 				B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */,
-				B4304C5C28C5397600071713 /* XCRemoteSwiftPackageReference "Cache" */,
 				B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */,
 			);
 			productRefGroup = B478F9BE28AD77CA002B893C /* Products */;
@@ -302,29 +378,37 @@
 			buildActionMask = 2147483647;
 			files = (
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
+				B44EB1D728DDF6BC00CC72EE /* CommentsButtonView.swift in Sources */,
 				B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */,
 				B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */,
 				B4304C6028C5399E00071713 /* NetworkManager.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
+				B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */,
+				B489E3EB28DCAED60071B869 /* UltimatePostViewModel.swift in Sources */,
+				B4E6128A28E04A8A003D8A0E /* GlobalSettingsViewModel.swift in Sources */,
+				B45131E928DF88770022CAA8 /* SingleBookmarkViewModel.swift in Sources */,
+				B44EB1D328DD8D6100CC72EE /* CommentsCache.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
 				B4F0327928C07C9300E463BF /* Comment.swift in Sources */,
 				B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */,
+				B41CD14028DEF0AA0091E865 /* TabEnclosingView.swift in Sources */,
 				B478F9C328AD77CA002B893C /* ContentView.swift in Sources */,
 				B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */,
 				B4E6C9E828C639E300A2982B /* Protocols.swift in Sources */,
 				B4E6C9EA28C63E0000A2982B /* SingleCommentViewModel.swift in Sources */,
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
+				B45131E728DF87E20022CAA8 /* SingleBookmarkView.swift in Sources */,
 				B478F9D128AD8020002B893C /* ContentViewModel.swift in Sources */,
 				B46F2CFB28C9DEF300DE0D19 /* Story.swift in Sources */,
+				B41CD14928DF3E1C0091E865 /* BookmarksViewModel.swift in Sources */,
 				B46F2CFD28C9E49C00DE0D19 /* PostView.swift in Sources */,
-				B4E6C9E628C5E43C00A2982B /* CommentsViewModel.swift in Sources */,
-				B4E6C9E428C5D8AC00A2982B /* PostListViewModel.swift in Sources */,
 				B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
 				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,
 				B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */,
-				B416169B28D1E96A0085101A /* SortOptionsView.swift in Sources */,
+				B4E6128C28E0577D003D8A0E /* FileManagerExtension.swift in Sources */,
+				B4E6128E28E0614B003D8A0E /* Bookmark.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,14 +613,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		B4304C5C28C5397600071713 /* XCRemoteSwiftPackageReference "Cache" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/hyperoslo/Cache.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 6.0.0;
-			};
-		};
 		B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/satoshi-takano/OpenGraph";
@@ -564,11 +640,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		B4304C5D28C5397600071713 /* Cache */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B4304C5C28C5397600071713 /* XCRemoteSwiftPackageReference "Cache" */;
-			productName = Cache;
-		};
 		B46356EB28C1055D00D97E84 /* OpenGraph */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */;

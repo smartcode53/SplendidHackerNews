@@ -18,7 +18,7 @@ struct PressableButton: ButtonStyle {
                     .frame(height: 40)
                     .cornerRadius(10)
             )
-            .foregroundColor(.primary)
+            .foregroundColor(.white)
             .scaleEffect(configuration.isPressed ? 0.9 : 1)
     }
 }

@@ -20,11 +20,11 @@ import Foundation
  
  */
 
-struct Story: Identifiable, Codable, Equatable {
+struct Story: Identifiable, Codable, Equatable, Hashable {
     let by: String
-    let descendants: Int?
+    var descendants: Int?
     let id: Int
-    let score: Int
+    var score: Int
     let time: Int
     let title: String
     let type: String

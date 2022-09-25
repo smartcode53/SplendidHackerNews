@@ -18,7 +18,7 @@ struct Item: Identifiable, Codable {
     let title: String
     var url: String?
     let points: Int
-    let children: [Comment]
+    let children: [Comment]?
     
     // MARK: Computed Properties
     

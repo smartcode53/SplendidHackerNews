@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct HackerNewsAppApp: App {
+    
+    @State var globalSettings = GlobalSettingsViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabEnclosingView()
+                .environmentObject(globalSettings)
         }
     }
 }
