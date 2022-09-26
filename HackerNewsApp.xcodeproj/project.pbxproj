@@ -39,6 +39,8 @@
 		B4E6C9E828C639E300A2982B /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E728C639E300A2982B /* Protocols.swift */; };
 		B4E6C9EA28C63E0000A2982B /* SingleCommentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */; };
 		B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E6C9EB28C63EA600A2982B /* StringExtension.swift */; };
+		B4ECFDC328E16E550063FBF0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ECFDC228E16E550063FBF0 /* SettingsView.swift */; };
+		B4ECFDC528E171860063FBF0 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ECFDC428E171860063FBF0 /* SettingsViewModel.swift */; };
 		B4F0327328C07B4300E463BF /* Results.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327228C07B4300E463BF /* Results.swift */; };
 		B4F0327728C07C0B00E463BF /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327628C07C0B00E463BF /* Item.swift */; };
 		B4F0327928C07C9300E463BF /* Comment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0327828C07C9300E463BF /* Comment.swift */; };
@@ -90,6 +92,8 @@
 		B4E6C9E728C639E300A2982B /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
 		B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentViewModel.swift; sourceTree = "<group>"; };
 		B4E6C9EB28C63EA600A2982B /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
+		B4ECFDC228E16E550063FBF0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B4ECFDC428E171860063FBF0 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		B4F0327228C07B4300E463BF /* Results.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Results.swift; sourceTree = "<group>"; };
 		B4F0327628C07C0B00E463BF /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		B4F0327828C07C9300E463BF /* Comment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comment.swift; sourceTree = "<group>"; };
@@ -133,6 +137,7 @@
 		B41CD14228DF3D7F0091E865 /* TabView */ = {
 			isa = PBXGroup;
 			children = (
+				B4ECFDC128E16E440063FBF0 /* SettingsView */,
 				B41CD14528DF3DD20091E865 /* BookmarksView */,
 				B44EB1D828DDFAA600CC72EE /* ContentView */,
 				B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */,
@@ -229,6 +234,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		B4ECFDC128E16E440063FBF0 /* SettingsView */ = {
+			isa = PBXGroup;
+			children = (
+				B4ECFDC228E16E550063FBF0 /* SettingsView.swift */,
+			);
+			path = SettingsView;
+			sourceTree = "<group>";
+		};
 		B4F0327028C07ACF00E463BF /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -260,6 +273,7 @@
 				B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */,
 				B45131E828DF88770022CAA8 /* SingleBookmarkViewModel.swift */,
 				B4E6128928E04A8A003D8A0E /* GlobalSettingsViewModel.swift */,
+				B4ECFDC428E171860063FBF0 /* SettingsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -398,9 +412,11 @@
 				B4E6C9EA28C63E0000A2982B /* SingleCommentViewModel.swift in Sources */,
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
 				B45131E728DF87E20022CAA8 /* SingleBookmarkView.swift in Sources */,
+				B4ECFDC328E16E550063FBF0 /* SettingsView.swift in Sources */,
 				B478F9D128AD8020002B893C /* ContentViewModel.swift in Sources */,
 				B46F2CFB28C9DEF300DE0D19 /* Story.swift in Sources */,
 				B41CD14928DF3E1C0091E865 /* BookmarksViewModel.swift in Sources */,
+				B4ECFDC528E171860063FBF0 /* SettingsViewModel.swift in Sources */,
 				B46F2CFD28C9E49C00DE0D19 /* PostView.swift in Sources */,
 				B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,

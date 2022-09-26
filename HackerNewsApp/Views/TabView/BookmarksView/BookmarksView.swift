@@ -34,7 +34,7 @@ struct BookmarksView: View {
                             Rectangle()
                                 .fill(.primary)
                                 .frame(height: 2)
-                                .padding(.bottom)
+                                .padding(.bottom, 10)
                             
                             ForEach(vm.bookmarks) { bookmark in
                                 SingleBookmarkView(bookmark: bookmark, selectedStory: $selectedStory, bookmarkToDelete: $bookmarkToDelete)
@@ -46,8 +46,19 @@ struct BookmarksView: View {
                         .toolbarBackground(.visible, for: .navigationBar)
                         .toolbar {
                             ToolbarItem(placement: .navigationBarTrailing) {
-                                Label("Sort", systemImage: "arrow.up.arrow.down.square")
-                                    .foregroundColor(.orange)
+                                Menu {
+                                    ForEach(BookmarksViewModel.SortType.allCases, id: \.self) { type in
+                                        Button(type.rawValue) {
+                                            vm.selectedSortType = type
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "arrow.up.arrow.down.square")
+                                        Text("Sort")
+                                    }
+                                }
+
                             }
                         }
                     }

@@ -9,5 +9,9 @@ import Foundation
 import SwiftUI
 
 class GlobalSettingsViewModel: ObservableObject {
+    
     @Published var tempBookmarks: [Bookmark] = []
+    
+    @Published var selectedCardStyle: SettingsViewModel.CardStyle = .normal
+    @Published var selectedTheme: SettingsViewModel.Theme = .automatic
 }

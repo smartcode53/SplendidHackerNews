@@ -87,7 +87,7 @@ struct SingleBookmarkView: View {
             .padding(15)
             .background(Color("CardColor"))
             .cornerRadius(12)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 5)
             .padding(.vertical, 2)
             .task {
                 vm.imageUrl = await vm.getImageUrl(fromUrl: story.url)

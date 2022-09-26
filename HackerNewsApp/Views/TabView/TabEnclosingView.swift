@@ -22,7 +22,7 @@ struct TabEnclosingView: View {
                     Text("Saved Stories")
                 }
             
-            Text("Settings")
+            SettingsView()
                 .tabItem {
                     Image(systemName: "gear")
                     Text("Settings")

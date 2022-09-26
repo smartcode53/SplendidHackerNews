@@ -10,7 +10,32 @@ import SwiftUI
 
 class BookmarksViewModel: ObservableObject {
     
+    enum SortType: String, CaseIterable {
+        case lastSaved = "Last Saved"
+        case comments = "Comments"
+        case points = "Points"
+    }
+    
     @Published var bookmarks: [Bookmark] = []
+    @Published var selectedSortType: SortType = .lastSaved {
+        didSet {
+            switch oldValue {
+            case .lastSaved:
+                bookmarks.sort { item1, item2 in
+                    item1.date > item2.date
+                }
+            case .comments:
+                bookmarks.sort { item1, item2 in
+                    item1.story.descendants ?? 0 > item2.story.descendants ?? 0
+                }
+            case .points:
+                bookmarks.sort { item1, item2 in
+                    item1.story.score > item2.story.score
+                }
+            }
+        }
+    }
+    
     let fileUrl = FileManager().documentsDirectory.appending(component: "bookmark.txt")
     
     init() {
@@ -25,11 +50,6 @@ class BookmarksViewModel: ObservableObject {
         }
     }
     
-    @Published var stories = [
-        Story(by: "Taha", descendants: 12, id: 1, score: 234, time: 122334223, title: "Something needs to be said", type: "story", url: "https://google.com"),
-        Story(by: "dissTrack", descendants: 245, id: 2, score: 56, time: 383894893, title: "The audacity of the president of the new country", type: "story", url: "https://madsen.com")
-    ]
-    
     func saveToDisk() {
         do {
             let data = try JSONEncoder().encode(bookmarks)
@@ -38,6 +58,5 @@ class BookmarksViewModel: ObservableObject {
             print("There was an error encoding and saving the bookmarks array. Here's the error description: \(error)")
         }
     }
-    
     
 }
