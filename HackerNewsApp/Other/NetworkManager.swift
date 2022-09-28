@@ -96,6 +96,7 @@ class NetworkManager {
         guard let safeUrl = URL(string: getSecureUrlString(url: url)) else { return nil }
         
         do {
+            
             let og = try await OpenGraph.fetch(url: safeUrl)
             guard let ogUrl = og[.image] else { return nil }
             if let finalUrl = URL(string: ogUrl) {

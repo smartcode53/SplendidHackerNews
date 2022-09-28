@@ -10,16 +10,15 @@ import SwiftUI
 
 class SettingsViewModel: ObservableObject {
     
-    enum CardStyle: String, CaseIterable {
-        case compact = "Compact"
-        case normal = "Normal"
-    }
-    
-    enum Theme: String, CaseIterable {
-        case dark = "Dark"
-        case light = "Light"
-        case automatic = "Automatic"
-    }
-    
     @Published var showCardStylingOptions = false
+    @Published var showThemeOptions = false
+    
+    func openMail() {
+        let url = URL(string: "message://")
+        if let url = url {
+            if UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+    }
 }

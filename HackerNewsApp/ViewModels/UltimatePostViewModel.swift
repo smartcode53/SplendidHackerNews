@@ -17,6 +17,7 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     @Published var urlDomain: String?
     
     @Published var showStoryInComments = false
+    @Published var isLoading = false
     
     lazy var networkManager = NetworkManager.instance
     lazy var commentsCacheManager = CommentsCache.instance
@@ -29,9 +30,11 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     
     func loadImage(fromUrl url: String) {
         Task {
+            isLoading = true
             let resultUrl = await networkManager.getImage(fromUrl: url)
             await MainActor.run { [weak self] in
                 self?.imageUrl = resultUrl
+                self?.isLoading = false
             }
         }
     }

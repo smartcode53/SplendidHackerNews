@@ -40,7 +40,6 @@ class ContentViewModel: SafariViewLoader {
     
     // Different Story Arrays
     @Published var topStories = [Story]()
-
     @Published var storyType = StoryType.topstories {
         didSet {
             switchStoryType()
@@ -139,10 +138,9 @@ class ContentViewModel: SafariViewLoader {
     func returnSafelyLoadedUrl(url: String) -> URL {
         return networkManager.safelyLoadUrl(url: url)
     }
-    
-    
 }
 
+// MARK: Stories Cache Manager
 extension ContentViewModel {
     
     class StoriesCache {
@@ -196,7 +194,7 @@ extension ContentViewModel {
     }
 }
 
-// Extension for implementing sorting functions
+// MARK: Extension for implementing sorting functions
 extension ContentViewModel {
     
     enum SortDirection {

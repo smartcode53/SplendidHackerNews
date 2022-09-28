@@ -16,7 +16,116 @@ struct PostView: View {
     
     
     var body: some View {
+        if globalSettings.selectedCardStyle == .normal {
+            normalCard
+        } else {
+            compactCard
+        }
         
+    }
+}
+
+extension PostView {
+    
+    @ViewBuilder var compactCard: some View {
+        if let story = vm.story {
+            VStack {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let urlDomain = story.url?.urlDomain {
+                            Text(urlDomain)
+                                .foregroundColor(.orange)
+                                .font(.callout.weight(.semibold))
+                                .padding(.bottom, 5)
+                        }
+                        
+                        Text(story.title)
+                            .foregroundColor(Color("PostTitle"))
+                            .font(.title3.weight(.medium))
+                            .padding(.bottom, 10)
+                        
+                        HStack {
+                            Text(Date.getTimeInterval(with: story.time))
+                            Text("|")
+                                .foregroundColor(Color("DateNameSeparator"))
+                            Text(story.by)
+                            
+                            Spacer()
+                        }
+                        .foregroundColor(Color("PostDateName"))
+                        .padding(.bottom, 16)
+                        .font(.subheadline)
+                        
+                    }
+                    
+                    Spacer()
+                    
+                    AsyncImage(url: vm.imageUrl) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipped()
+                    } placeholder: {
+                        EmptyView()
+                    }
+                    
+                }
+                
+                HStack {
+                    Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
+                        .font(.callout.weight(.medium))
+                    
+                    Spacer()
+                    
+                    //Bookmark Delete Button
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                            .fontWeight(.medium)
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    // Share button
+                    
+                    if let url = story.url {
+                        ShareLink(item: url) {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.primary)
+                                .fontWeight(.medium)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    
+                    // Comment Button
+                    CommentsButtonView(vm: vm)
+                    
+                    
+                    
+                }
+            }
+            .padding(15)
+            .background(Color("CardColor"))
+            .cornerRadius(12)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .task {
+                if let url = story.url {
+                    vm.loadImage(fromUrl: url)
+                }
+            }
+            .onTapGesture {
+                selectedStory = story
+            }
+            .fullScreenCover(item: $selectedStory) { story in
+                SafariView(vm: vm, url: story.url)
+            }
+        }
+    }
+    
+    @ViewBuilder var normalCard: some View {
         if let story = vm.story {
             VStack {
                 
@@ -71,7 +180,12 @@ struct PostView: View {
                             .frame(height: 220)
                             .clipped()
                     } placeholder: {
-                        ProgressView()
+                        Rectangle()
+                            .fill(.thickMaterial)
+                            .frame(width: UIScreen.main.bounds.width * 0.977)
+                            .frame(height: 220)
+                            .clipped()
+                            .blur(radius: 12)
                     }
                 }
                 
@@ -121,7 +235,9 @@ struct PostView: View {
                 }
             }
         }
+
     }
+    
 }
 
 extension PostView {

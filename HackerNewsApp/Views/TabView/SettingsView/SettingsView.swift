@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     
+    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm = SettingsViewModel()
     
@@ -16,7 +17,7 @@ struct SettingsView: View {
     
     var body: some View {
         ZStack {
-            Color.gray.opacity(0.2)
+            Color("SettingsBackgroundColor")
                 .ignoresSafeArea()
                 .zIndex(1)
             
@@ -34,16 +35,6 @@ struct SettingsView: View {
                 }
             }
             .zIndex(2)
-            
-            if vm.showCardStylingOptions {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color("CardColor"))
-                        .matchedGeometryEffect(id: "cardStyle", in: namespace)
-                        .frame(width: 200, height: 200)
-                }
-                .zIndex(3)
-            }
             
         }
     }
@@ -64,50 +55,223 @@ extension SettingsView {
             .padding(.horizontal)
             
             // Section item 1
-            ZStack {
-                
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color("CardColor"))
-                
-                HStack {
-                    Label("Story Feed Card Style", systemImage: "platter.2.filled.iphone")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Text(globalSettings.selectedCardStyle.rawValue)
-                        .foregroundColor(.orange)
-                }
-                .padding()
-            }
-            .matchedGeometryEffect(id: "cardStyle", in: namespace)
-            .padding(.horizontal, 10)
-            .onTapGesture {
-                withAnimation(.easeInOut) {
-                    vm.showCardStylingOptions = true
-                }
-                
+            if vm.showCardStylingOptions {
+                feedStyleExpanded
+            } else {
+                feedStyleCollapsed
             }
             
             // Section item 2
+            if vm.showThemeOptions {
+                themeExpanded
+            } else {
+                themeCollapsed
+            }
             
-            ZStack {
+        }
+    }
+    
+    private var feedStyleCollapsed: some View {
+        HStack {
+            Label("Story Feed Card Style", systemImage: "platter.2.filled.iphone")
+                .font(.headline)
+            
+            Spacer()
+            
+            Text(globalSettings.selectedCardStyle.rawValue)
+                .foregroundColor(.orange)
+                .matchedGeometryEffect(id: "cardStyleText", in: namespace)
+        }
+        .padding()
+        .background(content: {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color("CardColor"))
+                .matchedGeometryEffect(id: "backgroundRect", in: namespace)
+        })
+        .padding(.horizontal, 10)
+        .onTapGesture {
+            withAnimation(.spring(response: 0.2)) {
+                vm.showCardStylingOptions = true
+            }
+            
+        }
+    }
+    
+    private var feedStyleExpanded: some View {
+        VStack {
+            HStack {
+                Label("Story Feed Card Style", systemImage: "platter.2.filled.iphone")
+                    .font(.headline)
+                
+                Spacer()
+                
+                if !vm.showCardStylingOptions {
+                    Text(globalSettings.selectedCardStyle.rawValue)
+                        .foregroundColor(.orange)
+                }
+                
+            }
+            .onTapGesture {
+                withAnimation(.spring(response: 0.2)) {
+                    vm.showCardStylingOptions = false
+                }
+                
+            }
+            
+            HStack {
+                ForEach(Settings.CardStyle.allCases, id: \.self) { style in
+                    Text(style.rawValue)
+                        .font(.title3)
+                        .foregroundColor(globalSettings.selectedCardStyle == style ? .white : .primary)
+                        .padding()
+                        .background(globalSettings.selectedCardStyle == style ?
+                                    RoundedRectangle(cornerRadius: 12).fill(.orange).matchedGeometryEffect(id: "cardStyleText", in: namespace)
+                                    :
+                                        nil
+                        )
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.2)) {
+                                globalSettings.settings.cardStyleString = style.rawValue
+                            }
+                            
+                            withAnimation(.spring().delay(1)) {
+                                vm.showCardStylingOptions = false
+                            }
+                            
+                        }
+                }
+            }
+            
+        }
+        .padding()
+        .background(content: {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color("CardColor"))
+                .matchedGeometryEffect(id: "backgroundRect", in: namespace)
+        })
+        .padding(.horizontal, 10)
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                vm.showCardStylingOptions = true
+            }
+            
+        }
+    }
+    
+    private var themeCollapsed: some View {
+            HStack {
+                Label("Theme", systemImage: "paintbrush.fill")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Text(globalSettings.selectedTheme.rawValue)
+                    .foregroundColor(.orange)
+                    .matchedGeometryEffect(id: "themeSelectorText", in: namespace)
+            }
+            .padding()
+            .background(content: {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color("CardColor"))
+            })
+            .padding(.horizontal, 10)
+            .onTapGesture {
+                withAnimation(.spring(response: 0.2)) {
+                    vm.showThemeOptions = true
+                }
+            }
+        
+    }
+    
+    private var themeExpanded: some View {
+            
+        VStack {
+            HStack {
+                Label("Theme", systemImage: "paintbrush.fill")
+                    .font(.headline)
                 
-                HStack {
-                    Label("Theme", systemImage: "paintbrush.fill")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
+                Spacer()
+                
+                if !vm.showThemeOptions {
                     Text(globalSettings.selectedTheme.rawValue)
                         .foregroundColor(.orange)
                 }
-                .padding()
             }
-            .padding(.horizontal, 10)
+            .onTapGesture {
+                withAnimation(.spring(response: 0.2)) {
+                    vm.showThemeOptions = false
+                }
+            }
+            
+            HStack {
+                
+                ForEach(Settings.Theme.allCases, id: \.self) { theme in
+                    VStack {
+                        
+                        switch theme {
+                        case .automatic:
+                            HStack(spacing: 2) {
+                                Rectangle()
+                                    .fill(.orange)
+                                
+                                Rectangle()
+                                    .fill(Color(red: 7 / 255, green: 15 / 255, blue: 28 / 255))
+                            }
+                            .frame(height: 50)
+                            .clipShape(Capsule())
+                        case .light:
+                            HStack(spacing: 2) {
+                                Rectangle()
+                                    .fill(.orange)
+                            }
+                            .frame(height: 50)
+                            .clipShape(Capsule())
+                        case .dark:
+                            HStack(spacing: 2) {
+                                Rectangle()
+                                    .fill(Color(red: 7 / 255, green: 15 / 255, blue: 28 / 255))
+                            }
+                            .frame(height: 50)
+                            .clipShape(Capsule())
+                        }
+                        
+                        if globalSettings.selectedTheme == theme {
+                            Text(theme.rawValue)
+                                .font(.headline.weight(.medium))
+                                .matchedGeometryEffect(id: "themeSelectorText", in: namespace)
+                        } else {
+                            Text(theme.rawValue)
+                                .font(.headline.weight(.medium))
+                        }
+                        
+                        
+                        if globalSettings.selectedTheme == theme {
+                            Image(systemName: "triangle.fill")
+                                .matchedGeometryEffect(id: "themeSelector", in: namespace)
+                                .foregroundColor(.green)
+                                .padding(.top, 20)
+                        }
+                    }
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            globalSettings.settings.themeString = theme.rawValue
+                        }
+                        
+                        withAnimation(.spring(response: 0.2).delay(1)) {
+                            vm.showThemeOptions = false
+                        }
+                    }
+                }
+            }
+            .padding(.vertical)
         }
+        .padding()
+        .background(content: {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color("CardColor"))
+        })
+        .padding(.horizontal, 10)
+        
     }
     
     private var secondSection: some View {
@@ -139,6 +303,11 @@ extension SettingsView {
             .padding(.horizontal, 10)
             
             // Section item 2
+//            if let mailUrl = vm.mailUrl {
+//                Link(destination: mailUrl) {
+//
+//                }
+//            }
             
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
@@ -154,6 +323,10 @@ extension SettingsView {
                 .padding()
             }
             .padding(.horizontal, 10)
+            .onTapGesture {
+                vm.openMail()
+            }
+            
         }
         .padding(.top, 30)
     }

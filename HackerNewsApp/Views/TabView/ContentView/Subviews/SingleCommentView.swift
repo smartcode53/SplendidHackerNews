@@ -19,9 +19,6 @@ struct SingleCommentView: View {
     var commentDate: Int
     
     
-//    @State var indentLevel: Double = 0
-//    @State var isExpanded = true
-    
     var animateArrow: Bool {
         vm.isExpanded
     }
@@ -36,13 +33,9 @@ struct SingleCommentView: View {
             if vm.isExpanded {
                 
                 if let text = commentText {
-//                    InclusiveTextView(text: text)
-//                        .multilineTextAlignment(.leading)
-//                        .minimumScaleFactor(0.7)
                     
-                    Text("\(text.parsedBodyFragment.styleLinks(Style.foregroundColor(.orange)).attributedString)")
-                        .multilineTextAlignment(.leading)
-                        .minimumScaleFactor(0.7)
+                    Text(text.markdown)
+                        .tint(.orange)
                 }
                 
                 Spacer()
@@ -104,8 +97,3 @@ extension SingleCommentView {
     }
 }
 
-//struct SingleCommentView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        SingleCommentView(comment: <#T##Comment#>)
-//    }
-//}

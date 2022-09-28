@@ -20,13 +20,10 @@ struct ContentView: View {
     // MARK: ContentView Body
     var body: some View {
         NavigationStack {
-            ScrollView {
-                ZStack {
-                    
-                    // MARK: View Background
-                    Color("BackgroundColor")
-                        .ignoresSafeArea()
-                    
+            ZStack {
+                Color("BackgroundColor")
+                
+                ScrollView {
                     // MARK: View Foreground
                     VStack(spacing: 0) {
                         
@@ -35,29 +32,29 @@ struct ContentView: View {
                             .frame(height: 2)
                         
                         // MARK: List of stories
-                            
-                            newPosts
-                                .padding(.top, vm.storyType == .askstories || vm.storyType == .showstories ?  0 : 20)
-                            
+                        
+                        newPosts
+                            .padding(.top, vm.storyType == .askstories || vm.storyType == .showstories ?  0 : 20)
+                        
                         
                     }
-                }
-                .navigationTitle(Text(vm.storyType.rawValue))
-                .navigationBarTitleDisplayMode(.automatic)
-                .toolbarBackground(Color("CardColor"), for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Menu("Switch Feed") {
-                            ForEach(StoryType.allCases, id: \.self) { type in
-                                Button(type.rawValue) {
-                                    vm.storyType = type
+                    .navigationTitle(Text(vm.storyType.rawValue))
+                    .navigationBarTitleDisplayMode(.automatic)
+                    .toolbarBackground(Color("CardColor"), for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Menu("Switch Feed") {
+                                ForEach(StoryType.allCases, id: \.self) { type in
+                                    Button(type.rawValue) {
+                                        vm.storyType = type
+                                    }
                                 }
+                            }
+                            .tint(.orange)
                         }
-                        }
-                        .tint(.orange)
                     }
-            }
+                }
             }
         }
         .accentColor(.primary)
@@ -78,11 +75,12 @@ extension ContentView  {
                                 vm.loadInfinitely()
                             }
                         }
-
+                    
                     if vm.isLoading {
                         ProgressView()
                     }
                 }
+//                .id(UUID())
             } else {
                 ProgressView()
             }
@@ -98,7 +96,7 @@ extension ContentView  {
     }
     
 }
-    
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
