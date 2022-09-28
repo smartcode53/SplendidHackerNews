@@ -170,24 +170,39 @@ extension PostView {
                 }
                 .padding([.horizontal, .top])
                 
-                // Story Image
                 if let imageUrl = vm.imageUrl {
-                    AsyncImage(url: imageUrl) { image in
-                        image
+                    if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
+                        cachedImage
                             .resizable()
                             .scaledToFill()
                             .frame(width: UIScreen.main.bounds.width * 0.977)
                             .frame(height: 220)
                             .clipped()
-                    } placeholder: {
-                        Rectangle()
-                            .fill(.thickMaterial)
-                            .frame(width: UIScreen.main.bounds.width * 0.977)
-                            .frame(height: 220)
-                            .clipped()
-                            .blur(radius: 12)
+                    } else {
+                        AsyncImage(url: imageUrl) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: UIScreen.main.bounds.width * 0.977)
+                                .frame(height: 220)
+                                .clipped()
+                                .onAppear {
+                                    vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
+                                }
+                        } placeholder: {
+                            Rectangle()
+                                .fill(.thickMaterial)
+                                .frame(width: UIScreen.main.bounds.width * 0.977)
+                                .frame(height: 220)
+                                .clipped()
+                                .blur(radius: 12)
+                        }
                     }
                 }
+                
+                
+                // Story Image
+                    
                 
                 // Points and Actionable Buttons
                 VStack {

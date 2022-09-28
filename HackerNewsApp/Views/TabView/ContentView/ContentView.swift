@@ -80,7 +80,6 @@ extension ContentView  {
                         ProgressView()
                     }
                 }
-//                .id(UUID())
             } else {
                 ProgressView()
             }
