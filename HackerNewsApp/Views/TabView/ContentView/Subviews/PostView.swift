@@ -39,10 +39,13 @@ extension PostView {
                                 .padding(.bottom, 5)
                         }
                         
-                        Text(story.title)
+                        Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
                             .foregroundColor(Color("PostTitle"))
-                            .font(.title3.weight(.medium))
+                            .font(.title3.weight(.bold))
                             .padding(.bottom, 10)
+                            .onTapGesture {
+                                selectedStory = story
+                            }
                         
                         HStack {
                             Text(Date.getTimeInterval(with: story.time))
@@ -115,9 +118,6 @@ extension PostView {
                 if let url = story.url {
                     vm.loadImage(fromUrl: url)
                 }
-            }
-            .onTapGesture {
-                selectedStory = story
             }
             .fullScreenCover(item: $selectedStory) { story in
                 SafariView(vm: vm, url: story.url)
@@ -244,6 +244,7 @@ extension PostView {
             .background(Color("CardColor"))
             .cornerRadius(12)
             .padding(.horizontal, 5)
+            .padding(.vertical, 5)
             .task {
                 if let url = story.url {
                     vm.loadImage(fromUrl: url)

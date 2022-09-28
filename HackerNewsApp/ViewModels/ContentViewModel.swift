@@ -31,6 +31,7 @@ class ContentViewModel: SafariViewLoader {
     @Published var storyIds = [Int]() {
         didSet {
             if oldValue.isEmpty {
+                print("StoryIDs DidSet fired!")
                 Task {
                     return await networkManager.getStoryIds(ofType: storyType)
                 }
@@ -53,9 +54,18 @@ class ContentViewModel: SafariViewLoader {
     @Published var showStoryInComments = false
     @Published var showStoryPicker: Bool = false
     @Published var showSortSheet = false
-    
+    @Published var isRefreshing = false
     
     var buffer = [Int]()
+    
+    func refreshStories() {
+        isRefreshing = true
+        cacheManager.clearCache()
+        topStories.removeAll()
+        initialIdsFetch()
+        taskGroupStories()
+        isRefreshing = false
+    }
     
     func switchStoryType() {
         topStories.removeAll()
