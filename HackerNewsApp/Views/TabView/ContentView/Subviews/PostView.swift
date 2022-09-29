@@ -32,7 +32,9 @@ extension PostView {
             VStack {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 0) {
-                        if let urlDomain = story.url?.urlDomain {
+                        if let unsafeUrl = story.url,
+                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
+                           let urlDomain = url.urlDomain {
                             Text(urlDomain)
                                 .foregroundColor(.orange)
                                 .font(.callout.weight(.semibold))
@@ -93,7 +95,8 @@ extension PostView {
                     
                     // Share button
                     
-                    if let url = story.url {
+                    if let unsafeUrl = story.url,
+                       let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
                         ShareLink(item: url) {
                             Image(systemName: "square.and.arrow.up")
                                 .foregroundColor(.primary)
@@ -115,7 +118,8 @@ extension PostView {
             .padding(.horizontal, 5)
             .padding(.vertical, 2)
             .task {
-                if let url = story.url {
+                if let unsafeUrl = story.url {
+                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
                     vm.loadImage(fromUrl: url)
                 }
             }
@@ -132,12 +136,13 @@ extension PostView {
                 VStack(alignment: .leading, spacing: 0) {
                     
                     // Domain Name
-                    if let urlDomain = story.url?.urlDomain {
+                    if let unsafeUrl = story.url,
+                       let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
+                       let urlDomain = url.urlDomain {
                         Text(urlDomain)
                             .font(.caption.weight(.bold))
                             .foregroundColor(.orange)
                             .padding(.bottom, 10)
-                        
                     }
                     
                     // Story Title
@@ -226,7 +231,8 @@ extension PostView {
                         .buttonStyle(.bordered)
                         
                         // Share Button
-                        if let url = story.url {
+                        if let unsafeUrl = story.url,
+                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
                             ShareLink(item: url) {
                                 Image(systemName: "square.and.arrow.up")
                                     .foregroundColor(.primary)
@@ -246,7 +252,8 @@ extension PostView {
             .padding(.horizontal, 5)
             .padding(.vertical, 5)
             .task {
-                if let url = story.url {
+                if let unsafeUrl = story.url {
+                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
                     vm.loadImage(fromUrl: url)
                 }
             }
