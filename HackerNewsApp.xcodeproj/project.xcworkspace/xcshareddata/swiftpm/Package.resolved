@@ -1,0 +1,41 @@
+{
+  "pins" : [
+    {
+      "identity" : "atributika",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/psharanda/Atributika.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "d018897afbd55d9065ef859650585bac890ada7e"
+      }
+    },
+    {
+      "identity" : "html2markdown",
+      "kind" : "remoteSourceControl",
+      "location" : "https://gitlab.com/mflint/HTML2Markdown",
+      "state" : {
+        "revision" : "00d7a9744bbd1e7762c587bbd248775e16345a65",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "opengraph",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/satoshi-takano/OpenGraph",
+      "state" : {
+        "revision" : "3ef2b8b9b4972b57e9e78c91c26be770c0110057",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "swiftsoup",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scinfu/SwiftSoup.git",
+      "state" : {
+        "revision" : "6778575285177365cbad3e5b8a72f2a20583cfec",
+        "version" : "2.4.3"
+      }
+    }
+  ],
+  "version" : 2
+}
