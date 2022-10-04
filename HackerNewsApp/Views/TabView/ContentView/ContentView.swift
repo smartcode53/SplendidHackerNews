@@ -12,7 +12,6 @@ struct ContentView: View {
     // MARK: ContentView Properties
     @StateObject var vm = ContentViewModel()
     @State var selectedStory: Story? = nil
-    @State var contentType: String = "Top Stories"
     @Namespace var namespace
     @State var showComments: Bool = false
     
@@ -23,8 +22,7 @@ struct ContentView: View {
             ZStack {
                 Color("BackgroundColor")
                 
-                listPosts
-                
+                scrollView
                 
             }
         }
@@ -37,18 +35,20 @@ extension ContentView  {
     // MARK: Story array
     var newPosts: some View {
         LazyVStack {
-            if !vm.topStories.isEmpty {
-                ForEach(Array(vm.topStories.enumerated()), id: \.element.id) { index, story in
-                    PostView(withStory: story, selectedStory: $selectedStory)
-                        .onAppear {
-                            print("current index: \(index), stories count: \(vm.topStories.count)")
-                            if index == vm.topStories.count - 1 {
-                                vm.loadInfinitely()
+            if !vm.stories.isEmpty {
+                ForEach(Array(zip(vm.stories.indices, vm.stories)), id: \.0) { index, story in
+                    VStack {
+                        PostView(withStory: story, selectedStory: $selectedStory)
+                            .task {
+                                if index == vm.stories.count - 1 {
+                                    await vm.altLoadInfinitely()
+                                }
                             }
+                        
+                        if vm.isLoading {
+                            ProgressView()
+                                .padding()
                         }
-                    
-                    if vm.isLoading {
-                        ProgressView()
                     }
                 }
             } else {
@@ -56,7 +56,7 @@ extension ContentView  {
             }
         }
         .task {
-            await vm.loadStoriesTheFirstTime()
+            await vm.altLoadStoriesTheFirstTime()
         }
         .fullScreenCover(item: $selectedStory) { story in
             if let storyUrl = story.url {
@@ -76,19 +76,19 @@ extension ContentView  {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             
-            if !vm.topStories.isEmpty || !vm.isRefreshing {
-                ForEach(Array(vm.topStories.enumerated()), id: \.element.id) { index, story in
+            if !vm.stories.isEmpty {
+                ForEach(Array(zip(vm.stories.indices, vm.stories)), id: \.0) { (index, story) in
                     PostView(withStory: story, selectedStory: $selectedStory)
-                        .onAppear {
-                            print("current index: \(index), stories count: \(vm.topStories.count)")
-                            if index == vm.topStories.count - 1 {
-                                vm.loadInfinitely()
-                            }
-                        }
+//                        .onAppear {
+//                            print("current index: \(index), stories count: \(vm.topStories.count)")
+//                            if index == vm.topStories.count - 1 {
+//                                vm.loadInfinitely()
+//                            }
+//                        }
                     
-                    if vm.isLoading {
-                        ProgressView()
-                    }
+//                    if vm.isLoading {
+//                        ProgressView()
+//                    }
                 }
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .listRowSeparator(.hidden)
@@ -107,9 +107,9 @@ extension ContentView  {
                 
             }
         }
-        .refreshable {
-            vm.refreshStories()
-        }
+//        .refreshable {
+//            vm.refreshStories()
+//        }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .environment(\.defaultMinListRowHeight, 5)
@@ -121,13 +121,13 @@ extension ContentView  {
             alignment: .top
         )
         .task {
-            await vm.loadStoriesTheFirstTime()
+            await vm.altLoadStoriesTheFirstTime()
         }
-        .fullScreenCover(item: $selectedStory) { story in
-            if let storyUrl = story.url {
-                SafariView(vm: vm, url: storyUrl)
-            }
-        }
+//        .fullScreenCover(item: $selectedStory) { story in
+//            if let storyUrl = story.url {
+//                SafariView(vm: vm, url: storyUrl)
+//            }
+//        }
         .navigationTitle(Text(vm.storyType.rawValue))
         .navigationBarTitleDisplayMode(.automatic)
         .toolbarBackground(Color("CardColor"), for: .navigationBar)

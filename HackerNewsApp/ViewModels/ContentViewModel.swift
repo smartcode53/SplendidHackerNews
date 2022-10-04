@@ -148,6 +148,63 @@ class ContentViewModel: SafariViewLoader {
     func returnSafelyLoadedUrl(url: String) -> URL {
         return networkManager.safelyLoadUrl(url: url)
     }
+    
+    // MARK: Alt section
+    @Published var altStoryIds: [Int: Int] = [:]
+    @Published var stories: [Story] = []
+    lazy var altNetworkManager: AltNetworkManager = AltNetworkManager.instance
+    @Published var currentMaxItemNumber: Int = 20
+    
+}
+
+// MARK: Alt ViewModel Extension (Testing purposes)
+extension ContentViewModel {
+    
+    func altLoadStoriesTheFirstTime() async {
+        guard let idDict = await altNetworkManager.getStoryIds(ofType: storyType) else { return }
+        
+        await MainActor.run { [weak self] in
+            self?.altStoryIds = idDict
+        }
+        
+        await altDownloadStories()
+    }
+    
+    func altDownloadStories() async {
+        
+        let filteredIdDict: [Int: Int] = altStoryIds.filter { dict in
+            return dict.key <= currentMaxItemNumber
+        }
+        
+        await MainActor.run { [weak self] in
+            self?.updateMaxItemNumber()
+        }
+        
+        guard let storiesArray = await altNetworkManager.getStories(using: filteredIdDict) else {
+            print("Failed to download stories")
+            return
+        }
+        
+        
+        await MainActor.run { [weak self] in
+            self?.stories.append(contentsOf: storiesArray)
+        }
+    }
+    
+    func updateMaxItemNumber() {
+        let dictCount: Int = altStoryIds.count
+        if currentMaxItemNumber > dictCount {
+            currentMaxItemNumber += dictCount
+        } else {
+            currentMaxItemNumber += 20
+        }
+    }
+    
+    func altLoadInfinitely() async {
+        isLoading = true
+        await altDownloadStories()
+        isLoading = false
+    }
 }
 
 // MARK: Stories Cache Manager
