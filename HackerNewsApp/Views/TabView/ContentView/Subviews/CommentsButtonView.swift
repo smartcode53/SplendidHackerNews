@@ -15,25 +15,12 @@ struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariVie
     var body: some View {
         if let commentCount =  vm.story?.descendants {
             
-            HStack(spacing: 5) {
-                Image(systemName: "bubble.right")
-                Text(String(commentCount))
+            NavigationLink {
+                CommentsView(vm: vm)
+            } label: {
+                Label(String(commentCount), systemImage: "bubble.right")
             }
-            .padding(8)
-            .background(.secondary.opacity(0.2))
-            .cornerRadius(7)
-            .foregroundColor(.primary)
-            .fontWeight(.regular)
-            .overlay {
-                NavigationLink {
-                    CommentsView(vm: vm)
-                } label: {
-                    EmptyView()
-                }
-                .buttonStyle(.bordered)
-                .opacity(0)
-            }
-                
+            .buttonStyle(.bordered)
         }
     }
 }

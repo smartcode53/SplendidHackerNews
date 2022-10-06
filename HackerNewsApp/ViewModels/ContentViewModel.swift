@@ -22,7 +22,7 @@ enum SortOptions: String, CaseIterable {
     case time = "Date"
 }
 
-
+@MainActor
 class ContentViewModel: SafariViewLoader {
     
     let networkManager: NetworkManager = NetworkManager.instance
@@ -43,7 +43,7 @@ class ContentViewModel: SafariViewLoader {
     @Published var topStories = [Story]()
     @Published var storyType = StoryType.topstories {
         didSet {
-            switchStoryType()
+            changeStoryType()
         }
     }
     
@@ -123,8 +123,8 @@ class ContentViewModel: SafariViewLoader {
             print("Loading from cache failed... Now initiating loading process from the server")
             print("Count of storyIds array before initiating the download process: \(storyIds.count)")
             Task {
-//                guard let ids = await networkManager.getStoryIds() else {return}
-//                storyIds = ids
+                //                guard let ids = await networkManager.getStoryIds() else {return}
+                //                storyIds = ids
                 let initialItems = storyIds.count < 20 ? storyIds : Array(storyIds.prefix(20)) // Extract 20 items from the fetched array.
                 buffer = initialItems // Add those 20 items to the buffer array
                 await MainActor.run { [weak self] in
@@ -145,15 +145,19 @@ class ContentViewModel: SafariViewLoader {
         
     }
     
-    func returnSafelyLoadedUrl(url: String) -> URL {
+    nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
         return networkManager.safelyLoadUrl(url: url)
     }
     
     // MARK: Alt section
-    @Published var altStoryIds: [Int: Int] = [:]
-    @Published var stories: [Story] = []
-    lazy var altNetworkManager: AltNetworkManager = AltNetworkManager.instance
+    //    @Published var altStoryIds: [Int: Int] = [:]
+    //    @Published var stories: [Story] = []
+    @Published var storiesToDisplay: [StoryWrapper] = []
+    @Published var fetchedStoryWrappers: [StoryWrapper] = []
     @Published var currentMaxItemNumber: Int = 20
+    @Published var currentMinItemNumber: Int = 1
+    lazy var altNetworkManager: AltNetworkManager = AltNetworkManager.instance
+    lazy var altCacheManager: AltStoriesCache = AltStoriesCache.instance
     
 }
 
@@ -161,10 +165,10 @@ class ContentViewModel: SafariViewLoader {
 extension ContentViewModel {
     
     func altLoadStoriesTheFirstTime() async {
-        guard let idDict = await altNetworkManager.getStoryIds(ofType: storyType) else { return }
+        guard let wrappedStoriesArray = await altNetworkManager.getStoryIds(ofType: storyType) else { return }
         
         await MainActor.run { [weak self] in
-            self?.altStoryIds = idDict
+            self?.fetchedStoryWrappers = wrappedStoriesArray
         }
         
         await altDownloadStories()
@@ -172,38 +176,160 @@ extension ContentViewModel {
     
     func altDownloadStories() async {
         
-        let filteredIdDict: [Int: Int] = altStoryIds.filter { dict in
-            return dict.key <= currentMaxItemNumber
+        var cachedStories: [StoryWrapper] = []
+        
+        for storyWrapper in storiesToDisplay {
+            if let cachedStory = altCacheManager.getFromCache(withKey: String(storyWrapper.id)) {
+                cachedStories.append(cachedStory)
+            }
         }
         
-        await MainActor.run { [weak self] in
-            self?.updateMaxItemNumber()
+        if storiesToDisplay.count == cachedStories.count && !cachedStories.isEmpty {
+            
+            await MainActor.run { [weak self] in
+                self?.storiesToDisplay = cachedStories
+            }
+            
+            print("Loaded from cache")
+            
+        } else {
+            
+            let extractedStories = extractLimitedStories()
+            
+            guard let storiesArray = await altNetworkManager.getStories(using: extractedStories) else { return }
+            
+            await MainActor.run { [weak self] in
+                for wrapper in storiesArray {
+                    self?.storiesToDisplay.append(wrapper)
+                    self?.altCacheManager.saveToCache(wrapper, withKey: String(wrapper.id))
+                }
+                
+//                self?.storiesToDisplay.sort(by: { item1, item2 in
+//                    item1.index < item2.index
+//                })
+            }
         }
         
-        guard let storiesArray = await altNetworkManager.getStories(using: filteredIdDict) else {
-            print("Failed to download stories")
-            return
-        }
         
         
-        await MainActor.run { [weak self] in
-            self?.stories.append(contentsOf: storiesArray)
-        }
+        
+        
+//        var cachedStoryArray: [StoryWrapper] = []
+//
+//        for wrapper in fetchedStoryWrappers {
+//            if let cachedStory = altCacheManager.getFromCache(withKey: String(wrapper.id)) {
+//                cachedStoryArray.append(cachedStory)
+//            }
+//        }
+        
+        //        if cachedStoryArray.isEmpty {
+        //        let filteredIdDict: [Int: Int] = altStoryIds.filter { dict in
+        //            if currentMaxItemNumber == currentMinItemNumber {
+        //                return dict.key == currentMaxItemNumber
+        //            } else {
+        //                return dict.key >= currentMinItemNumber && dict.key <= currentMaxItemNumber
+        //            }
+        //        }
+//        if cachedStoryArray.isEmpty {
+//            let filteredArray: [StoryWrapper] = fetchedStoryWrappers.filter { wrapper in
+//                if currentMaxItemNumber == currentMinItemNumber {
+//                    return wrapper.index == currentMaxItemNumber
+//                } else {
+//                    return wrapper.index >= currentMinItemNumber && wrapper.index <= currentMaxItemNumber
+//                }
+//            }
+//
+//
+//            await MainActor.run { [weak self] in
+//                self?.updateRange()
+//            }
+//
+//            guard let storiesArray = await altNetworkManager.getStories(using: filteredArray) else {
+//                print("Failed to download stories")
+//                return
+//            }
+//
+//            await MainActor.run { [weak self] in
+//                for wrapper in storiesArray {
+//                    if let wrapperIndex = fetchedStoryWrappers.firstIndex(where: { storyWrapper in
+//                        storyWrapper.index == wrapper.index
+//                    }) {
+//                        self?.fetchedStoryWrappers[wrapperIndex] = wrapper
+//                        altCacheManager.saveToCache(wrapper, withKey: String(wrapper.id))
+//                    }
+//                }
+//                //            self?.stories.append(contentsOf: storiesArray)
+//                //            for story in stories {
+//                //                altCacheManager.saveToCache(story, withKey: String(story.id))
+//                //            }
+//            }
+//        } else {
+//            await MainActor.run { [weak self] in
+//                for wrapper in cachedStoryArray {
+//                    if let wrapperIndex = fetchedStoryWrappers.firstIndex(where: { item in
+//                        item.index == wrapper.index
+//                    }) {
+//                        self?.fetchedStoryWrappers[wrapperIndex] = wrapper
+//                    }
+//                }
+//            }
+//
+//        }
+        
+        
     }
     
-    func updateMaxItemNumber() {
-        let dictCount: Int = altStoryIds.count
-        if currentMaxItemNumber > dictCount {
-            currentMaxItemNumber += dictCount
-        } else {
-            currentMaxItemNumber += 20
+    func extractLimitedStories() -> [StoryWrapper] {
+        let firstStoryIndex = fetchedStoryWrappers.first?.index
+        let lastStoryIndex = fetchedStoryWrappers.last?.index
+        var currentMax: Int = 0
+        
+        if let firstStoryIndex, let lastStoryIndex {
+            if lastStoryIndex - firstStoryIndex < 19 {
+                // Add remaining stories to the storiesToLoadArray and finally empty the fetchedStoryWrappers array.
+                return fetchedStoryWrappers
+            } else {
+                currentMax = firstStoryIndex + 19
+            }
         }
+        
+        let slice = Array(fetchedStoryWrappers.prefix(currentMax))
+        fetchedStoryWrappers.removeSubrange(0...currentMax)
+        return slice
     }
+    
+//    func updateRange() {
+//        let arrayCount: Int = fetchedStoryWrappers.count
+//
+//        if currentMaxItemNumber + 20 > arrayCount {
+//            currentMinItemNumber = currentMaxItemNumber + 1
+//            currentMaxItemNumber = arrayCount
+//        } else {
+//            currentMaxItemNumber += 20
+//            currentMinItemNumber += 20
+//        }
+//    }
     
     func altLoadInfinitely() async {
-        isLoading = true
+        await MainActor.run {
+            self.isLoading = true
+            for storyWrapper in storiesToDisplay {
+                altCacheManager.removeFromCache(key: String(storyWrapper.id))
+            }
+        }
         await altDownloadStories()
-        isLoading = false
+        await MainActor.run {
+            self.isLoading = false
+        }
+    }
+    
+    func changeStoryType() {
+        fetchedStoryWrappers.removeAll()
+        storiesToDisplay.removeAll()
+//        altCacheManager.clearCache()
+        Task {
+            await altLoadStoriesTheFirstTime()
+        }
     }
 }
 
@@ -261,6 +387,59 @@ extension ContentViewModel {
     }
 }
 
+
+// MARK: AltStories Cache Manager
+extension ContentViewModel {
+    class AltStoriesCache {
+        
+        static let instance = AltStoriesCache()
+        
+        private let dateProvider: () -> Date = Date.init
+        private let entryLifetime: TimeInterval = 12 * 60 * 60
+        
+        private init() {}
+        
+        let cache = NSCache<NSString, AltStoriesCacheValueWrapper<StoryWrapper>>()
+        
+        func getFromCache(withKey key: String) -> StoryWrapper? {
+            guard let result = cache.object(forKey: key as NSString) else {
+                return nil
+            }
+            
+            guard dateProvider() < result.expirationDate else {
+                removeFromCache(key: key)
+                return nil
+            }
+            
+            return result.value
+        }
+        
+        func saveToCache(_ object: StoryWrapper, withKey key: String) {
+            let date = dateProvider().addingTimeInterval(entryLifetime)
+            let wrapper = AltStoriesCacheValueWrapper(object, expirationDate: date)
+            cache.setObject(wrapper, forKey: key as NSString)
+        }
+        
+        func removeFromCache(key: String) {
+            cache.removeObject(forKey: key as NSString)
+        }
+        
+        func clearCache() {
+            cache.removeAllObjects()
+        }
+    }
+    
+    class AltStoriesCacheValueWrapper<T> {
+        let value: T
+        let expirationDate: Date
+        
+        init(_ value: T, expirationDate: Date) {
+            self.value = value
+            self.expirationDate = expirationDate
+        }
+    }
+}
+
 // MARK: Extension for implementing sorting functions
 extension ContentViewModel {
     
@@ -283,7 +462,7 @@ extension ContentViewModel {
             if direction == .ascending {
                 return story1.descendants ?? 0 < story2.descendants ?? 0
             } else {
-               return story1.descendants ?? 0 > story2.descendants ?? 0
+                return story1.descendants ?? 0 > story2.descendants ?? 0
             }
         }
     }

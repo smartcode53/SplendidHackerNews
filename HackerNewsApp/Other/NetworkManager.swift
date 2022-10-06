@@ -85,13 +85,6 @@ class NetworkManager {
         return nil
     }
     
-    func getUrlDomain(forUrl url: String) -> String? {
-        if let generatedUrl = URL(string: url) {
-            return generatedUrl.host
-        }
-        return nil
-    }
-    
     func getImage(fromUrl url: String) async -> URL? {
         guard let safeUrl = URL(string: getSecureUrlString(url: url)) else { return nil }
         
@@ -138,7 +131,7 @@ class NetworkManager {
         if let safeUrl = URL(string: atsSecureUrlString) {
             return safeUrl
         } else {
-            return URL(string: "")!
+            return URL(string: "") ?? URL(string: "https://hackernews.com")!
         }
     }
     

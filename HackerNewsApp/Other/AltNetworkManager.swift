@@ -7,13 +7,14 @@
 
 import Foundation
 import SwiftUI
+import OpenGraph
 
 class AltNetworkManager {
     
     static let instance = AltNetworkManager()
     
-    // MARK: Function to get the array of post IDs and convert it into a dictionary.
-    func getStoryIds(ofType type: StoryType) async -> [Int: Int]? {
+    // Function to get the array of post IDs and convert it into a dictionary.
+    func getStoryIds(ofType type: StoryType) async -> [StoryWrapper]? {
         
         let urlStoryType: String
         
@@ -32,14 +33,16 @@ class AltNetworkManager {
         
         guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(urlStoryType).json") else { return nil }
         
+        
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let safeData = try? JSONDecoder().decode([Int].self, from: data) {
-                var idDictionary: [Int: Int] = [:]
+                var wrapperArray: [StoryWrapper] = []
                 for (index, id) in safeData.enumerated() {
-                    idDictionary[index + 1] = id
+                    let wrapper = StoryWrapper(index: index + 1, id: id)
+                    wrapperArray.append(wrapper)
                 }
-                return idDictionary
+                return wrapperArray
             }
         } catch let error {
             print(error)
@@ -48,35 +51,49 @@ class AltNetworkManager {
         return nil
     }
     
-    func getStories(using idDictionary: [Int: Int]) async -> [Story]?  {
+    // Function to fetch stories from the dictionary of post IDs
+    func getStories(using wrapperArray: [StoryWrapper]) async -> [StoryWrapper]?  {
         
         do {
-            let stories = try await withThrowingTaskGroup(of: (Int, Story?).self, body: { group in
+            let stories = try await withThrowingTaskGroup(of: StoryWrapper?.self, body: { group in
                 
-                var storyDict: [Int: Story] = [:]
-                var storyArray: [Story] = []
+                var storyArray: [StoryWrapper] = []
                 
-                for (key, value) in idDictionary {
+                for wrapper in wrapperArray {
                     group.addTask {
-                        let story = await self.fetchSingleStory(withId: value)
-                        return (key, story)
+                        guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
+                        let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
+                        return newWrapper
                     }
                 }
                 
-                for try await (key, story) in group {
-                    if let story {
-                        storyDict[key] = story
+//                for try await wrapper in group {
+//                    if let story {
+//                        storyDict[key] = story
+////                    }
+//                    if let wrapper {
+//                        storyArray.append(wrapper)
+//                    }
+//                }
+                
+                for try await result in group {
+                    if let result {
+                        storyArray.append(result)
                     }
                 }
                 
-                let sortedKeys = Array(storyDict.keys).sorted { item1, item2 in
-                    item1 < item2
-                }
+//                let sortedKeys = Array(storyDict.keys).sorted { item1, item2 in
+//                    item1 < item2
+//                }
                 
-                for key in sortedKeys {
-                    if let story = storyDict[key] {
-                        storyArray.append(story)
-                    }
+//                for key in sortedKeys {
+//                    if let story = storyDict[key] {
+//                        storyArray.append(story)
+//                    }
+//                }
+                
+                storyArray.sort { wrapper1, wrapper2 in
+                    wrapper1.index < wrapper2.index
                 }
                 
                 return storyArray
@@ -92,6 +109,7 @@ class AltNetworkManager {
         
     }
     
+    // Sub-function of the getStories function to help fetch a single story using its ID.
     func fetchSingleStory(withId id: Int) async -> Story? {
         guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/item/\(id).json") else { return nil }
         
@@ -102,6 +120,60 @@ class AltNetworkManager {
         } catch let error {
             print("There was an error fetching stories from the server: \(error)")
             return nil
+        }
+    }
+    
+    // Function to fetch a single image associated with a story.
+    func getImage(fromUrl url: String) async -> URL? {
+        guard let safeUrl = URL(string: getSecureUrlString(url: url)) else { return nil }
+        
+        do {
+            
+            let og = try await OpenGraph.fetch(url: safeUrl)
+            guard let ogUrl = og[.image] else { return nil }
+            if let finalUrl = URL(string: ogUrl) {
+                return finalUrl
+            }
+            
+        } catch let error {
+            print("There was an error fetching the image: \(error)")
+        }
+        
+        return nil
+    }
+    
+    // Function to convert non-HTTPS URLs to HTTPS
+    func getSecureUrlString(url: String) -> String {
+        let atsSecureUrl = url.contains("https") ? url : url.replacingOccurrences(of: "http", with: "https", range: url.startIndex..<url.index(url.startIndex, offsetBy: 6))
+        return atsSecureUrl
+    }
+    
+    // Function to fetch comments associated with a single story
+    func getComments(forId id: Int) async -> Item? {
+        guard let url = URL(string: "https://hn.algolia.com/api/v1/items/\(id)") else { return nil }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            do {
+                let safeData = try JSONDecoder().decode(Item.self, from: data)
+                return safeData
+            } catch let error {
+                print("Decoding error in getComments: \(error)")
+            }
+        } catch let error {
+            print("There was an error fetching comment data from the server. The complete description of the error is as follows: \(error)")
+        }
+        
+        return nil
+    }
+    
+    // Functin to de-optionalize a URL
+    func safelyLoadUrl(url: String) -> URL {
+        let atsSecureUrlString = getSecureUrlString(url: url)
+        if let safeUrl = URL(string: atsSecureUrlString) {
+            return safeUrl
+        } else {
+            return URL(string: "")!
         }
     }
 }
