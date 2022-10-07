@@ -12,6 +12,8 @@ struct PostView: View {
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm: UltimatePostViewModel
     @Binding var selectedStory: Story?
+    let index: Int
+    let isLoadedFromCache: Bool
 
     
     
@@ -27,9 +29,15 @@ struct PostView: View {
 
 extension PostView {
     
+    // MARK: Compact Card
     @ViewBuilder var compactCard: some View {
         if let story = vm.story {
             VStack {
+                
+                Text(String(index))
+                Text(isLoadedFromCache ? "From Cache" : "Downloaded")
+                    .padding(.horizontal)
+                
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 0) {
                         if let unsafeUrl = story.url,
@@ -124,11 +132,20 @@ extension PostView {
         }
     }
     
+    
+    // MARK: Normal Card
     @ViewBuilder var normalCard: some View {
         if let story = vm.story {
             VStack {
                 
                 VStack(alignment: .leading, spacing: 0) {
+                    
+                    HStack {
+                        Text(String(index))
+                        Text(isLoadedFromCache ? "From Cache" : "Downloaded")
+                            .padding(.horizontal)
+                    }
+                    
                     
                     // Domain Name
                     if let unsafeUrl = story.url,
@@ -258,9 +275,11 @@ extension PostView {
 }
 
 extension PostView {
-    init(withStory story: Story, selectedStory: Binding<Story?>, index: Int) {
+    init(withStory story: Story, selectedStory: Binding<Story?>, index: Int, isLoadedFromCache: Bool) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self._selectedStory = selectedStory
+        self.index = index
+        self.isLoadedFromCache = isLoadedFromCache
     }
 }
 

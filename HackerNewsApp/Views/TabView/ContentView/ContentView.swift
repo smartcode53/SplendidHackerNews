@@ -68,16 +68,24 @@ extension ContentView  {
             if !vm.storiesToDisplay.isEmpty {
                 ForEach(vm.storiesToDisplay) { wrapper in
                     if let story = wrapper.story {
-                        PostView(withStory: story, selectedStory: $selectedStory, index: 0)
+                        PostView(withStory: story, selectedStory: $selectedStory, index: wrapper.index, isLoadedFromCache: wrapper.isLoadedFromCache)
                                 .task {
-                                    guard let lastStoryWrapperIndex = vm.storiesToDisplay.lastIndex(where: { item in
-                                        item.story != nil
-                                   }) else { return }
                                     
-                                    if wrapper == vm.storiesToDisplay[lastStoryWrapperIndex] {
-                                        print(true)
+                                    guard let lastStoryWrapperIndex = vm.storiesToDisplay.last?.index else { return }
+                                    
+                                    if wrapper.index == lastStoryWrapperIndex {
+                                        print("Reached the last story in the array. Now loading infinitely")
                                         await vm.altLoadInfinitely()
                                     }
+                                    
+//                                    guard let lastStoryWrapperIndex = vm.storiesToDisplay.lastIndex(where: { item in
+//                                        item.story != nil
+//                                   }) else { return }
+//
+//                                    if wrapper == vm.storiesToDisplay[lastStoryWrapperIndex] {
+//                                        print(true)
+//                                        await vm.altLoadInfinitely()
+//                                    }
                                 }
                     }
                 }
