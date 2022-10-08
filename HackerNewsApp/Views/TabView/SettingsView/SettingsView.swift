@@ -138,6 +138,21 @@ extension SettingsView {
                 }
             }
             
+            HStack {
+                Text("Done")
+                    .foregroundColor(.orange)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Material.thinMaterial)
+            .cornerRadius(12)
+            .padding(.top)
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    vm.showCardStylingOptions = false
+                }
+            }
+            
         }
         .padding()
         .background(content: {
@@ -252,14 +267,26 @@ extension SettingsView {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             globalSettings.settings.themeString = theme.rawValue
                         }
-                        
-                        withAnimation(.spring(response: 0.2).delay(1)) {
-                            vm.showThemeOptions = false
-                        }
                     }
                 }
             }
             .padding(.vertical)
+            
+            HStack {
+                Text("Done")
+                    .foregroundColor(.orange)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Material.thinMaterial)
+            .cornerRadius(12)
+            .padding(.top)
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    vm.showThemeOptions = false
+                }
+            }
+            
         }
         .padding()
         .background(content: {
@@ -339,23 +366,7 @@ extension SettingsView {
             .padding(.horizontal)
             
             // Section item 1
-            ZStack {
-                
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color("CardColor"))
-                
-                HStack {
-                    Label("Developer", systemImage: "person.fill")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Text("@tahabroach")
-                        .foregroundColor(.mint)
-                }
-                .padding()
-            }
-            .padding(.horizontal, 10)
+            devTwitterHandle
             
             // Section item 2
             
@@ -377,6 +388,51 @@ extension SettingsView {
             .padding(.horizontal, 10)
         }
         .padding(.top, 30)
+    }
+    
+    @ViewBuilder private var devTwitterHandle: some View {
+        
+        if let twitterURL = URL(string: "https://twitter.com/TahaBroach") {
+            Link(destination: twitterURL) {
+                ZStack {
+                    
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
+                    
+                    HStack {
+                        Label("Developer", systemImage: "person.fill")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        Text("@tahabroach")
+                            .foregroundColor(.mint)
+                    }
+                    .padding()
+                }
+                .padding(.horizontal, 10)
+            }
+        } else {
+            ZStack {
+                
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color("CardColor"))
+                
+                HStack {
+                    Label("Developer", systemImage: "person.fill")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    Text("@tahabroach")
+                        .foregroundColor(.mint)
+                }
+                .padding()
+            }
+            .padding(.horizontal, 10)
+        }
     }
     
 }
