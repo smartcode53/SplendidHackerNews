@@ -10,10 +10,9 @@ import SwiftUI
 struct StoryFeedView: View {
     
     // MARK: ContentView Properties
-    @StateObject var vm = ContentViewModel()
+    @StateObject var vm = StoryFeedViewModel()
     @State var selectedStory: Story? = nil
     @Namespace var namespace
-    @State var showComments: Bool = false
     
     
     // MARK: ContentView Body
@@ -42,7 +41,7 @@ extension StoryFeedView  {
                                     
                                     if wrapper.index == lastStoryWrapperIndex {
                                         print("Reached the last story in the array. Now loading infinitely")
-                                        await vm.altLoadInfinitely()
+                                        await vm.loadInfinitely()
                                     }
                                 }
                     }
@@ -57,7 +56,7 @@ extension StoryFeedView  {
             }
         }
         .task {
-            await vm.altLoadStoriesTheFirstTime()
+            await vm.loadStoriesTheFirstTime()
         }
         .fullScreenCover(item: $selectedStory) { story in
             if let storyUrl = story.url {
@@ -68,12 +67,29 @@ extension StoryFeedView  {
     
     var scrollView: some View {
         ScrollView {
+            
             // MARK: View Foreground
             VStack(spacing: 0) {
                 
                 Rectangle()
                     .fill(.primary)
                     .frame(height: 2)
+                
+                // MARK: ProgressView indicator shown upon pulling down on the ScrollView
+                if vm.hasAskedToReload {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .transition(.move(edge: .bottom))
+                }
+                
+                // MARK: GeometryReader for custom Pull-To-Refresh button
+                GeometryReader { proxy in
+                    EmptyView()
+                        .onChange(of: proxy.frame(in: .named("scrollView")).minY) { newPosition in
+                            vm.position = newPosition
+                        }
+                }
                 
                 // MARK: List of stories
                 
@@ -99,6 +115,7 @@ extension StoryFeedView  {
                 }
             }
         }
+        .coordinateSpace(name: "scrollView")
     }
     
     var bookmarkConfirmationView: some View {

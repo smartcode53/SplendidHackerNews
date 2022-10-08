@@ -29,6 +29,6 @@ struct SafariView<T>: View where T: SafariViewLoader {
 
 struct WebViewWrapper_Previews: PreviewProvider {
     static var previews: some View {
-        SafariView(vm: ContentViewModel(), url: "google.com")
+        SafariView(vm: StoryFeedViewModel(), url: "google.com")
     }
 }

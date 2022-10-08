@@ -23,12 +23,13 @@ enum SortOptions: String, CaseIterable {
 }
 
 @MainActor
-class ContentViewModel: SafariViewLoader {
+class StoryFeedViewModel: SafariViewLoader {
     
     @Published var storiesToDisplay: [StoryWrapper] = []
     @Published var fetchedStoryWrappers: [StoryWrapper] = []
     
     let networkManager: NetworkManager = NetworkManager.instance
+    let cacheManager: StoriesCache = StoriesCache.instance
     
     @Published var storyType = StoryType.topstories {
         didSet {
@@ -36,19 +37,37 @@ class ContentViewModel: SafariViewLoader {
         }
     }
     @Published var selectedStory: Story? = nil
+    @Published var position: CGFloat = 0 {
+        didSet {
+            if position > 115 {
+                withAnimation(.spring()) {
+                    hasAskedToReload = true
+                }
+                
+                refreshStories()
+            }
+        }
+    }
     
     // MARK: Boolean Values
-    @Published var isLoading = false
-    @Published var isRefreshing = false
+    @Published var isLoading: Bool = false
+    @Published var isRefreshing: Bool = false
+    @Published var hasAskedToReload: Bool = false
+    
     
     
     func refreshStories() {
-        isRefreshing = true
-//        cacheManager.clearCache()
-//        topStories.removeAll()
+        cacheManager.clearCache()
+        storiesToDisplay.removeAll()
+        fetchedStoryWrappers.removeAll()
+        
+        Task {
+            await loadStoriesTheFirstTime()
+        }
+        
+        hasAskedToReload = false
 //        initialIdsFetch()
 //        taskGroupStories()
-        isRefreshing = false
     }
     
     nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
@@ -58,19 +77,19 @@ class ContentViewModel: SafariViewLoader {
 }
 
 // MARK: Methods
-extension ContentViewModel {
+extension StoryFeedViewModel {
     
-    func altLoadStoriesTheFirstTime() async {
+    func loadStoriesTheFirstTime() async {
         guard let wrappedStoriesArray = await networkManager.getStoryIds(ofType: storyType) else { return }
         
         await MainActor.run { [weak self] in
             self?.fetchedStoryWrappers = wrappedStoriesArray
         }
         
-        await altDownloadStories()
+        await downloadStories()
     }
     
-    func altDownloadStories() async {
+    func downloadStories() async {
         
         let extractedStories = extractLimitedStories()
         
@@ -98,11 +117,11 @@ extension ContentViewModel {
         }
     }
     
-    func altLoadInfinitely() async {
+    func loadInfinitely() async {
         await MainActor.run {
             self.isLoading = true
         }
-        await altDownloadStories()
+        await downloadStories()
         await MainActor.run {
             self.isLoading = false
         }
@@ -112,14 +131,14 @@ extension ContentViewModel {
         fetchedStoryWrappers.removeAll()
         storiesToDisplay.removeAll()
         Task {
-            await altLoadStoriesTheFirstTime()
+            await loadStoriesTheFirstTime()
         }
     }
 }
 
 
 // MARK: Stories Cache Manager
-extension ContentViewModel {
+extension StoryFeedViewModel {
     class StoriesCache {
         
         static let instance = StoriesCache()

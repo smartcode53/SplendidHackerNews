@@ -12,7 +12,7 @@ import OpenGraph
 class NetworkManager {
     
     static let instance = NetworkManager()
-    let cacheManager: ContentViewModel.StoriesCache = ContentViewModel.StoriesCache.instance
+    let cacheManager: StoryFeedViewModel.StoriesCache = StoryFeedViewModel.StoriesCache.instance
     
     // Function to get the array of post IDs and convert it into a dictionary.
     func getStoryIds(ofType type: StoryType) async -> [StoryWrapper]? {
