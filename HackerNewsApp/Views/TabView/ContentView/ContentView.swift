@@ -12,7 +12,6 @@ struct ContentView: View {
     // MARK: ContentView Properties
     @StateObject var vm = ContentViewModel()
     @State var selectedStory: Story? = nil
-    @State var contentType: String = "Top Stories"
     @Namespace var namespace
     @State var showComments: Bool = false
     
@@ -23,8 +22,7 @@ struct ContentView: View {
             ZStack {
                 Color("BackgroundColor")
                 
-                listPosts
-                
+                scrollView
                 
             }
         }
@@ -35,28 +33,73 @@ struct ContentView: View {
 extension ContentView  {
     
     // MARK: Story array
-    var newPosts: some View {
+//    var newPosts: some View {
+//        LazyVStack {
+//            if !vm.storiesToDisplay.isEmpty {
+//                ForEach(Array(zip(vm.stories.indices, vm.stories)), id: \.0) { index, story in
+//                    PostView(withStory: story, selectedStory: $selectedStory, index: index)
+////                            .task {
+////                                if index == vm.stories.count - 1 {
+////                                    await vm.altLoadInfinitely()
+////                                }
+////                            }
+//                }
+//            } else {
+//                ProgressView()
+//            }
+//
+//            if vm.isLoading {
+//                ProgressView()
+//                    .padding()
+//            }
+//        }
+//        .task {
+//            await vm.altLoadStoriesTheFirstTime()
+//        }
+//        .fullScreenCover(item: $selectedStory) { story in
+//            if let storyUrl = story.url {
+//                SafariView(vm: vm, url: storyUrl)
+//            }
+//        }
+//    }
+    
+    var altNewPosts: some View {
         LazyVStack {
-            if !vm.topStories.isEmpty {
-                ForEach(Array(vm.topStories.enumerated()), id: \.element.id) { index, story in
-                    PostView(withStory: story, selectedStory: $selectedStory)
-                        .onAppear {
-                            print("current index: \(index), stories count: \(vm.topStories.count)")
-                            if index == vm.topStories.count - 1 {
-                                vm.loadInfinitely()
-                            }
-                        }
-                    
-                    if vm.isLoading {
-                        ProgressView()
+            if !vm.storiesToDisplay.isEmpty {
+                ForEach(vm.storiesToDisplay) { wrapper in
+                    if let story = wrapper.story {
+                        PostView(withStory: story, selectedStory: $selectedStory, index: wrapper.index, isLoadedFromCache: wrapper.isLoadedFromCache)
+                                .task {
+                                    
+                                    guard let lastStoryWrapperIndex = vm.storiesToDisplay.last?.index else { return }
+                                    
+                                    if wrapper.index == lastStoryWrapperIndex {
+                                        print("Reached the last story in the array. Now loading infinitely")
+                                        await vm.altLoadInfinitely()
+                                    }
+                                    
+//                                    guard let lastStoryWrapperIndex = vm.storiesToDisplay.lastIndex(where: { item in
+//                                        item.story != nil
+//                                   }) else { return }
+//
+//                                    if wrapper == vm.storiesToDisplay[lastStoryWrapperIndex] {
+//                                        print(true)
+//                                        await vm.altLoadInfinitely()
+//                                    }
+                                }
                     }
                 }
             } else {
                 ProgressView()
             }
+            
+            if vm.isLoading {
+                ProgressView()
+                    .padding()
+            }
         }
         .task {
-            await vm.loadStoriesTheFirstTime()
+            await vm.altLoadStoriesTheFirstTime()
         }
         .fullScreenCover(item: $selectedStory) { story in
             if let storyUrl = story.url {
@@ -65,86 +108,86 @@ extension ContentView  {
         }
     }
     
-    var listPosts: some View {
-        List {
-
-            Rectangle()
-                .fill(Color.clear)
-                .frame(maxWidth: .infinity)
-                .frame(height: 2)
-                .listRowInsets(.none)
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            
-            if !vm.topStories.isEmpty || !vm.isRefreshing {
-                ForEach(Array(vm.topStories.enumerated()), id: \.element.id) { index, story in
-                    PostView(withStory: story, selectedStory: $selectedStory)
-                        .onAppear {
-                            print("current index: \(index), stories count: \(vm.topStories.count)")
-                            if index == vm.topStories.count - 1 {
-                                vm.loadInfinitely()
-                            }
-                        }
-                    
-                    if vm.isLoading {
-                        ProgressView()
-                    }
-                }
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-            } else {
-                HStack {
-                    Spacer()
-                    
-                    ProgressView()
-                        
-                    
-                    Spacer()
-                }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                
-            }
-        }
-        .refreshable {
-            vm.refreshStories()
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .environment(\.defaultMinListRowHeight, 5)
-        .overlay(
-            Rectangle()
-                .fill(.primary)
-                .frame(height: 2)
-            ,
-            alignment: .top
-        )
-        .task {
-            await vm.loadStoriesTheFirstTime()
-        }
-        .fullScreenCover(item: $selectedStory) { story in
-            if let storyUrl = story.url {
-                SafariView(vm: vm, url: storyUrl)
-            }
-        }
-        .navigationTitle(Text(vm.storyType.rawValue))
-        .navigationBarTitleDisplayMode(.automatic)
-        .toolbarBackground(Color("CardColor"), for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu("Switch Feed") {
-                    ForEach(StoryType.allCases, id: \.self) { type in
-                        Button(type.rawValue) {
-                            vm.storyType = type
-                        }
-                    }
-                }
-                .tint(.orange)
-            }
-        }
-    }
+//    var listPosts: some View {
+//        List {
+//
+//            Rectangle()
+//                .fill(Color.clear)
+//                .frame(maxWidth: .infinity)
+//                .frame(height: 2)
+//                .listRowInsets(.none)
+//                .listRowBackground(Color.clear)
+//                .listRowSeparator(.hidden)
+//
+//            if !vm.storiesToDisplay.isEmpty {
+//                ForEach(Array(zip(vm.stories.indices, vm.stories)), id: \.0) { (index, story) in
+//                    PostView(withStory: story, selectedStory: $selectedStory, index: index)
+////                        .onAppear {
+////                            print("current index: \(index), stories count: \(vm.topStories.count)")
+////                            if index == vm.topStories.count - 1 {
+////                                vm.loadInfinitely()
+////                            }
+////                        }
+//
+////                    if vm.isLoading {
+////                        ProgressView()
+////                    }
+//                }
+//                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+//                .listRowSeparator(.hidden)
+//                .listRowBackground(Color.clear)
+//            } else {
+//                HStack {
+//                    Spacer()
+//
+//                    ProgressView()
+//
+//
+//                    Spacer()
+//                }
+//                .listRowBackground(Color.clear)
+//                .listRowSeparator(.hidden)
+//
+//            }
+//        }
+////        .refreshable {
+////            vm.refreshStories()
+////        }
+//        .listStyle(.plain)
+//        .scrollContentBackground(.hidden)
+//        .environment(\.defaultMinListRowHeight, 5)
+//        .overlay(
+//            Rectangle()
+//                .fill(.primary)
+//                .frame(height: 2)
+//            ,
+//            alignment: .top
+//        )
+//        .task {
+//            await vm.altLoadStoriesTheFirstTime()
+//        }
+////        .fullScreenCover(item: $selectedStory) { story in
+////            if let storyUrl = story.url {
+////                SafariView(vm: vm, url: storyUrl)
+////            }
+////        }
+//        .navigationTitle(Text(vm.storyType.rawValue))
+//        .navigationBarTitleDisplayMode(.automatic)
+//        .toolbarBackground(Color("CardColor"), for: .navigationBar)
+//        .toolbarBackground(.visible, for: .navigationBar)
+//        .toolbar {
+//            ToolbarItem(placement: .navigationBarTrailing) {
+//                Menu("Switch Feed") {
+//                    ForEach(StoryType.allCases, id: \.self) { type in
+//                        Button(type.rawValue) {
+//                            vm.storyType = type
+//                        }
+//                    }
+//                }
+//                .tint(.orange)
+//            }
+//        }
+//    }
     
     var scrollView: some View {
         ScrollView {
@@ -157,8 +200,8 @@ extension ContentView  {
                 
                 // MARK: List of stories
                 
-                newPosts
-                    .padding(.top, vm.storyType == .askstories || vm.storyType == .showstories ?  0 : 20)
+                altNewPosts
+                    .padding(.top)
                 
                 
             }

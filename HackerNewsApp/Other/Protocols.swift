@@ -60,7 +60,7 @@ extension CommentsButtonProtocol {
     }
     
     func getCommentAndPointCounts(forPostWithId id: Int) async -> (Int?, Int)? {
-        let story = await networkManager.fetchStory(with: id)
+        let story = await networkManager.fetchSingleStory(withId: id)
         if let story {
             return (story.descendants, story.score)
         }

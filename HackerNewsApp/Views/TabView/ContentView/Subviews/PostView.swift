@@ -12,6 +12,8 @@ struct PostView: View {
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm: UltimatePostViewModel
     @Binding var selectedStory: Story?
+    let index: Int
+    let isLoadedFromCache: Bool
 
     
     
@@ -27,9 +29,15 @@ struct PostView: View {
 
 extension PostView {
     
+    // MARK: Compact Card
     @ViewBuilder var compactCard: some View {
         if let story = vm.story {
             VStack {
+                
+                Text(String(index))
+                Text(isLoadedFromCache ? "From Cache" : "Downloaded")
+                    .padding(.horizontal)
+                
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 0) {
                         if let unsafeUrl = story.url,
@@ -108,8 +116,6 @@ extension PostView {
                     // Comment Button
                     CommentsButtonView(vm: vm)
                     
-                    
-                    
                 }
             }
             .padding(15)
@@ -123,17 +129,23 @@ extension PostView {
                     vm.loadImage(fromUrl: url)
                 }
             }
-            .fullScreenCover(item: $selectedStory) { story in
-                SafariView(vm: vm, url: story.url)
-            }
         }
     }
     
+    
+    // MARK: Normal Card
     @ViewBuilder var normalCard: some View {
         if let story = vm.story {
             VStack {
                 
                 VStack(alignment: .leading, spacing: 0) {
+                    
+                    HStack {
+                        Text(String(index))
+                        Text(isLoadedFromCache ? "From Cache" : "Downloaded")
+                            .padding(.horizontal)
+                    }
+                    
                     
                     // Domain Name
                     if let unsafeUrl = story.url,
@@ -151,12 +163,6 @@ extension PostView {
                             .font(.title2.weight(.bold))
                             .foregroundColor(Color("PostTitle"))
                             .padding(.bottom, 16)
-                            .onTapGesture {
-                                if story.url != nil {
-                                    selectedStory = vm.story
-                                }
-                                
-                            }
                     }
                     
                     
@@ -174,6 +180,12 @@ extension PostView {
                     .font(.subheadline)
                 }
                 .padding([.horizontal, .top])
+                .onTapGesture {
+                    if story.url != nil {
+                        selectedStory = vm.story
+                    }
+                    
+                }
                 
                 if let imageUrl = vm.imageUrl {
                     if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
@@ -250,7 +262,6 @@ extension PostView {
             .background(Color("CardColor"))
             .cornerRadius(12)
             .padding(.horizontal, 5)
-            .padding(.vertical, 5)
             .task {
                 if let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
@@ -264,9 +275,11 @@ extension PostView {
 }
 
 extension PostView {
-    init(withStory story: Story, selectedStory: Binding<Story?>) {
+    init(withStory story: Story, selectedStory: Binding<Story?>, index: Int, isLoadedFromCache: Bool) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self._selectedStory = selectedStory
+        self.index = index
+        self.isLoadedFromCache = isLoadedFromCache
     }
 }
 
