@@ -16,11 +16,6 @@ enum StoryType: String, CaseIterable {
     case showstories = "Show HN"
 }
 
-enum SortOptions: String, CaseIterable {
-    case comments = "Comments"
-    case points = "Points"
-    case time = "Date"
-}
 
 @MainActor
 class ContentViewModel: SafariViewLoader {
