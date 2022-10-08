@@ -134,10 +134,6 @@ extension SettingsView {
                                 globalSettings.settings.cardStyleString = style.rawValue
                             }
                             
-                            withAnimation(.spring().delay(1)) {
-                                vm.showCardStylingOptions = false
-                            }
-                            
                         }
                 }
             }

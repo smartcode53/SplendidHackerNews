@@ -10,7 +10,7 @@ import SwiftUI
 struct TabEnclosingView: View {
     var body: some View {
         TabView {
-            ContentView()
+            StoryFeedView()
                 .tabItem {
                     Image(systemName: "newspaper")
                     Text("Feed")

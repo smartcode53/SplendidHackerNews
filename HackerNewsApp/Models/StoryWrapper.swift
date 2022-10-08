@@ -12,5 +12,4 @@ struct StoryWrapper: Identifiable, Equatable {
     let index: Int
     let id: Int
     var story: Story?
-    var isLoadedFromCache: Bool = false
 }

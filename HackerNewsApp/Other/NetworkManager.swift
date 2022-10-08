@@ -66,14 +66,12 @@ class NetworkManager {
                         if let cachedStory = self.cacheManager.getFromCache(withKey: String(wrapper.id)) {
                             var editedWrapper = wrapper
                             editedWrapper.story = cachedStory
-                            editedWrapper.isLoadedFromCache = true
                             return editedWrapper
                         }
                         
                         guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
                         let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
                         self.cacheManager.saveToCache(story, withKey: String(newWrapper.id))
-                        print("Story Saved to Cache")
                         return newWrapper
                     }
                 }

@@ -12,11 +12,7 @@ struct PostView: View {
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm: UltimatePostViewModel
     @Binding var selectedStory: Story?
-    let index: Int
-    let isLoadedFromCache: Bool
 
-    
-    
     var body: some View {
         if globalSettings.selectedCardStyle == .normal {
             normalCard
@@ -33,10 +29,6 @@ extension PostView {
     @ViewBuilder var compactCard: some View {
         if let story = vm.story {
             VStack {
-                
-                Text(String(index))
-                Text(isLoadedFromCache ? "From Cache" : "Downloaded")
-                    .padding(.horizontal)
                 
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 0) {
@@ -139,12 +131,6 @@ extension PostView {
             VStack {
                 
                 VStack(alignment: .leading, spacing: 0) {
-                    
-                    HStack {
-                        Text(String(index))
-                        Text(isLoadedFromCache ? "From Cache" : "Downloaded")
-                            .padding(.horizontal)
-                    }
                     
                     
                     // Domain Name
@@ -275,16 +261,9 @@ extension PostView {
 }
 
 extension PostView {
-    init(withStory story: Story, selectedStory: Binding<Story?>, index: Int, isLoadedFromCache: Bool) {
+    init(withStory story: Story, selectedStory: Binding<Story?>) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self._selectedStory = selectedStory
-        self.index = index
-        self.isLoadedFromCache = isLoadedFromCache
     }
 }
 
-//struct PostView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        PostView()
-//    }
-//}
