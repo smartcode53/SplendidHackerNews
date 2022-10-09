@@ -13,6 +13,7 @@ struct StoryFeedView: View {
     @StateObject var vm = StoryFeedViewModel()
     @State var selectedStory: Story? = nil
     @Namespace var namespace
+    @State private var functionHasRan = false
     
     
     // MARK: ContentView Body
@@ -81,15 +82,42 @@ extension StoryFeedView  {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .transition(.move(edge: .bottom))
+                } else {
+                    // MARK: GeometryReader for custom Pull-To-Refresh button
+                    GeometryReader { proxy in
+                        EmptyView()
+                            .onChange(of: proxy.frame(in: .named("scrollView")).minY) { newPosition in
+                                if newPosition > 115.0 && !functionHasRan {
+                                    functionHasRan = true
+                                    print("Position is equal to than 115")
+                                    withAnimation(.spring()) {
+                                        vm.hasAskedToReload = true
+                                    }
+
+                                    vm.refreshStories()
+                                    
+                                }
+                                
+                                if newPosition < 20 {
+                                    functionHasRan = false
+                                }
+                                
+//                                while newPosition > 115 {
+//                                    print("Position is greater than 115 = \(newPosition)")
+//                                    withAnimation(.spring()) {
+//                                        vm.hasAskedToReload = true
+//                                    }
+//
+//                                    vm.refreshStories()
+//                                    break
+//                                }
+                            }
+                            .frame(height: 10)
+                            .frame(maxWidth: .infinity)
+                    }
+
                 }
-                
-                // MARK: GeometryReader for custom Pull-To-Refresh button
-                GeometryReader { proxy in
-                    EmptyView()
-                        .onChange(of: proxy.frame(in: .named("scrollView")).minY) { newPosition in
-                            vm.position = newPosition
-                        }
-                }
+                            
                 
                 // MARK: List of stories
                 

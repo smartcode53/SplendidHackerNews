@@ -26,7 +26,7 @@ enum SortOptions: String, CaseIterable {
 class StoryFeedViewModel: SafariViewLoader {
     
     @Published var storiesToDisplay: [StoryWrapper] = []
-    @Published var fetchedStoryWrappers: [StoryWrapper] = []
+    @Published var fetchedIds: [StoryWrapper] = []
     
     let networkManager: NetworkManager = NetworkManager.instance
     let cacheManager: StoriesCache = StoriesCache.instance
@@ -37,17 +37,6 @@ class StoryFeedViewModel: SafariViewLoader {
         }
     }
     @Published var selectedStory: Story? = nil
-    @Published var position: CGFloat = 0 {
-        didSet {
-            if position > 115 {
-                withAnimation(.spring()) {
-                    hasAskedToReload = true
-                }
-                
-                refreshStories()
-            }
-        }
-    }
     
     // MARK: Boolean Values
     @Published var isLoading: Bool = false
@@ -58,13 +47,11 @@ class StoryFeedViewModel: SafariViewLoader {
     
     func refreshStories() {
         cacheManager.clearCache()
+        fetchedIds.removeAll()
         storiesToDisplay.removeAll()
-        fetchedStoryWrappers.removeAll()
-        
         Task {
             await loadStoriesTheFirstTime()
         }
-        
         hasAskedToReload = false
 //        initialIdsFetch()
 //        taskGroupStories()
@@ -83,7 +70,12 @@ extension StoryFeedViewModel {
         guard let wrappedStoriesArray = await networkManager.getStoryIds(ofType: storyType) else { return }
         
         await MainActor.run { [weak self] in
-            self?.fetchedStoryWrappers = wrappedStoriesArray
+//            if let reloading = self?.hasAskedToReload {
+//                if reloading {
+//                    self?.fetchedStoryWrappers.removeAll()
+//                }
+//            }
+            self?.fetchedIds = wrappedStoriesArray
         }
         
         await downloadStories()
@@ -96,24 +88,33 @@ extension StoryFeedViewModel {
         guard let storiesArray = await networkManager.getStories(using: extractedStories) else { return }
         
         await MainActor.run { [weak self] in
-            for wrapper in storiesArray {
-                self?.storiesToDisplay.append(wrapper)
-            }
+            
+//            if let reloading = self?.hasAskedToReload {
+//                if reloading {
+//                    self?.storiesToDisplay.removeAll()
+//                }
+//            }
+            
+            self?.storiesToDisplay.append(contentsOf: storiesArray)
+            
+//            for wrapper in storiesArray {
+//                self?.storiesToDisplay.append(wrapper)
+//            }
         }
     }
     
     func extractLimitedStories() -> [StoryWrapper] {
         
-        if fetchedStoryWrappers.count > 19 {
-            let slice = Array(fetchedStoryWrappers.prefix(upTo: 20))
+        if fetchedIds.count > 9 {
+            let slice = Array(fetchedIds.prefix(upTo: 10))
             print("Slice Count: \(slice.count)")
-            fetchedStoryWrappers = fetchedStoryWrappers.filter({ wrapper in
+            fetchedIds = fetchedIds.filter({ wrapper in
                 !slice.contains(wrapper)
             })
-            print("First Item now in FetchedStoryWrappers = \(String(describing: fetchedStoryWrappers.first?.index))")
+            print("First Item now in FetchedStoryWrappers = \(String(describing: fetchedIds.first?.index))")
             return slice
         } else {
-            return fetchedStoryWrappers
+            return fetchedIds
         }
     }
     
@@ -128,7 +129,7 @@ extension StoryFeedViewModel {
     }
     
     func changeStoryType() {
-        fetchedStoryWrappers.removeAll()
+        fetchedIds.removeAll()
         storiesToDisplay.removeAll()
         Task {
             await loadStoriesTheFirstTime()
