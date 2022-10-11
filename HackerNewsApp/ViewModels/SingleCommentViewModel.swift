@@ -10,4 +10,5 @@ import Foundation
 class SingleCommentViewModel: ObservableObject {
     @Published var indentLevel: Double = 0
     @Published var isExpanded = true
+    @Published var continueComments = false
 }

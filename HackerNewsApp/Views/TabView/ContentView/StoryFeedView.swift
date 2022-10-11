@@ -101,16 +101,6 @@ extension StoryFeedView  {
                                 if newPosition < 20 {
                                     functionHasRan = false
                                 }
-                                
-//                                while newPosition > 115 {
-//                                    print("Position is greater than 115 = \(newPosition)")
-//                                    withAnimation(.spring()) {
-//                                        vm.hasAskedToReload = true
-//                                    }
-//
-//                                    vm.refreshStories()
-//                                    break
-//                                }
                             }
                             .frame(height: 10)
                             .frame(maxWidth: .infinity)

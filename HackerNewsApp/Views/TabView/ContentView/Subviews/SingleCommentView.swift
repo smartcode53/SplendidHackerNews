@@ -33,16 +33,18 @@ struct SingleCommentView: View {
             if vm.isExpanded {
                 
                 if let text = commentText {
-                    
                     Text(text.markdown)
                         .tint(.orange)
+                } else {
+                    Text("Comment Not found")
+                        .background(.red)
                 }
                 
                 Spacer()
                 
-                if commentReplies != nil {
+                if let commentReplies {
                     LazyVStack {
-                        ForEach(commentReplies!) { comment in
+                        ForEach(commentReplies) { comment in
                             SingleCommentView(comment: comment, indentLevel: vm.indentLevel + 1)
                                 .overlay(
                                     Capsule()
@@ -54,10 +56,11 @@ struct SingleCommentView: View {
                         }
                     }
                 }
+                
+                
             }
         }
         .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("CardColor"))
     }
 }
