@@ -12,4 +12,6 @@ struct StoryWrapper: Identifiable, Equatable {
     let index: Int
     let id: Int
     var story: Story?
+    var bookmarkSaved: Bool = false
+    
 }

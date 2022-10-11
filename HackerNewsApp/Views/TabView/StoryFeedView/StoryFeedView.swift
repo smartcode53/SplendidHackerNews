@@ -35,12 +35,12 @@ extension StoryFeedView  {
             if !vm.storiesToDisplay.isEmpty {
                 ForEach(vm.storiesToDisplay) { wrapper in
                     if let story = wrapper.story {
-                        PostView(withStory: story, selectedStory: $selectedStory)
+                        PostView(withWrapper: wrapper, selectedStory: $selectedStory, story: story)
                                 .task {
                                     
                                     guard let lastStoryWrapperIndex = vm.storiesToDisplay.last?.index else { return }
                                     
-                                    if wrapper.index == lastStoryWrapperIndex {
+                                    if wrapper.index == lastStoryWrapperIndex - 3 {
                                         print("Reached the last story in the array. Now loading infinitely")
                                         await vm.loadInfinitely()
                                     }

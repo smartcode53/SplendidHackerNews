@@ -12,6 +12,9 @@ struct PostView: View {
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm: UltimatePostViewModel
     @Binding var selectedStory: Story?
+    @State private var wrapper: StoryWrapper
+    @Namespace var namespace
+    
 
     var body: some View {
         if globalSettings.selectedCardStyle == .normal {
@@ -37,7 +40,7 @@ extension PostView {
                            let urlDomain = url.urlDomain {
                             Text(urlDomain)
                                 .foregroundColor(.orange)
-                                .font(.callout.weight(.semibold))
+                                .font(.caption.weight(.semibold))
                                 .padding(.bottom, 5)
                         }
                         
@@ -58,7 +61,6 @@ extension PostView {
                             Spacer()
                         }
                         .foregroundColor(Color("PostDateName"))
-                        .padding(.bottom, 16)
                         .font(.subheadline)
                         
                     }
@@ -71,11 +73,14 @@ extension PostView {
                             .scaledToFill()
                             .frame(width: 100, height: 100)
                             .clipped()
+                            .cornerRadius(8)
+                            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
                     } placeholder: {
-                        EmptyView()
+                        ImagePlaceholderView(height: 100, width: 100)
                     }
                     
                 }
+                .padding(.bottom, 16)
                 
                 HStack {
                     Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
@@ -83,15 +88,28 @@ extension PostView {
                     
                     Spacer()
                     
-                    //Bookmark Delete Button
-                    Button {
-                        
-                    } label: {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
+                    //Bookmark Button
+                    if wrapper.bookmarkSaved {
+                        Image(systemName: "bookmark.fill")
+                            .foregroundColor(.primary)
                             .fontWeight(.medium)
+                            .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
+                    } else {
+                        Button {
+                            let bookmark = Bookmark(story: story)
+                            globalSettings.tempBookmarks.append(bookmark)
+                            withAnimation(.spring()) {
+                                wrapper.bookmarkSaved = true
+                            }
+                        } label: {
+                            Image(systemName: "bookmark")
+                                .foregroundColor(.primary)
+                                .fontWeight(.medium)
+                                .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
+                        }
+                        .buttonStyle(.bordered)
+                        
                     }
-                    .buttonStyle(.bordered)
                     
                     // Share button
                     
@@ -193,12 +211,7 @@ extension PostView {
                                     vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
                                 }
                         } placeholder: {
-                            Rectangle()
-                                .fill(.thickMaterial)
-                                .frame(width: UIScreen.main.bounds.width * 0.977)
-                                .frame(height: 220)
-                                .clipped()
-                                .blur(radius: 12)
+                            ImagePlaceholderView(height: 220, width: UIScreen.main.bounds.width * 0.977)
                         }
                     }
                 }
@@ -218,15 +231,28 @@ extension PostView {
                         Spacer()
                         
                         //Bookmark Button
-                        Button {
-                            let bookmark = Bookmark(story: story)
-                            globalSettings.tempBookmarks.append(bookmark)
-                        } label: {
-                            Image(systemName: "bookmark")
+                        if wrapper.bookmarkSaved {
+                            Image(systemName: "bookmark.fill")
                                 .foregroundColor(.primary)
                                 .fontWeight(.medium)
+                                .matchedGeometryEffect(id: "bookmarkButton", in: namespace)
+                        } else {
+                            Button {
+                                let bookmark = Bookmark(story: story)
+                                globalSettings.tempBookmarks.append(bookmark)
+                                withAnimation(.spring()) {
+                                    wrapper.bookmarkSaved = true
+                                }
+                            } label: {
+                                Image(systemName: "bookmark")
+                                    .foregroundColor(.primary)
+                                    .fontWeight(.medium)
+                                    .matchedGeometryEffect(id: "bookmarkButton", in: namespace)
+                            }
+                            .buttonStyle(.bordered)
+                            
                         }
-                        .buttonStyle(.bordered)
+                        
                         
                         // Share Button
                         if let unsafeUrl = story.url,
@@ -261,8 +287,9 @@ extension PostView {
 }
 
 extension PostView {
-    init(withStory story: Story, selectedStory: Binding<Story?>) {
+    init(withWrapper wrapper: StoryWrapper, selectedStory: Binding<Story?>, story: Story) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
+        self._wrapper = State(initialValue: wrapper)
         self._selectedStory = selectedStory
     }
 }

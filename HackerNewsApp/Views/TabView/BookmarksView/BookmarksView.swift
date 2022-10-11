@@ -65,7 +65,10 @@ struct BookmarksView: View {
                 }
             }
             .onAppear {
-                vm.bookmarks.append(contentsOf: globalSettings.tempBookmarks)
+                let filteredArray = globalSettings.tempBookmarks.filter { bookmark in
+                    !vm.bookmarks.contains(bookmark)
+                }
+                vm.bookmarks.append(contentsOf: filteredArray)
                 globalSettings.tempBookmarks.removeAll()
             }
             .onChange(of: scenePhase) { phase in
@@ -76,7 +79,9 @@ struct BookmarksView: View {
             .onChange(of: bookmarkToDelete) { bookmark in
                 if let bookmark {
                     if let index = vm.bookmarks.firstIndex(of: bookmark) {
-                        vm.bookmarks.remove(at: index)
+                        withAnimation(.spring()) {
+                            vm.bookmarks.remove(at: index)
+                        }
                     }
                     bookmarkToDelete = nil
                 }

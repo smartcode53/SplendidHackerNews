@@ -24,13 +24,18 @@ struct SingleBookmarkView: View {
                         if let urlDomain = story.url?.urlDomain {
                             Text(urlDomain)
                                 .foregroundColor(.orange)
-                                .font(.callout.weight(.semibold))
+                                .font(.caption.weight(.semibold))
                                 .padding(.bottom, 5)
                         }
                         
                         Text(story.title)
                             .foregroundColor(Color("PostTitle"))
-                            .font(.title3.weight(.medium))
+                            .font(.title3.weight(.bold))
+                        
+                        Text("by \(story.by)")
+                            .foregroundColor(Color("PostDateName"))
+                            .font(.subheadline)
+                        
                         
                     }
                     
@@ -42,13 +47,14 @@ struct SingleBookmarkView: View {
                             .scaledToFill()
                             .frame(width: 100, height: 100)
                             .clipped()
+                            .cornerRadius(8)
+                            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
                     } placeholder: {
-                        Rectangle()
-                            .fill(.gray.opacity(0.4))
-                            .frame(width: 100, height: 100)
+                        ImagePlaceholderView(height: 100, width: 100)
                     }
                     
                 }
+                .padding(.bottom, 16)
                 
                 HStack {
                     Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
@@ -61,7 +67,7 @@ struct SingleBookmarkView: View {
                         bookmarkToDelete = bookmark
                     } label: {
                         Image(systemName: "trash")
-                            .foregroundColor(.red)
+                            .foregroundColor(.red.opacity(0.7))
                             .fontWeight(.medium)
                     }
                     .buttonStyle(.bordered)
@@ -79,9 +85,7 @@ struct SingleBookmarkView: View {
                     
                     // Comment Button
                     CommentsButtonView(vm: vm)
-                    
-                    
-                    
+                        .foregroundColor(.primary)
                 }
             }
             .padding(15)

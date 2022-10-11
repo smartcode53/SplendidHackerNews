@@ -132,6 +132,24 @@ class NetworkManager {
         return nil
     }
     
+    
+//    func getUIImage(fromUrl url: String) async -> UIImage? {
+//        guard let safeUrl = URL(string: getSecureUrlString(url: url)) else { return nil }
+//
+//        do {
+//            let og = try await OpenGraph.fetch(url: safeUrl)
+//            guard let ogUrl = og[.image] else { return nil }
+//            if let finalUrl = URL(string: ogUrl) {
+//                let (data, _) = try await URLSession.shared.data(from: finalUrl)
+//                return UIImage(data: data)
+//            }
+//        } catch let error {
+//            print("There was an error fetching the image: \(error)")
+//        }
+//
+//        return nil
+//    }
+    
     // Function to convert non-HTTPS URLs to HTTPS
     func getSecureUrlString(url: String) -> String {
         let atsSecureUrl = url.contains("https") ? url : url.replacingOccurrences(of: "http", with: "https", range: url.startIndex..<url.index(url.startIndex, offsetBy: 6))
