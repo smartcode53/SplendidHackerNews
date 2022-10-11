@@ -30,6 +30,9 @@ class StoryFeedViewModel: SafariViewLoader {
     
     let networkManager: NetworkManager = NetworkManager.instance
     let cacheManager: StoriesCache = StoriesCache.instance
+    @Published var networkChecker: NetworkChecker = NetworkChecker()
+    
+    let fileUrl = FileManager().documentsDirectory.appending(component: "stories.txt")
     
     @Published var storyType = StoryType.topstories {
         didSet {
@@ -43,25 +46,8 @@ class StoryFeedViewModel: SafariViewLoader {
     @Published var isRefreshing: Bool = false
     @Published var hasAskedToReload: Bool = false
     
-    
-    
-    func refreshStories() {
-        cacheManager.clearCache()
-        fetchedIds.removeAll()
-        storiesToDisplay.removeAll()
-        Task {
-            await loadStoriesTheFirstTime()
-        }
-        hasAskedToReload = false
-//        initialIdsFetch()
-//        taskGroupStories()
-    }
-    
-    nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
-        return networkManager.safelyLoadUrl(url: url)
-    }
-    
 }
+
 
 // MARK: Methods
 extension StoryFeedViewModel {
@@ -134,6 +120,46 @@ extension StoryFeedViewModel {
         Task {
             await loadStoriesTheFirstTime()
         }
+    }
+    
+    func refreshStories() {
+        cacheManager.clearCache()
+        fetchedIds.removeAll()
+        storiesToDisplay.removeAll()
+        Task {
+            await loadStoriesTheFirstTime()
+        }
+        hasAskedToReload = false
+    }
+    
+    nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
+        return networkManager.safelyLoadUrl(url: url)
+    }
+    
+    func saveStoriesToDisk() {
+        do {
+            let data = try JSONEncoder().encode(storiesToDisplay)
+            try data.write(to: fileUrl, options: [.atomic])
+            print("Stories saved to disk SUCCESSFULLY")
+        } catch let error {
+            print("THere was an error encoding and saving the stories array. Here's the error description: \(error)")
+        }
+    }
+    
+    func getStoriesFromDisk() -> [StoryWrapper]? {
+        let data = try? Data(contentsOf: fileUrl)
+        
+        if let data {
+            do {
+                let safeData = try JSONDecoder().decode([StoryWrapper].self, from: data)
+                print("Stories retrieved from Disk SUCCESSFULLY.")
+                return safeData
+            } catch let error {
+                print("There was an error decoding the bookmarks array. Here's the error description: \(error)")
+            }
+        }
+        
+        return nil
     }
 }
 

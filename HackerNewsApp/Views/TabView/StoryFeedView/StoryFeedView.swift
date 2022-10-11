@@ -10,6 +10,8 @@ import SwiftUI
 struct StoryFeedView: View {
     
     // MARK: ContentView Properties
+    @Environment(\.scenePhase) var scenePhase
+    @StateObject var networkChecker = NetworkChecker()
     @StateObject var vm = StoryFeedViewModel()
     @State var selectedStory: Story? = nil
     @Namespace var namespace
@@ -56,9 +58,27 @@ extension StoryFeedView  {
                     .padding()
             }
         }
+        .onChange(of: scenePhase, perform: { phase in
+            if phase == .inactive {
+                vm.saveStoriesToDisk()
+            }
+        })
         .task {
-            await vm.loadStoriesTheFirstTime()
+            if networkChecker.isConnected {
+                print("YES INTERNET!!")
+                Task {
+                    await vm.loadStoriesTheFirstTime()
+                }
+            } else {
+                print("NO INTERNET!!!")
+                if let stories = vm.getStoriesFromDisk() {
+                    vm.storiesToDisplay = stories
+                }
+            }
         }
+//        .task {
+//            await vm.loadStoriesTheFirstTime()
+//        }
         .fullScreenCover(item: $selectedStory) { story in
             if let storyUrl = story.url {
                 SafariView(vm: vm, url: storyUrl)
@@ -78,7 +98,7 @@ extension StoryFeedView  {
                 
                 // MARK: ProgressView indicator shown upon pulling down on the ScrollView
                 if vm.hasAskedToReload {
-                    ProgressView()
+                    Rectangle()
                         .frame(maxWidth: .infinity)
                         .padding()
                         .transition(.move(edge: .bottom))

@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct StoryWrapper: Identifiable, Equatable {
+struct StoryWrapper: Identifiable, Codable, Equatable {
     let index: Int
     let id: Int
     var story: Story?

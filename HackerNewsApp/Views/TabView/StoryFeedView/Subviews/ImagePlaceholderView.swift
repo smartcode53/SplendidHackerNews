@@ -26,7 +26,6 @@ struct ImagePlaceholderView: View {
                 .foregroundStyle(.secondary)
                 .padding()
         }
-
     }
 }
 
