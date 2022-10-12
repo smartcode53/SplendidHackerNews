@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-enum StoryType: String, CaseIterable {
+enum StoryType: String, CaseIterable, Codable {
     case topstories = "Top Stories"
     case newstories = "New Stories"
     case beststories = "Best Stories"
@@ -24,6 +24,14 @@ enum SortOptions: String, CaseIterable {
 
 @MainActor
 class StoryFeedViewModel: SafariViewLoader {
+    
+    @Published var storiesDict: [StoryType: [StoryWrapper]] = [
+        .topstories: [],
+        .askstories: [],
+        .beststories: [],
+        .newstories: [],
+        .showstories: []
+    ]
     
     @Published var storiesToDisplay: [StoryWrapper] = []
     @Published var fetchedIds: [StoryWrapper] = []
@@ -56,11 +64,6 @@ extension StoryFeedViewModel {
         guard let wrappedStoriesArray = await networkManager.getStoryIds(ofType: storyType) else { return }
         
         await MainActor.run { [weak self] in
-//            if let reloading = self?.hasAskedToReload {
-//                if reloading {
-//                    self?.fetchedStoryWrappers.removeAll()
-//                }
-//            }
             self?.fetchedIds = wrappedStoriesArray
         }
         
@@ -69,27 +72,28 @@ extension StoryFeedViewModel {
     
     func downloadStories() async {
         
-        let extractedStories = extractLimitedStories()
-        
-        guard let storiesArray = await networkManager.getStories(using: extractedStories) else { return }
-        
-        await MainActor.run { [weak self] in
+        if let cachedStories = cacheManager.getFromCache(withKey: storyType.rawValue) {
+            await MainActor.run { [weak self] in
+                self?.storiesDict[storyType] = cachedStories
+                print("STORIES LOADED FROM CACHE")
+            }
+        } else {
+            let extractedStories = extractLimitedStories()
             
-//            if let reloading = self?.hasAskedToReload {
-//                if reloading {
-//                    self?.storiesToDisplay.removeAll()
-//                }
-//            }
+            let storiesArray = await networkManager.getStories(using: extractedStories)
             
-            self?.storiesToDisplay.append(contentsOf: storiesArray)
+            await MainActor.run { [weak self] in
+    //            self?.storiesToDisplay.append(contentsOf: storiesArray)
+                self?.storiesDict[storyType]?.append(contentsOf: storiesArray)
+            }
             
-//            for wrapper in storiesArray {
-//                self?.storiesToDisplay.append(wrapper)
-//            }
+            cacheManager.saveToCache(storiesDict[storyType] ?? [], withKey: storyType.rawValue)
+            print("STORIES LOADED FROM THE INTERNET")
         }
+        
     }
     
-    func extractLimitedStories() -> [StoryWrapper] {
+    private func extractLimitedStories() -> [StoryWrapper] {
         
         if fetchedIds.count > 9 {
             let slice = Array(fetchedIds.prefix(upTo: 10))
@@ -108,6 +112,7 @@ extension StoryFeedViewModel {
         await MainActor.run {
             self.isLoading = true
         }
+        cacheManager.removeFromCache(key: storyType.rawValue)
         await downloadStories()
         await MainActor.run {
             self.isLoading = false
@@ -116,16 +121,16 @@ extension StoryFeedViewModel {
     
     func changeStoryType() {
         fetchedIds.removeAll()
-        storiesToDisplay.removeAll()
+        storiesDict[storyType]?.removeAll()
         Task {
             await loadStoriesTheFirstTime()
         }
     }
     
     func refreshStories() {
-        cacheManager.clearCache()
+        cacheManager.removeFromCache(key: storyType.rawValue)
         fetchedIds.removeAll()
-        storiesToDisplay.removeAll()
+        storiesDict[storyType]?.removeAll()
         Task {
             await loadStoriesTheFirstTime()
         }
@@ -138,7 +143,7 @@ extension StoryFeedViewModel {
     
     func saveStoriesToDisk() {
         do {
-            let data = try JSONEncoder().encode(storiesToDisplay)
+            let data = try JSONEncoder().encode(storiesDict)
             try data.write(to: fileUrl, options: [.atomic])
             print("Stories saved to disk SUCCESSFULLY")
         } catch let error {
@@ -146,12 +151,12 @@ extension StoryFeedViewModel {
         }
     }
     
-    func getStoriesFromDisk() -> [StoryWrapper]? {
+    func getStoriesFromDisk() -> [StoryType: [StoryWrapper]] {
         let data = try? Data(contentsOf: fileUrl)
         
         if let data {
             do {
-                let safeData = try JSONDecoder().decode([StoryWrapper].self, from: data)
+                let safeData = try JSONDecoder().decode([StoryType: [StoryWrapper]].self, from: data)
                 print("Stories retrieved from Disk SUCCESSFULLY.")
                 return safeData
             } catch let error {
@@ -159,7 +164,13 @@ extension StoryFeedViewModel {
             }
         }
         
-        return nil
+        return [
+            .topstories: [],
+            .askstories: [],
+            .showstories: [],
+            .newstories: [],
+            .beststories: []
+        ]
     }
 }
 
@@ -175,9 +186,9 @@ extension StoryFeedViewModel {
         
         private init() {}
         
-        let cache = NSCache<NSString, StoriesCacheValueWrapper<Story>>()
+        let cache = NSCache<NSString, StoriesCacheValueWrapper<[StoryWrapper]>>()
         
-        func getFromCache(withKey key: String) -> Story? {
+        func getFromCache(withKey key: String) -> [StoryWrapper]? {
             guard let result = cache.object(forKey: key as NSString) else {
                 return nil
             }
@@ -190,7 +201,7 @@ extension StoryFeedViewModel {
             return result.value
         }
         
-        func saveToCache(_ object: Story, withKey key: String) {
+        func saveToCache(_ object: [StoryWrapper], withKey key: String) {
             let date = dateProvider().addingTimeInterval(entryLifetime)
             let wrapper = StoriesCacheValueWrapper(object, expirationDate: date)
             cache.setObject(wrapper, forKey: key as NSString)

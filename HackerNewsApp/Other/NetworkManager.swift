@@ -53,7 +53,7 @@ class NetworkManager {
     }
     
     // Function to fetch stories from the dictionary of post IDs
-    func getStories(using wrapperArray: [StoryWrapper]) async -> [StoryWrapper]?  {
+    func getStories(using wrapperArray: [StoryWrapper]) async -> [StoryWrapper]  {
         
         do {
             let stories = try await withThrowingTaskGroup(of: StoryWrapper?.self, body: { group in
@@ -63,15 +63,15 @@ class NetworkManager {
                 for wrapper in wrapperArray {
                     group.addTask {
                         
-                        if let cachedStory = self.cacheManager.getFromCache(withKey: String(wrapper.id)) {
-                            var editedWrapper = wrapper
-                            editedWrapper.story = cachedStory
-                            return editedWrapper
-                        }
+//                        if let cachedStory = self.cacheManager.getFromCache(withKey: String(wrapper.id)) {
+//                            var editedWrapper = wrapper
+//                            editedWrapper.story = cachedStory
+//                            return editedWrapper
+//                        }
                         
                         guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
                         let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
-                        self.cacheManager.saveToCache(story, withKey: String(newWrapper.id))
+//                        self.cacheManager.saveToCache(story, withKey: String(newWrapper.id))
                         return newWrapper
                     }
                 }
@@ -93,8 +93,8 @@ class NetworkManager {
             return stories
             
         } catch let error {
-            print("Error in task group: \(error)")
-            return nil
+            print(error.localizedDescription)
+            return []
         }
         
     }

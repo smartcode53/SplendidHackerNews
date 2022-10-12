@@ -34,15 +34,15 @@ extension StoryFeedView  {
     
     var stories: some View {
         LazyVStack {
-            if !vm.storiesToDisplay.isEmpty {
-                ForEach(vm.storiesToDisplay) { wrapper in
+            if !vm.storiesDict[vm.storyType, default: []].isEmpty {
+                ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
                     if let story = wrapper.story {
                         PostView(withWrapper: wrapper, selectedStory: $selectedStory, story: story)
                                 .task {
                                     
-                                    guard let lastStoryWrapperIndex = vm.storiesToDisplay.last?.index else { return }
+                                    guard let lastStoryWrapperIndex = vm.storiesDict[vm.storyType, default: []].last?.index else { return }
                                     
-                                    if wrapper.index == lastStoryWrapperIndex - 3 {
+                                    if wrapper.index == lastStoryWrapperIndex {
                                         print("Reached the last story in the array. Now loading infinitely")
                                         await vm.loadInfinitely()
                                     }
@@ -71,9 +71,7 @@ extension StoryFeedView  {
                 }
             } else {
                 print("NO INTERNET!!!")
-                if let stories = vm.getStoriesFromDisk() {
-                    vm.storiesToDisplay = stories
-                }
+                vm.storiesDict = vm.getStoriesFromDisk()
             }
         }
 //        .task {
