@@ -16,6 +16,18 @@ struct StoryFeedView: View {
     @State var selectedStory: Story? = nil
     @Namespace var namespace
     @State private var functionHasRan = false
+    @State private var toastText = "All Good!"
+    @State private var showToast = false {
+        didSet {
+            if showToast {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    withAnimation(.spring()) {
+                        showToast = false
+                    }
+                }
+            }
+        }
+    }
     
     
     // MARK: ContentView Body
@@ -23,10 +35,18 @@ struct StoryFeedView: View {
         NavigationStack {
             ZStack {
                 Color("BackgroundColor")
+                
                 scrollView
             }
         }
         .accentColor(.primary)
+        .overlay {
+            if showToast {
+                ToastView(text: toastText)
+                    .zIndex(2)
+                    .transition(.asymmetric(insertion: .move(edge: .top), removal: .move(edge: .top)))
+            }
+        }
     }
 }
 
@@ -37,7 +57,7 @@ extension StoryFeedView  {
             if !vm.storiesDict[vm.storyType, default: []].isEmpty {
                 ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
                     if let story = wrapper.story {
-                        PostView(withWrapper: wrapper, selectedStory: $selectedStory, story: story)
+                        PostView(withWrapper: wrapper, story: story)
                                 .task {
                                     
                                     guard let lastStoryWrapperIndex = vm.storiesDict[vm.storyType, default: []].last?.index else { return }
@@ -96,6 +116,19 @@ extension StoryFeedView  {
                 Rectangle()
                     .fill(.primary)
                     .frame(height: 2)
+                
+                Button {
+                    toastText = "Button Pressed"
+                    withAnimation(.spring()) {
+                        showToast = true
+                    }
+                } label: {
+                    Text("Press here for toast")
+                        .padding()
+                        .background(.blue)
+                        .cornerRadius(12)
+                        .padding()
+                }
                 
                 // MARK: ProgressView indicator shown upon pulling down on the ScrollView
                 if vm.hasAskedToReload {

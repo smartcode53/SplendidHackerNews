@@ -11,7 +11,6 @@ struct PostView: View {
     
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm: UltimatePostViewModel
-    @Binding var selectedStory: Story?
     @State private var wrapper: StoryWrapper
     @Namespace var namespace
     
@@ -48,9 +47,6 @@ extension PostView {
                             .foregroundColor(Color("PostTitle"))
                             .font(.title3.weight(.bold))
                             .padding(.bottom, 10)
-//                            .onTapGesture {
-//                                selectedStory = story
-//                            }
                         
                         HStack {
                             Text(Date.getTimeInterval(with: story.time))
@@ -184,12 +180,6 @@ extension PostView {
                     .font(.subheadline)
                 }
                 .padding([.horizontal, .top])
-//                .onTapGesture {
-//                    if story.url != nil {
-//                        selectedStory = vm.story
-//                    }
-//
-//                }
                 
                 if let imageUrl = vm.imageUrl {
                     if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
@@ -287,10 +277,9 @@ extension PostView {
 }
 
 extension PostView {
-    init(withWrapper wrapper: StoryWrapper, selectedStory: Binding<Story?>, story: Story) {
+    init(withWrapper wrapper: StoryWrapper, story: Story) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self._wrapper = State(initialValue: wrapper)
-        self._selectedStory = selectedStory
     }
 }
 

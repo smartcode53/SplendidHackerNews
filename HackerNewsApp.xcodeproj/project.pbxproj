@@ -50,6 +50,7 @@
 		B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328C28C08FC500E463BF /* DateExtension.swift */; };
 		B4F2BEFA28E2D0CF00CA7811 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F2BEF928E2D0CF00CA7811 /* Settings.swift */; };
 		B4F2BEFD28E2F2C000CA7811 /* HTML2Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = B4F2BEFC28E2F2C000CA7811 /* HTML2Markdown */; };
+		B4F5FB3028F710D300D25F43 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F5FB2F28F710D300D25F43 /* ToastView.swift */; };
 		B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */; };
 /* End PBXBuildFile section */
 
@@ -108,6 +109,7 @@
 		B4F0327828C07C9300E463BF /* Comment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comment.swift; sourceTree = "<group>"; };
 		B4F0328C28C08FC500E463BF /* DateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
 		B4F2BEF928E2D0CF00CA7811 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		B4F5FB2F28F710D300D25F43 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -161,6 +163,7 @@
 			isa = PBXGroup;
 			children = (
 				B4C1426F28BFA14700585142 /* SafariView.swift */,
+				B4F5FB2F28F710D300D25F43 /* ToastView.swift */,
 			);
 			path = "Reusable Views";
 			sourceTree = "<group>";
@@ -416,6 +419,7 @@
 				B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */,
 				B43473E228EB34AF0074A8BA /* NetworkManager.swift in Sources */,
 				B4F2BEFA28E2D0CF00CA7811 /* Settings.swift in Sources */,
+				B4F5FB3028F710D300D25F43 /* ToastView.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B41E2F4028F53B37008E98A6 /* ImagePlaceholderView.swift in Sources */,
 				B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */,
