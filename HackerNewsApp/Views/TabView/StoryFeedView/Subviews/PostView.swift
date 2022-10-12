@@ -48,9 +48,9 @@ extension PostView {
                             .foregroundColor(Color("PostTitle"))
                             .font(.title3.weight(.bold))
                             .padding(.bottom, 10)
-                            .onTapGesture {
-                                selectedStory = story
-                            }
+//                            .onTapGesture {
+//                                selectedStory = story
+//                            }
                         
                         HStack {
                             Text(Date.getTimeInterval(with: story.time))
@@ -184,12 +184,12 @@ extension PostView {
                     .font(.subheadline)
                 }
                 .padding([.horizontal, .top])
-                .onTapGesture {
-                    if story.url != nil {
-                        selectedStory = vm.story
-                    }
-                    
-                }
+//                .onTapGesture {
+//                    if story.url != nil {
+//                        selectedStory = vm.story
+//                    }
+//
+//                }
                 
                 if let imageUrl = vm.imageUrl {
                     if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {

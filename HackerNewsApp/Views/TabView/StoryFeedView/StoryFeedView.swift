@@ -47,6 +47,9 @@ extension StoryFeedView  {
                                         await vm.loadInfinitely()
                                     }
                                 }
+                                .onTapGesture {
+                                    selectedStory = story
+                                }
                     }
                 }
             } else {
