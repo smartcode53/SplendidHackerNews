@@ -18,7 +18,7 @@ struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariVie
             NavigationLink {
                 CommentsView(vm: vm)
             } label: {
-                Label(String(commentCount), systemImage: "bubble.right")
+                Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
 //                    .foregroundColor(.black.opacity(0.6))
             }
         }

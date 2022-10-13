@@ -12,6 +12,8 @@
 		B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD14628DF3DF30091E865 /* BookmarksView.swift */; };
 		B41CD14928DF3E1C0091E865 /* BookmarksViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */; };
 		B41E2F4028F53B37008E98A6 /* ImagePlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41E2F3F28F53B37008E98A6 /* ImagePlaceholderView.swift */; };
+		B429F22D28F8BD7C001F3250 /* IntExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B429F22C28F8BD7C001F3250 /* IntExtension.swift */; };
+		B429F22F28F8C11D001F3250 /* StorySelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B429F22E28F8C11D001F3250 /* StorySelectionView.swift */; };
 		B43473E228EB34AF0074A8BA /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B43473E128EB34AF0074A8BA /* NetworkManager.swift */; };
 		B44EB1D328DD8D6100CC72EE /* CommentsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44EB1D228DD8D6100CC72EE /* CommentsCache.swift */; };
 		B44EB1D728DDF6BC00CC72EE /* CommentsButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44EB1D628DDF6BC00CC72EE /* CommentsButtonView.swift */; };
@@ -74,6 +76,8 @@
 		B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksViewModel.swift; sourceTree = "<group>"; };
 		B41E2F3F28F53B37008E98A6 /* ImagePlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePlaceholderView.swift; sourceTree = "<group>"; };
 		B41E2F4128F55E30008E98A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B429F22C28F8BD7C001F3250 /* IntExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntExtension.swift; sourceTree = "<group>"; };
+		B429F22E28F8C11D001F3250 /* StorySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySelectionView.swift; sourceTree = "<group>"; };
 		B43473E128EB34AF0074A8BA /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		B44EB1D228DD8D6100CC72EE /* CommentsCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsCache.swift; sourceTree = "<group>"; };
 		B44EB1D628DDF6BC00CC72EE /* CommentsButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsButtonView.swift; sourceTree = "<group>"; };
@@ -144,6 +148,7 @@
 				B47628C028B8B47C00E491D3 /* CommentsView.swift */,
 				B44EB1D628DDF6BC00CC72EE /* CommentsButtonView.swift */,
 				B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */,
+				B429F22E28F8C11D001F3250 /* StorySelectionView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -301,6 +306,7 @@
 			children = (
 				B4F0328C28C08FC500E463BF /* DateExtension.swift */,
 				B4E6C9EB28C63EA600A2982B /* StringExtension.swift */,
+				B429F22C28F8BD7C001F3250 /* IntExtension.swift */,
 				B4B8427428C34520000D2D8F /* PressableButton.swift */,
 				B4D2473328D1005C00E6CDEB /* FilterButton.swift */,
 				B4E6128B28E0577D003D8A0E /* FileManagerExtension.swift */,
@@ -425,6 +431,7 @@
 				B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */,
 				B489E3EB28DCAED60071B869 /* UltimatePostViewModel.swift in Sources */,
 				B4E6128A28E04A8A003D8A0E /* GlobalSettingsViewModel.swift in Sources */,
+				B429F22D28F8BD7C001F3250 /* IntExtension.swift in Sources */,
 				B45131E928DF88770022CAA8 /* SingleBookmarkViewModel.swift in Sources */,
 				B44EB1D328DD8D6100CC72EE /* CommentsCache.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
@@ -445,6 +452,7 @@
 				B4ECFDC528E171860063FBF0 /* SettingsViewModel.swift in Sources */,
 				B46F2CFD28C9E49C00DE0D19 /* PostView.swift in Sources */,
 				B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */,
+				B429F22F28F8C11D001F3250 /* StorySelectionView.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
 				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,

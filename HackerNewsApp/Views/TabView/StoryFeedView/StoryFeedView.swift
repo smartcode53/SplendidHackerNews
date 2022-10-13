@@ -113,6 +113,8 @@ extension StoryFeedView  {
             // MARK: View Foreground
             VStack(spacing: 0) {
                 
+                StorySelectionView(selectedStoryType: $vm.storyType)
+                
 //                Button {
 //                    toastText = "Button Pressed"
 //                    withAnimation(.spring()) {
@@ -137,7 +139,7 @@ extension StoryFeedView  {
                     GeometryReader { proxy in
                         EmptyView()
                             .onChange(of: proxy.frame(in: .named("scrollView")).minY) { newPosition in
-                                if newPosition > 115.0 && !functionHasRan {
+                                if newPosition > 200 && !functionHasRan {
                                     functionHasRan = true
                                     print("Position is equal to than 115")
                                     withAnimation(.spring()) {
@@ -148,7 +150,7 @@ extension StoryFeedView  {
                                     
                                 }
                                 
-                                if newPosition < 20 {
+                                if newPosition < 40 {
                                     functionHasRan = false
                                 }
                             }
@@ -167,24 +169,25 @@ extension StoryFeedView  {
                 
             }
             .navigationTitle(Text(vm.storyType.rawValue))
-            .toolbarColorScheme(.dark, for: .navigationBar)            .navigationBarTitleDisplayMode(.automatic)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.automatic)
             .toolbarBackground(Color("NavigationBarColor"), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu("Switch Feed") {
-                        ForEach(StoryType.allCases, id: \.self) { type in
-                            Button {
-                                vm.storyType = type
-                            } label: {
-                                Text(type.rawValue)
-                                    .font(.headline.weight(.bold))
-                            }
-                        }
-                    }
-                    .tint(.white)
-                }
-            }
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    Menu("Switch Feed") {
+//                        ForEach(StoryType.allCases, id: \.self) { type in
+//                            Button {
+//                                vm.storyType = type
+//                            } label: {
+//                                Text(type.rawValue)
+//                                    .font(.headline.weight(.bold))
+//                            }
+//                        }
+//                    }
+//                    .tint(.white)
+//                }
+//            }
         }
         .coordinateSpace(name: "scrollView")
     }

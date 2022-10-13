@@ -57,7 +57,7 @@ extension PostView {
                             Spacer()
                         }
                         .foregroundColor(Color("PostDateName"))
-                        .font(.subheadline)
+                        .font(.caption.weight(.semibold))
                         
                     }
                     
@@ -80,7 +80,7 @@ extension PostView {
                 .padding(.bottom, 10)
                 
                 HStack {
-                    Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
+                    Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
                         .font(.subheadline.weight(.medium))
 //                        .foregroundColor(.secondary)
 //                        .padding(.leading, 15)
@@ -92,7 +92,7 @@ extension PostView {
                         if wrapper.bookmarkSaved {
                             Image(systemName: "bookmark.fill")
 //                                .foregroundColor(.secondary)
-                                .fontWeight(.medium)
+//                                .fontWeight(.medium)
                                 .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
                         } else {
                             Button {
@@ -104,7 +104,7 @@ extension PostView {
                             } label: {
                                 Image(systemName: "bookmark")
 //                                    .foregroundColor(.secondary)
-                                    .fontWeight(.medium)
+//                                    .fontWeight(.medium)
                                     .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
                             }
                         }
@@ -116,14 +116,16 @@ extension PostView {
                             ShareLink(item: url) {
                                 Image(systemName: "square.and.arrow.up")
 //                                    .foregroundColor(.secondary)
-                                    .fontWeight(.medium)
+//                                    .fontWeight(.medium)
                             }
                         }
                         
                         // Comment Button
                         CommentsButtonView(vm: vm)
                     }
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(Color("ButtonColor"))
+                    .fontWeight(.semibold)
+                    .font(.subheadline)
                     
                 }
                 .padding(20)
