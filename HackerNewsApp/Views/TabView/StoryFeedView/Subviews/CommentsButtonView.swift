@@ -19,8 +19,8 @@ struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariVie
                 CommentsView(vm: vm)
             } label: {
                 Label(String(commentCount), systemImage: "bubble.right")
+//                    .foregroundColor(.black.opacity(0.6))
             }
-            .buttonStyle(.bordered)
         }
     }
 }

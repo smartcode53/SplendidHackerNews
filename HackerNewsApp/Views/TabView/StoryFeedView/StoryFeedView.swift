@@ -53,7 +53,7 @@ struct StoryFeedView: View {
 extension StoryFeedView  {
     
     var stories: some View {
-        LazyVStack {
+        LazyVStack(spacing: 0) {
             if !vm.storiesDict[vm.storyType, default: []].isEmpty {
                 ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
                     if let story = wrapper.story {
@@ -113,22 +113,18 @@ extension StoryFeedView  {
             // MARK: View Foreground
             VStack(spacing: 0) {
                 
-                Rectangle()
-                    .fill(.primary)
-                    .frame(height: 2)
-                
-                Button {
-                    toastText = "Button Pressed"
-                    withAnimation(.spring()) {
-                        showToast = true
-                    }
-                } label: {
-                    Text("Press here for toast")
-                        .padding()
-                        .background(.blue)
-                        .cornerRadius(12)
-                        .padding()
-                }
+//                Button {
+//                    toastText = "Button Pressed"
+//                    withAnimation(.spring()) {
+//                        showToast = true
+//                    }
+//                } label: {
+//                    Text("Press here for toast")
+//                        .padding()
+//                        .background(.blue)
+//                        .cornerRadius(12)
+//                        .padding()
+//                }
                 
                 // MARK: ProgressView indicator shown upon pulling down on the ScrollView
                 if vm.hasAskedToReload {
@@ -166,24 +162,27 @@ extension StoryFeedView  {
                 // MARK: List of stories
                 
                 stories
-                    .padding(.top)
+//                    .padding(.top)
                 
                 
             }
             .navigationTitle(Text(vm.storyType.rawValue))
-            .navigationBarTitleDisplayMode(.automatic)
-            .toolbarBackground(Color("CardColor"), for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)            .navigationBarTitleDisplayMode(.automatic)
+            .toolbarBackground(Color("NavigationBarColor"), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu("Switch Feed") {
                         ForEach(StoryType.allCases, id: \.self) { type in
-                            Button(type.rawValue) {
+                            Button {
                                 vm.storyType = type
+                            } label: {
+                                Text(type.rawValue)
+                                    .font(.headline.weight(.bold))
                             }
                         }
                     }
-                    .tint(.orange)
+                    .tint(.white)
                 }
             }
         }
