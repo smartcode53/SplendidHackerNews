@@ -7,21 +7,26 @@
 
 import SwiftUI
 
-struct ToastView: View {
+struct ToastView<Content: View>: View {
     
     let text: String
+    let content: Content
     
     var body: some View {
         VStack {
-            Text(text)
-                .foregroundStyle(.primary)
-                .font(.subheadline.weight(.medium))
-                .padding()
-                .border(Color.black, width: 2)
-                .background(.regularMaterial)
-                .cornerRadius(12)
-                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+            HStack {
+                Text(text)
+                    .foregroundStyle(.primary)
+                    .font(.subheadline.weight(.medium))
+                    .padding()
+                    .border(Color.black, width: 2)
+                    .background(.regularMaterial)
+                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                    .padding(.trailing)
                 
+                content
+            }   
             
             Spacer()
         }
@@ -29,8 +34,17 @@ struct ToastView: View {
     }
 }
 
+extension ToastView {
+    init(text: String, @ViewBuilder content: () -> Content) {
+        self.text = text
+        self.content = content()
+    }
+}
+
 struct ToastView_Previews: PreviewProvider {
     static var previews: some View {
-        ToastView(text: "Stories Loaded Successfully")
+        ToastView(text: "Stories Loaded Successfully") {
+            Text("Something")
+        }
     }
 }

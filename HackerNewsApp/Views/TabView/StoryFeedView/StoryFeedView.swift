@@ -15,19 +15,8 @@ struct StoryFeedView: View {
     @StateObject var vm = StoryFeedViewModel()
     @State var selectedStory: Story? = nil
     @Namespace var namespace
-    @State private var functionHasRan = false
-    @State private var toastText = "All Good!"
-    @State private var showToast = false {
-        didSet {
-            if showToast {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                    withAnimation(.spring()) {
-                        showToast = false
-                    }
-                }
-            }
-        }
-    }
+    
+    
     
     
     // MARK: ContentView Body
@@ -39,10 +28,18 @@ struct StoryFeedView: View {
                 scrollView
             }
         }
-        .accentColor(.primary)
+        .accentColor(.orange)
         .overlay {
-            if showToast {
-                ToastView(text: toastText)
+            if vm.showToast {
+                ToastView(text: vm.toastText, content: {
+                    Button {
+                        // Do something here
+                    } label: {
+                        Text("Retry")
+                            .foregroundColor(.blue)
+                            .font(.subheadline.weight(.semibold))
+                    }
+                })
                     .zIndex(2)
                     .transition(.asymmetric(insertion: .move(edge: .top), removal: .move(edge: .top)))
             }
@@ -115,18 +112,6 @@ extension StoryFeedView  {
                 
                 StorySelectionView(selectedStoryType: $vm.storyType)
                 
-//                Button {
-//                    toastText = "Button Pressed"
-//                    withAnimation(.spring()) {
-//                        showToast = true
-//                    }
-//                } label: {
-//                    Text("Press here for toast")
-//                        .padding()
-//                        .background(.blue)
-//                        .cornerRadius(12)
-//                        .padding()
-//                }
                 
                 // MARK: ProgressView indicator shown upon pulling down on the ScrollView
                 if vm.hasAskedToReload {
@@ -138,9 +123,13 @@ extension StoryFeedView  {
                     // MARK: GeometryReader for custom Pull-To-Refresh button
                     GeometryReader { proxy in
                         EmptyView()
+                            .onAppear {
+                                print("Initial Position: \(proxy.frame(in: .named("scrollView")).minY)")
+                            }
                             .onChange(of: proxy.frame(in: .named("scrollView")).minY) { newPosition in
-                                if newPosition > 200 && !functionHasRan {
-                                    functionHasRan = true
+                                print(newPosition)
+                                if newPosition > 190 && !vm.functionHasRan {
+                                    vm.functionHasRan = true
                                     print("Position is equal to than 115")
                                     withAnimation(.spring()) {
                                         vm.hasAskedToReload = true
@@ -150,8 +139,8 @@ extension StoryFeedView  {
                                     
                                 }
                                 
-                                if newPosition < 40 {
-                                    functionHasRan = false
+                                if newPosition < 100 {
+                                    vm.functionHasRan = false
                                 }
                             }
                             .frame(height: 10)

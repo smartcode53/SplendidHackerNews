@@ -8,20 +8,6 @@
 import Foundation
 import SwiftUI
 
-enum StoryType: String, CaseIterable, Codable {
-    case topstories = "Top Stories"
-    case newstories = "New Stories"
-    case beststories = "Best Stories"
-    case askstories = "Ask HN"
-    case showstories = "Show HN"
-}
-
-enum SortOptions: String, CaseIterable {
-    case comments = "Comments"
-    case points = "Points"
-    case time = "Date"
-}
-
 @MainActor
 class StoryFeedViewModel: SafariViewLoader {
     
@@ -32,7 +18,6 @@ class StoryFeedViewModel: SafariViewLoader {
         .newstories: [],
         .showstories: []
     ]
-    
     @Published var storiesToDisplay: [StoryWrapper] = []
     @Published var fetchedIds: [StoryWrapper] = []
     
@@ -48,11 +33,25 @@ class StoryFeedViewModel: SafariViewLoader {
         }
     }
     @Published var selectedStory: Story? = nil
+    @Published var generatedError: ErrorHandler? = nil
+    @Published var toastText = "All Good!"
     
     // MARK: Boolean Values
     @Published var isLoading: Bool = false
     @Published var isRefreshing: Bool = false
     @Published var hasAskedToReload: Bool = false
+    @Published var showToast = false {
+        didSet {
+            if showToast {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                    withAnimation(.spring()) {
+                        self?.showToast = false
+                    }
+                }
+            }
+        }
+    }
+    @Published var functionHasRan = false
     
 }
 

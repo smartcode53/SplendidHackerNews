@@ -64,7 +64,7 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                             if let points = story.score {
                                 Text(points == 1 ? "\(points) point" : "\(points) points")
                                     .foregroundColor(.orange)
-                                    .font(.headline)
+                                    .font(.subheadline.weight(.semibold))
                             }
                             
                             
@@ -72,18 +72,20 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                             
                             if let storyUrl = story.url {
                                 ShareLink(item: storyUrl) {
-                                    Image(systemName: "square.and.arrow.up.fill")
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.title3.weight(.semibold))
                                 }
-                                .createPressableButton()
+//                                .createPressableButton()
                             }
                             
                             
                         }
-                        .padding()
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
                         
                         Rectangle()
                             .frame(height: 2)
-                            .foregroundColor(.primary)
+                            .foregroundColor(Color("ButtonColor"))
                     }
                     .background(Color("CardColor"))
                     
@@ -166,7 +168,7 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(Color("CardColor"), for: .navigationBar)
+            .toolbarBackground(Color("NavigationBarColor"), for: .navigationBar)
         }
     }
 }
