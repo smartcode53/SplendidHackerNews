@@ -25,6 +25,7 @@ struct ImagePlaceholderView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
                 .padding()
+                .rotation3DEffect(Angle(degrees: -15), axis: (x: 0, y: 1, z: 0))
         }
     }
 }

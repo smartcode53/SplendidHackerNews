@@ -33,6 +33,13 @@
 		B478F9D128AD8020002B893C /* StoryFeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B478F9D028AD8020002B893C /* StoryFeedViewModel.swift */; };
 		B48880C028F5A58D00E6B8A5 /* NetworkChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48880BF28F5A58D00E6B8A5 /* NetworkChecker.swift */; };
 		B489E3EB28DCAED60071B869 /* UltimatePostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B489E3EA28DCAED60071B869 /* UltimatePostViewModel.swift */; };
+		B48C6FD328FA8B0300A12E22 /* AppNavbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FD228FA8B0300A12E22 /* AppNavbarView.swift */; };
+		B48C6FD528FAC2C100A12E22 /* CustomNavBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FD428FAC2C000A12E22 /* CustomNavBarView.swift */; };
+		B48C6FD728FACB4D00A12E22 /* CustomNavbarContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FD628FACB4D00A12E22 /* CustomNavbarContainerView.swift */; };
+		B48C6FD928FACE2000A12E22 /* CustomNavView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FD828FACE2000A12E22 /* CustomNavView.swift */; };
+		B48C6FDB28FB05B000A12E22 /* CustomNavLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FDA28FB05B000A12E22 /* CustomNavLink.swift */; };
+		B48C6FDD28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FDC28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift */; };
+		B48C6FDF28FB577800A12E22 /* UINavigationControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FDE28FB577800A12E22 /* UINavigationControllerExtension.swift */; };
 		B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4BF5D2528EE97EF00A393CC /* StoryWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4BF5D2428EE97EF00A393CC /* StoryWrapper.swift */; };
@@ -100,6 +107,13 @@
 		B478F9D028AD8020002B893C /* StoryFeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryFeedViewModel.swift; sourceTree = "<group>"; };
 		B48880BF28F5A58D00E6B8A5 /* NetworkChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkChecker.swift; sourceTree = "<group>"; };
 		B489E3EA28DCAED60071B869 /* UltimatePostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimatePostViewModel.swift; sourceTree = "<group>"; };
+		B48C6FD228FA8B0300A12E22 /* AppNavbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavbarView.swift; sourceTree = "<group>"; };
+		B48C6FD428FAC2C000A12E22 /* CustomNavBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavBarView.swift; sourceTree = "<group>"; };
+		B48C6FD628FACB4D00A12E22 /* CustomNavbarContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavbarContainerView.swift; sourceTree = "<group>"; };
+		B48C6FD828FACE2000A12E22 /* CustomNavView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavView.swift; sourceTree = "<group>"; };
+		B48C6FDA28FB05B000A12E22 /* CustomNavLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavLink.swift; sourceTree = "<group>"; };
+		B48C6FDC28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavBarPreferenceKeys.swift; sourceTree = "<group>"; };
+		B48C6FDE28FB577800A12E22 /* UINavigationControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UINavigationControllerExtension.swift; sourceTree = "<group>"; };
 		B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InclusiveTextView.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4BF5D2428EE97EF00A393CC /* StoryWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryWrapper.swift; sourceTree = "<group>"; };
@@ -250,6 +264,7 @@
 		B478F9BF28AD77CA002B893C /* HackerNewsApp */ = {
 			isa = PBXGroup;
 			children = (
+				B48C6FD128FA8AEA00A12E22 /* CustomNavBar */,
 				B42D60F728F95A8E001BD06E /* Enums */,
 				B41E2F4128F55E30008E98A6 /* Info.plist */,
 				B44EB1D128DD8D4800CC72EE /* Cache */,
@@ -270,6 +285,19 @@
 				B478F9C728AD77CB002B893C /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		B48C6FD128FA8AEA00A12E22 /* CustomNavBar */ = {
+			isa = PBXGroup;
+			children = (
+				B48C6FD228FA8B0300A12E22 /* AppNavbarView.swift */,
+				B48C6FDC28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift */,
+				B48C6FD428FAC2C000A12E22 /* CustomNavBarView.swift */,
+				B48C6FD628FACB4D00A12E22 /* CustomNavbarContainerView.swift */,
+				B48C6FD828FACE2000A12E22 /* CustomNavView.swift */,
+				B48C6FDA28FB05B000A12E22 /* CustomNavLink.swift */,
+			);
+			path = CustomNavBar;
 			sourceTree = "<group>";
 		};
 		B4ECFDC128E16E440063FBF0 /* SettingsView */ = {
@@ -322,6 +350,7 @@
 			isa = PBXGroup;
 			children = (
 				B4F0328C28C08FC500E463BF /* DateExtension.swift */,
+				B48C6FDE28FB577800A12E22 /* UINavigationControllerExtension.swift */,
 				B4E6C9EB28C63EA600A2982B /* StringExtension.swift */,
 				B429F22C28F8BD7C001F3250 /* IntExtension.swift */,
 				B4B8427428C34520000D2D8F /* PressableButton.swift */,
@@ -437,7 +466,9 @@
 			files = (
 				B48880C028F5A58D00E6B8A5 /* NetworkChecker.swift in Sources */,
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
+				B48C6FDF28FB577800A12E22 /* UINavigationControllerExtension.swift in Sources */,
 				B44EB1D728DDF6BC00CC72EE /* CommentsButtonView.swift in Sources */,
+				B48C6FD528FAC2C100A12E22 /* CustomNavBarView.swift in Sources */,
 				B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */,
 				B42D60FD28F95B03001BD06E /* SortOptions.swift in Sources */,
 				B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */,
@@ -452,11 +483,13 @@
 				B4E6128A28E04A8A003D8A0E /* GlobalSettingsViewModel.swift in Sources */,
 				B429F22D28F8BD7C001F3250 /* IntExtension.swift in Sources */,
 				B45131E928DF88770022CAA8 /* SingleBookmarkViewModel.swift in Sources */,
+				B48C6FD328FA8B0300A12E22 /* AppNavbarView.swift in Sources */,
 				B44EB1D328DD8D6100CC72EE /* CommentsCache.swift in Sources */,
 				B4F0327728C07C0B00E463BF /* Item.swift in Sources */,
 				B4F0327928C07C9300E463BF /* Comment.swift in Sources */,
 				B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */,
 				B41CD14028DEF0AA0091E865 /* TabEnclosingView.swift in Sources */,
+				B48C6FDB28FB05B000A12E22 /* CustomNavLink.swift in Sources */,
 				B478F9C328AD77CA002B893C /* StoryFeedView.swift in Sources */,
 				B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */,
 				B4E6C9E828C639E300A2982B /* Protocols.swift in Sources */,
@@ -465,6 +498,7 @@
 				B478F9C128AD77CA002B893C /* HackerNewsAppApp.swift in Sources */,
 				B45131E728DF87E20022CAA8 /* SingleBookmarkView.swift in Sources */,
 				B4ECFDC328E16E550063FBF0 /* SettingsView.swift in Sources */,
+				B48C6FD728FACB4D00A12E22 /* CustomNavbarContainerView.swift in Sources */,
 				B478F9D128AD8020002B893C /* StoryFeedViewModel.swift in Sources */,
 				B46F2CFB28C9DEF300DE0D19 /* Story.swift in Sources */,
 				B41CD14928DF3E1C0091E865 /* BookmarksViewModel.swift in Sources */,
@@ -473,9 +507,11 @@
 				B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */,
 				B429F22F28F8C11D001F3250 /* StorySelectionView.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
+				B48C6FD928FACE2000A12E22 /* CustomNavView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
 				B42D60F928F95AB5001BD06E /* StoryType.swift in Sources */,
 				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,
+				B48C6FDD28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift in Sources */,
 				B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */,
 				B4E6128C28E0577D003D8A0E /* FileManagerExtension.swift in Sources */,
 				B4E6128E28E0614B003D8A0E /* Bookmark.swift in Sources */,

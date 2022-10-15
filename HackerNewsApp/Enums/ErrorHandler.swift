@@ -14,7 +14,7 @@ enum ErrorHandler: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noInternet:
-            return NSLocalizedString("You device doesn't seem to be connected to the internet. Please check your network connection and try again.", comment: "")
+            return NSLocalizedString("You're not connected to the internet!", comment: "")
         }
     }
 }

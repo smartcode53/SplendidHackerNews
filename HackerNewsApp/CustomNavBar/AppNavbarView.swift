@@ -1,13 +1,13 @@
 //
-//  ContentView.swift
+//  AppNavbarView.swift
 //  HackerNewsApp
 //
-//  Created by Taha Broachwala on 8/17/22.
+//  Created by Taha Broachwala on 10/15/22.
 //
 
 import SwiftUI
 
-struct StoryFeedView: View {
+struct AppNavbarView: View {
     
     // MARK: ContentView Properties
     @Environment(\.scenePhase) var scenePhase
@@ -16,21 +16,19 @@ struct StoryFeedView: View {
     @State var selectedStory: Story? = nil
     @Namespace var namespace
     
-    
-    
-    
-    // MARK: ContentView Body
     var body: some View {
-        NavigationStack {
+        CustomNavView {
             ZStack {
-//                Color("BackgroundColor")
                 LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .ignoresSafeArea()
                     .opacity(0.5)
                 
                 scrollView
+                
             }
+            .customNavigationTitle("Top Stories")
+            .customNavigationBarBackButtonHidden(true)
         }
-        .accentColor(.orange)
         .overlay {
             if vm.showToast {
                 ToastView(text: vm.toastText, textColor: vm.toastTextColor)
@@ -41,7 +39,8 @@ struct StoryFeedView: View {
     }
 }
 
-extension StoryFeedView  {
+
+extension AppNavbarView  {
     
     var stories: some View {
         LazyVStack(spacing: 0) {
@@ -183,8 +182,8 @@ extension StoryFeedView  {
 }
 
 
-struct ContentView_Previews: PreviewProvider {
+struct AppNavbarView_Previews: PreviewProvider {
     static var previews: some View {
-        StoryFeedView()
+        AppNavbarView()
     }
 }

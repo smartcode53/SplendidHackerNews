@@ -63,17 +63,33 @@ extension PostView {
                     
                     Spacer()
                     
-                    AsyncImage(url: vm.imageUrl) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 100, height: 100)
-                            .clipped()
-                            .cornerRadius(8)
-                            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                    } placeholder: {
-                        ImagePlaceholderView(height: 100, width: 100)
+                    if let imageUrl = vm.imageUrl {
+                        if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
+                            cachedImage
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipped()
+                                .cornerRadius(8)
+                                .shadow(color: .black, radius: 20, x: 0, y: 10)
+                        } else {
+                            AsyncImage(url: imageUrl) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 100, height: 100)
+                                    .clipped()
+                                    .cornerRadius(8)
+                                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                                    .onAppear {
+                                        vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
+                                    }
+                            } placeholder: {
+                                ImagePlaceholderView(height: 100, width: 100)
+                            }
+                        }
                     }
+                    
                     
                 }
                 .padding(20)
@@ -103,8 +119,6 @@ extension PostView {
                                 }
                             } label: {
                                 Image(systemName: "bookmark")
-//                                    .foregroundColor(.secondary)
-//                                    .fontWeight(.medium)
                                     .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
                             }
                         }
@@ -115,8 +129,6 @@ extension PostView {
                            let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
                             ShareLink(item: url) {
                                 Image(systemName: "square.and.arrow.up")
-//                                    .foregroundColor(.secondary)
-//                                    .fontWeight(.medium)
                             }
                         }
                         
@@ -124,28 +136,25 @@ extension PostView {
                         CommentsButtonView(vm: vm)
                     }
                     .foregroundColor(Color("ButtonColor"))
-                    .fontWeight(.semibold)
-                    .font(.subheadline)
+                    .font(.subheadline.weight(.semibold))
                     
                 }
                 .padding(20)
-                .overlay(alignment: .top) {
-                    Rectangle()
-                        .fill(.regularMaterial)
-                        .frame(height: 2)
-                        .padding(.horizontal, 20)
-                }
+//                .overlay(alignment: .top) {
+//                    Rectangle()
+//                        .fill(.regularMaterial)
+//                        .frame(height: 2)
+//                        .padding(.horizontal, 20)
+//                }
                 
-                Rectangle()
-                    .fill(Color("BackgroundColor"))
-                    .frame(height: 5)
+//                Rectangle()
+////                    .fill(Color("BackgroundColor"))
+//                    .fill(Color.clear)
+//                    .frame(height: 5)
                 
             }
-//            .padding(16)
             .background(Color("CardColor"))
-//            .cornerRadius(12)
-//            .padding(.horizontal, 5)
-//            .padding(.vertical, 2)
+            .padding(.bottom, 5)
             .task {
                 if let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
@@ -169,17 +178,17 @@ extension PostView {
                        let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
                        let urlDomain = url.urlDomain {
                         Text(urlDomain)
-                            .font(.caption.weight(.bold))
+                            .font(.caption.weight(.semibold))
                             .foregroundColor(.orange)
-                            .padding(.bottom, 10)
+                            .padding(.bottom, 5)
                     }
                     
                     // Story Title
                     if let storyTitle = story.title {
                         Text(story.url != nil ? "\(storyTitle) \(Image(systemName: "arrow.up.forward.app"))" : "\(storyTitle)")
-                            .font(.title2.weight(.bold))
+                            .font(.title3.weight(.bold))
                             .foregroundColor(Color("PostTitle"))
-                            .padding(.bottom, 16)
+                            .padding(.bottom, 10)
                     }
                     
                     
@@ -194,7 +203,7 @@ extension PostView {
                     }
                     .foregroundColor(Color("PostDateName"))
                     .padding(.bottom, 16)
-                    .font(.subheadline)
+                    .font(.caption.weight(.semibold))
                 }
                 .padding([.horizontal, .top])
                 
@@ -211,76 +220,69 @@ extension PostView {
                             image
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: UIScreen.main.bounds.width * 0.977)
+                                .frame(width: UIScreen.main.bounds.width)
                                 .frame(height: 220)
                                 .clipped()
                                 .onAppear {
                                     vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
                                 }
                         } placeholder: {
-                            ImagePlaceholderView(height: 220, width: UIScreen.main.bounds.width * 0.977)
+                            ImagePlaceholderView(height: 220, width: UIScreen.main.bounds.width)
                         }
                     }
                 }
-                
-                
-                // Story Image
                     
                 
                 // Points and Actionable Buttons
                 VStack {
                     HStack {
-                        if let points = story.score {
-                            Text(points == 1 ? "\(points) point" : "\(points) points")
+                        Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
                                 .font(.headline)
-                        }
                         
                         Spacer()
                         
-                        //Bookmark Button
-                        if wrapper.bookmarkSaved {
-                            Image(systemName: "bookmark.fill")
-                                .foregroundColor(.primary)
-                                .fontWeight(.medium)
-                                .matchedGeometryEffect(id: "bookmarkButton", in: namespace)
-                        } else {
-                            Button {
-                                let bookmark = Bookmark(story: story)
-                                globalSettings.tempBookmarks.append(bookmark)
-                                withAnimation(.spring()) {
-                                    wrapper.bookmarkSaved = true
-                                }
-                            } label: {
-                                Image(systemName: "bookmark")
-                                    .foregroundColor(.primary)
-                                    .fontWeight(.medium)
+                        HStack(spacing: 20) {
+                            if wrapper.bookmarkSaved {
+                                Image(systemName: "bookmark.fill")
                                     .matchedGeometryEffect(id: "bookmarkButton", in: namespace)
+                            } else {
+                                Button {
+                                    let bookmark = Bookmark(story: story)
+                                    globalSettings.tempBookmarks.append(bookmark)
+                                    withAnimation(.spring()) {
+                                        wrapper.bookmarkSaved = true
+                                    }
+                                } label: {
+                                    Image(systemName: "bookmark")
+                                        .matchedGeometryEffect(id: "bookmarkButton", in: namespace)
+                                }
+                                
                             }
-                            .buttonStyle(.bordered)
                             
-                        }
-                        
-                        
-                        // Share Button
-                        if let unsafeUrl = story.url,
-                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
-                            ShareLink(item: url) {
-                                Image(systemName: "square.and.arrow.up")
-                                    .foregroundColor(.primary)
+                            
+                            // Share Button
+                            if let unsafeUrl = story.url,
+                               let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
+                                ShareLink(item: url) {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
                             }
-                            .buttonStyle(.bordered)
+                        
+                            //Comments Button
+                            CommentsButtonView(vm: vm)
                         }
-                    
-                        //Comments Button
-                        CommentsButtonView(vm: vm)
+                        .foregroundColor(Color("ButtonColor"))
+                        .font(.subheadline.weight(.semibold))
                         
                     }
                     .padding()
                 }
+                
+                Rectangle()
+                    .fill(Color("BackgroundColor"))
+                    .frame(height: 5)
             }
             .background(Color("CardColor"))
-            .cornerRadius(8)
-            .padding(.horizontal, 5)
             .task {
                 if let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)

@@ -34,7 +34,8 @@ class StoryFeedViewModel: SafariViewLoader {
     }
     @Published var selectedStory: Story? = nil
     @Published var generatedError: ErrorHandler? = nil
-    @Published var toastText = "All Good!"
+    @Published var toastText: String = "All Good!"
+    @Published var toastTextColor: Color = .primary
     
     // MARK: Boolean Values
     @Published var isLoading: Bool = false
