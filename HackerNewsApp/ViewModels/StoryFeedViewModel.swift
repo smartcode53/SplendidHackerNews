@@ -57,6 +57,7 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     }
     @Published var functionHasRan = false
     @Published var showStoryInComments: Bool = false
+    @Published var showNoInternetScreen: Bool = false
     
 }
 

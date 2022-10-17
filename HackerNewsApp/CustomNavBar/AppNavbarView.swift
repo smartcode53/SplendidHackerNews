@@ -23,7 +23,13 @@ struct AppNavbarView: View {
                     .ignoresSafeArea()
                     .opacity(0.5)
                 
-                scrollView
+                if vm.showNoInternetScreen {
+                    NoInternetView(vm: vm)
+                } else {
+                    scrollView
+                }
+                
+                
                 
             }
             .customNavigationTitle("Top Stories")
@@ -80,14 +86,20 @@ extension AppNavbarView  {
                 }
             } else {
                 vm.storiesDict = vm.getStoriesFromDisk()
-                vm.generatedError = .noInternet
                 
-                if let localizedErrorDescription = vm.generatedError?.localizedDescription {
-                    vm.toastText = localizedErrorDescription
+                if vm.storiesDict.isEmpty {
+                    vm.showNoInternetScreen = true
+                } else {
+                    vm.generatedError = .noInternet
+                    
+                    if let localizedErrorDescription = vm.generatedError?.localizedDescription {
+                        vm.toastText = localizedErrorDescription
+                    }
+                    
+                    vm.toastTextColor = .red.opacity(0.8)
+                    vm.showToast = true
                 }
                 
-                vm.toastTextColor = .red.opacity(0.8)
-                vm.showToast = true
             }
         }
 //        .task {
@@ -144,7 +156,6 @@ extension AppNavbarView  {
                 // MARK: List of stories
                 
                 stories
-//                    .padding(.top)
                 
                 
             }

@@ -43,6 +43,7 @@
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4BF5D2528EE97EF00A393CC /* StoryWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4BF5D2428EE97EF00A393CC /* StoryWrapper.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
+		B4CBDEEB28FD4B5400D5DB7A /* NoInternetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4CBDEEA28FD4B5400D5DB7A /* NoInternetView.swift */; };
 		B4D2473228D0C0F800E6CDEB /* Atributika in Frameworks */ = {isa = PBXBuildFile; productRef = B4D2473128D0C0F800E6CDEB /* Atributika */; };
 		B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D2473328D1005C00E6CDEB /* FilterButton.swift */; };
 		B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */; };
@@ -116,6 +117,7 @@
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4BF5D2428EE97EF00A393CC /* StoryWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryWrapper.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
+		B4CBDEEA28FD4B5400D5DB7A /* NoInternetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetView.swift; sourceTree = "<group>"; };
 		B4D2473328D1005C00E6CDEB /* FilterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterButton.swift; sourceTree = "<group>"; };
 		B4E5092328BF767E00035FF8 /* SFSafariViewWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSafariViewWrapper.swift; sourceTree = "<group>"; };
 		B4E6128928E04A8A003D8A0E /* GlobalSettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalSettingsViewModel.swift; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				B4C1426F28BFA14700585142 /* SafariView.swift */,
+				B4CBDEEA28FD4B5400D5DB7A /* NoInternetView.swift */,
 				B4F5FB2F28F710D300D25F43 /* ToastView.swift */,
 			);
 			path = "Reusable Views";
@@ -463,6 +466,7 @@
 			files = (
 				B48880C028F5A58D00E6B8A5 /* NetworkChecker.swift in Sources */,
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
+				B4CBDEEB28FD4B5400D5DB7A /* NoInternetView.swift in Sources */,
 				B48C6FDF28FB577800A12E22 /* UINavigationControllerExtension.swift in Sources */,
 				B44EB1D728DDF6BC00CC72EE /* CommentsButtonView.swift in Sources */,
 				B48C6FD528FAC2C100A12E22 /* CustomNavBarView.swift in Sources */,
