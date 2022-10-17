@@ -19,7 +19,6 @@ struct CustomNavBarView: View {
             
             if showBackButton {
                 backButton
-                    .padding(.trailing)
             }
             
             gradientLogo
@@ -29,7 +28,7 @@ struct CustomNavBarView: View {
             Spacer()
             
         }
-        .padding()
+        .padding(.horizontal, 10)
         .tint(.white)
         .font(.headline)
         .background {
@@ -46,14 +45,14 @@ extension CustomNavBarView {
             dismiss()
         } label: {
             Image(systemName: "arrow.backward")
-                .font(.title.weight(.semibold))
+                .font(.title3.weight(.semibold))
         }
     }
     
     private var titleSection: some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.title.weight(.bold))
+                .font(.title2.weight(.bold))
                 .foregroundColor(.white)
         }
     }

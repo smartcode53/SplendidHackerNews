@@ -19,7 +19,7 @@ struct CustomNavLink<Label: View, Destination: View>: View {
             }
             .toolbar(.hidden, for: .navigationBar)
         } label: {
-            Text("Click me")
+            label
         }
     }
 }
@@ -27,8 +27,8 @@ struct CustomNavLink<Label: View, Destination: View>: View {
 
 extension CustomNavLink {
     
-    init(destination: Destination, @ViewBuilder label: () -> Label) {
-        self.destination = destination
+    init(@ViewBuilder destination: () -> Destination, @ViewBuilder label: () -> Label) {
+        self.destination = destination()
         self.label = label()
     }
     

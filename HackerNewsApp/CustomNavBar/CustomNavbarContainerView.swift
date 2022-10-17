@@ -10,7 +10,7 @@ import SwiftUI
 struct CustomNavbarContainerView<Content: View>: View {
     
     @State private var showBackButton: Bool = true
-    @State private var title: String = ""
+    @State private var title: String = "No Title"
     
     let content: Content
     

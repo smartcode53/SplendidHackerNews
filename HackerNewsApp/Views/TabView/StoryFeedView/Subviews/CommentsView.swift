@@ -12,7 +12,6 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
     @Environment(\.dismiss) var dismiss
     @ObservedObject var vm: T
     
-    
     var body: some View {
         if let story = vm.story {
             VStack(spacing: 0) {
@@ -100,33 +99,6 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                             Spacer()
                         }
                     }
-                    
-                    
-//                    VStack {
-//                        if let comments = vm.comments?.children {
-//                            LazyVStack {
-//                                ForEach(comments) { comment in
-//                                    if let _ = comment.text {
-//                                        SingleCommentView(comment: comment)
-//                                    }
-//                                }
-//                            }
-//                        } else {
-//                            ProgressView()
-//                        }
-//                    }
-//                    .background(Color("BackgroundColor"))
-//                    .onAppear {
-//                        vm.loadComments(withId: story.id)
-//                    }
-//                    .task {
-//                        if vm.comments != nil {
-//                            if let (numComments, points) = await vm.getCommentAndPointCounts(forPostWithId: story.id) {
-//                                vm.story?.descendants = numComments
-//                                vm.story?.score = points
-//                            }
-//                        }
-//                    }
                     
                     Group {
                         if let comments = vm.comments?.children {

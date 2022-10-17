@@ -8,8 +8,8 @@
 import Foundation
 import SwiftUI
 
-@MainActor
-class StoryFeedViewModel: SafariViewLoader {
+
+class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     
     @Published var storiesDict: [StoryType: [StoryWrapper]] = [
         .topstories: [],
@@ -21,6 +21,7 @@ class StoryFeedViewModel: SafariViewLoader {
     @Published var storiesToDisplay: [StoryWrapper] = []
     @Published var fetchedIds: [StoryWrapper] = []
     
+    lazy var commentsCacheManager: CommentsCache = CommentsCache.instance
     let networkManager: NetworkManager = NetworkManager.instance
     let cacheManager: StoriesCache = StoriesCache.instance
     @Published var networkChecker: NetworkChecker = NetworkChecker()
@@ -36,6 +37,8 @@ class StoryFeedViewModel: SafariViewLoader {
     @Published var generatedError: ErrorHandler? = nil
     @Published var toastText: String = "All Good!"
     @Published var toastTextColor: Color = .primary
+    @Published var story: Story?
+    @Published var comments: Item?
     
     // MARK: Boolean Values
     @Published var isLoading: Bool = false
@@ -53,6 +56,7 @@ class StoryFeedViewModel: SafariViewLoader {
         }
     }
     @Published var functionHasRan = false
+    @Published var showStoryInComments: Bool = false
     
 }
 
@@ -75,10 +79,9 @@ extension StoryFeedViewModel {
         if let cachedStories = cacheManager.getFromCache(withKey: storyType.rawValue) {
             await MainActor.run { [weak self] in
                 self?.storiesDict[storyType] = cachedStories
-                print("STORIES LOADED FROM CACHE")
             }
         } else {
-            let extractedStories = extractLimitedStories()
+            let extractedStories = await extractLimitedStories()
             
             let storiesArray = await networkManager.getStories(using: extractedStories)
             
@@ -88,21 +91,22 @@ extension StoryFeedViewModel {
             }
             
             cacheManager.saveToCache(storiesDict[storyType] ?? [], withKey: storyType.rawValue)
-            print("STORIES LOADED FROM THE INTERNET")
         }
         
     }
     
-    private func extractLimitedStories() -> [StoryWrapper] {
+    private func extractLimitedStories() async -> [StoryWrapper] {
         
         if fetchedIds.count > 9 {
             let slice = Array(fetchedIds.prefix(upTo: 10))
-            print("Slice Count: \(slice.count)")
-            fetchedIds = fetchedIds.filter({ wrapper in
-                !slice.contains(wrapper)
-            })
-            print("First Item now in FetchedStoryWrappers = \(String(describing: fetchedIds.first?.index))")
+            await MainActor.run { [weak self] in
+                self?.fetchedIds = fetchedIds.filter({ wrapper in
+                    !slice.contains(wrapper)
+                })
+            }
+            
             return slice
+            
         } else {
             return fetchedIds
         }
@@ -145,7 +149,6 @@ extension StoryFeedViewModel {
         do {
             let data = try JSONEncoder().encode(storiesDict)
             try data.write(to: fileUrl, options: [.atomic])
-            print("Stories saved to disk SUCCESSFULLY")
         } catch let error {
             print("THere was an error encoding and saving the stories array. Here's the error description: \(error)")
         }
@@ -157,7 +160,6 @@ extension StoryFeedViewModel {
         if let data {
             do {
                 let safeData = try JSONDecoder().decode([StoryType: [StoryWrapper]].self, from: data)
-                print("Stories retrieved from Disk SUCCESSFULLY.")
                 return safeData
             } catch let error {
                 print("There was an error decoding the bookmarks array. Here's the error description: \(error)")

@@ -47,18 +47,15 @@ extension AppNavbarView  {
             if !vm.storiesDict[vm.storyType, default: []].isEmpty {
                 ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
                     if let story = wrapper.story {
-                        PostView(withWrapper: wrapper, story: story)
+                        
+                        PostView(withWrapper: wrapper, story: story, selectedStory: $selectedStory)
                                 .task {
-                                    
+
                                     guard let lastStoryWrapperIndex = vm.storiesDict[vm.storyType, default: []].last?.index else { return }
-                                    
+
                                     if wrapper.index == lastStoryWrapperIndex {
-                                        print("Reached the last story in the array. Now loading infinitely")
                                         await vm.loadInfinitely()
                                     }
-                                }
-                                .onTapGesture {
-                                    selectedStory = story
                                 }
                     }
                 }
@@ -78,12 +75,10 @@ extension AppNavbarView  {
         })
         .task {
             if networkChecker.isConnected {
-                print("YES INTERNET!!")
                 Task {
                     await vm.loadStoriesTheFirstTime()
                 }
             } else {
-                print("NO INTERNET!!!")
                 vm.storiesDict = vm.getStoriesFromDisk()
                 vm.generatedError = .noInternet
                 
@@ -124,14 +119,9 @@ extension AppNavbarView  {
                     // MARK: GeometryReader for custom Pull-To-Refresh button
                     GeometryReader { proxy in
                         EmptyView()
-                            .onAppear {
-                                print("Initial Position: \(proxy.frame(in: .named("scrollView")).minY)")
-                            }
                             .onChange(of: proxy.frame(in: .named("scrollView")).minY) { newPosition in
-                                print(newPosition)
                                 if newPosition > 190 && !vm.functionHasRan {
                                     vm.functionHasRan = true
-                                    print("Position is equal to than 115")
                                     withAnimation(.spring()) {
                                         vm.hasAskedToReload = true
                                     }

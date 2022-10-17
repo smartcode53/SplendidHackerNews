@@ -18,7 +18,7 @@ struct StorySelectionView: View {
                     ForEach(StoryType.allCases, id: \.rawValue) { type in
                         Text(type.rawValue)
                             .padding(10)
-                            .background(selectedStoryType == type ? .orange : .orange.opacity(0.3))
+                            .background(selectedStoryType == type ? Color("NavigationBarColor") : Color("NavigationBarColor").opacity(0.3))
                             .foregroundColor(.white)
                             .font(.headline.weight(.bold))
                             .cornerRadius(12)

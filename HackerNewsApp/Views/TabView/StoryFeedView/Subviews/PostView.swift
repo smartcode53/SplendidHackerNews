@@ -13,15 +13,21 @@ struct PostView: View {
     @StateObject var vm: UltimatePostViewModel
     @State private var wrapper: StoryWrapper
     @Namespace var namespace
+    @Binding var selectedStory: Story?
     
 
     var body: some View {
-        if globalSettings.selectedCardStyle == .normal {
-            normalCard
-        } else {
-            compactCard
-        }
         
+        CustomNavLink {
+            CommentsView(vm: vm)
+                .customNavBarItems(title: "Comments", backButtonHidden: false)
+        } label: {
+            if globalSettings.selectedCardStyle == .normal {
+                normalCard
+            } else {
+                compactCard
+            }
+        }
     }
 }
 
@@ -30,7 +36,7 @@ extension PostView {
     // MARK: Compact Card
     @ViewBuilder var compactCard: some View {
         if let story = vm.story {
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 0) {
@@ -43,10 +49,19 @@ extension PostView {
                                 .padding(.bottom, 5)
                         }
                         
-                        Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                            .foregroundColor(Color("PostTitle"))
-                            .font(.headline.weight(.bold))
-                            .padding(.bottom, 10)
+                        
+                        Button {
+                            selectedStory = story
+                        } label: {
+                            Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
+                                .foregroundColor(Color("PostTitle"))
+                                .font(.headline.weight(.bold))
+                                .multilineTextAlignment(.leading)
+                                .contentShape(Circle())
+                        }
+                        .padding(.bottom, 5)
+                        
+                        
                         
                         HStack {
                             Text(Date.getTimeInterval(with: story.time))
@@ -71,7 +86,7 @@ extension PostView {
                                 .frame(width: 100, height: 100)
                                 .clipped()
                                 .cornerRadius(8)
-                                .shadow(color: .black, radius: 20, x: 0, y: 10)
+                                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
                         } else {
                             AsyncImage(url: imageUrl) { image in
                                 image
@@ -98,8 +113,6 @@ extension PostView {
                 HStack {
                     Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
                         .font(.subheadline.weight(.medium))
-//                        .foregroundColor(.secondary)
-//                        .padding(.leading, 15)
                     
                     Spacer()
                     
@@ -107,8 +120,6 @@ extension PostView {
                         //Bookmark Button
                         if wrapper.bookmarkSaved {
                             Image(systemName: "bookmark.fill")
-//                                .foregroundColor(.secondary)
-//                                .fontWeight(.medium)
                                 .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
                         } else {
                             Button {
@@ -132,25 +143,16 @@ extension PostView {
                             }
                         }
                         
-                        // Comment Button
-                        CommentsButtonView(vm: vm)
+                        // Comment Label
+                        if let commentCount = story.descendants {
+                            Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
+                        }
                     }
                     .foregroundColor(Color("ButtonColor"))
                     .font(.subheadline.weight(.semibold))
                     
                 }
                 .padding(20)
-//                .overlay(alignment: .top) {
-//                    Rectangle()
-//                        .fill(.regularMaterial)
-//                        .frame(height: 2)
-//                        .padding(.horizontal, 20)
-//                }
-                
-//                Rectangle()
-////                    .fill(Color("BackgroundColor"))
-//                    .fill(Color.clear)
-//                    .frame(height: 5)
                 
             }
             .background(Color("CardColor"))
@@ -184,11 +186,15 @@ extension PostView {
                     }
                     
                     // Story Title
-                    if let storyTitle = story.title {
-                        Text(story.url != nil ? "\(storyTitle) \(Image(systemName: "arrow.up.forward.app"))" : "\(storyTitle)")
+                    Button {
+                        selectedStory = story
+                    } label: {
+                        Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
                             .font(.title3.weight(.bold))
                             .foregroundColor(Color("PostTitle"))
                             .padding(.bottom, 10)
+                            .multilineTextAlignment(.leading)
+                            .contentShape(Circle())
                     }
                     
                     
@@ -269,7 +275,9 @@ extension PostView {
                             }
                         
                             //Comments Button
-                            CommentsButtonView(vm: vm)
+                            if let commentCount = story.descendants {
+                                Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
+                            }
                         }
                         .foregroundColor(Color("ButtonColor"))
                         .font(.subheadline.weight(.semibold))
@@ -296,9 +304,10 @@ extension PostView {
 }
 
 extension PostView {
-    init(withWrapper wrapper: StoryWrapper, story: Story) {
+    init(withWrapper wrapper: StoryWrapper, story: Story, selectedStory: Binding<Story?>) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self._wrapper = State(initialValue: wrapper)
+        self._selectedStory = selectedStory
     }
 }
 
