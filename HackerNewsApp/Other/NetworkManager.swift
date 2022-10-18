@@ -15,7 +15,44 @@ class NetworkManager {
     let cacheManager: StoryFeedViewModel.StoriesCache = StoryFeedViewModel.StoriesCache.instance
     
     // Function to get the array of post IDs and convert it into a dictionary.
-    func getStoryIds(ofType type: StoryType) async -> [StoryWrapper]? {
+//    func getStoryIds(ofType type: StoryType) async -> [StoryWrapper]? {
+//
+//        let urlStoryType: String
+//
+//        switch type {
+//        case .askstories:
+//            urlStoryType = "askstories"
+//        case .beststories:
+//            urlStoryType = "beststories"
+//        case .newstories:
+//            urlStoryType = "newstories"
+//        case .showstories:
+//            urlStoryType = "showstories"
+//        case .topstories:
+//            urlStoryType = "topstories"
+//        }
+//
+//        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(urlStoryType).json") else { return nil }
+//
+//
+//        do {
+//            let (data, _) = try await URLSession.shared.data(from: url)
+//            if let safeData = try? JSONDecoder().decode([Int].self, from: data) {
+//                var wrapperArray: [StoryWrapper] = []
+//                for (index, id) in safeData.enumerated() {
+//                    let wrapper = StoryWrapper(index: index, id: id)
+//                    wrapperArray.append(wrapper)
+//                }
+//                return wrapperArray
+//            }
+//        } catch let error {
+//            print(error)
+//        }
+//
+//        return nil
+//    }
+    
+    func getStoryIds(ofType type: StoryType) async -> Result<[StoryWrapper], ErrorHandler> {
         
         let urlStoryType: String
         
@@ -32,7 +69,7 @@ class NetworkManager {
             urlStoryType = "topstories"
         }
         
-        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(urlStoryType).json") else { return nil }
+        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(urlStoryType).json") else { return .failure(.urlError) }
         
         
         do {
@@ -43,17 +80,56 @@ class NetworkManager {
                     let wrapper = StoryWrapper(index: index, id: id)
                     wrapperArray.append(wrapper)
                 }
-                return wrapperArray
+                return .success(wrapperArray)
+            } else {
+                return .failure(.decodingError)
             }
-        } catch let error {
-            print(error)
+        } catch {
+            return .failure(.noIDArray)
         }
-        
-        return nil
     }
     
     // Function to fetch stories from the dictionary of post IDs
-    func getStories(using wrapperArray: [StoryWrapper]) async -> [StoryWrapper]  {
+//    func getStories(using wrapperArray: [StoryWrapper]) async -> [StoryWrapper]  {
+//
+//        do {
+//            let stories = try await withThrowingTaskGroup(of: StoryWrapper?.self, body: { group in
+//
+//                var storyArray: [StoryWrapper] = []
+//
+//                for wrapper in wrapperArray {
+//                    group.addTask {
+//                        guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
+//                        let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
+////                        self.cacheManager.saveToCache(story, withKey: String(newWrapper.id))
+//                        return newWrapper
+//                    }
+//                }
+//
+//                for try await result in group {
+//                    if let result {
+//                        storyArray.append(result)
+//                    }
+//                }
+//
+//                storyArray.sort { wrapper1, wrapper2 in
+//                    wrapper1.index < wrapper2.index
+//                }
+//
+//                return storyArray
+//
+//            })
+//
+//            return stories
+//
+//        } catch let error {
+//            print(error.localizedDescription)
+//            return []
+//        }
+//
+//    }
+    
+    func getStories(using wrapperArray: [StoryWrapper]) async -> Result<[StoryWrapper], ErrorHandler>  {
         
         do {
             let stories = try await withThrowingTaskGroup(of: StoryWrapper?.self, body: { group in
@@ -62,13 +138,6 @@ class NetworkManager {
                 
                 for wrapper in wrapperArray {
                     group.addTask {
-                        
-//                        if let cachedStory = self.cacheManager.getFromCache(withKey: String(wrapper.id)) {
-//                            var editedWrapper = wrapper
-//                            editedWrapper.story = cachedStory
-//                            return editedWrapper
-//                        }
-                        
                         guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
                         let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
 //                        self.cacheManager.saveToCache(story, withKey: String(newWrapper.id))
@@ -90,11 +159,10 @@ class NetworkManager {
                 
             })
             
-            return stories
+            return .success(stories)
             
-        } catch let error {
-            print(error.localizedDescription)
-            return []
+        } catch {
+            return .failure(.noStoryArray)
         }
         
     }

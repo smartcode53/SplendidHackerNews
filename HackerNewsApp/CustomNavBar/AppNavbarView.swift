@@ -36,7 +36,7 @@ struct AppNavbarView: View {
             .customNavigationBarBackButtonHidden(true)
         }
         .overlay {
-            if vm.showToast {
+            if vm.appError != nil {
                 ToastView(text: vm.toastText, textColor: vm.toastTextColor)
                     .zIndex(2)
                     .transition(.asymmetric(insertion: .move(edge: .top), removal: .move(edge: .top)))
@@ -90,14 +90,11 @@ extension AppNavbarView  {
                 if vm.storiesDict.isEmpty {
                     vm.showNoInternetScreen = true
                 } else {
-                    vm.generatedError = .noInternet
                     
-                    if let localizedErrorDescription = vm.generatedError?.localizedDescription {
-                        vm.toastText = localizedErrorDescription
-                    }
-                    
+                    let error = ErrorHandler.noInternet
+                    vm.toastText = error.localizedDescription
                     vm.toastTextColor = .red.opacity(0.8)
-                    vm.showToast = true
+                    vm.appError = ErrorType(error: .noInternet)
                 }
                 
             }
