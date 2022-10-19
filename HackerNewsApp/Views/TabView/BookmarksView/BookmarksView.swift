@@ -11,7 +11,7 @@ struct BookmarksView: View {
     
     @Environment(\.scenePhase) var scenePhase
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
-    @StateObject var vm = BookmarksViewModel()
+//    @StateObject var vm = BookmarksViewModel()
     @State var selectedStory: Story?
     @State var bookmarkToDelete: Bookmark?
     
@@ -21,7 +21,7 @@ struct BookmarksView: View {
                 
                 Color("BackgroundColor").ignoresSafeArea()
                 
-                if vm.bookmarks.isEmpty {
+                if globalSettings.bookmarks.isEmpty {
                     VStack {
                         Text("You've not bookmarked any stories yet. To do so, tap the bookmark button (\(Image(systemName: "bookmark"))) on a story within the story feed.")
                     }
@@ -36,7 +36,7 @@ struct BookmarksView: View {
                                 .frame(height: 2)
                                 .padding(.bottom, 10)
                             
-                            ForEach(vm.bookmarks) { bookmark in
+                            ForEach(globalSettings.bookmarks) { bookmark in
                                 SingleBookmarkView(bookmark: bookmark, selectedStory: $selectedStory, bookmarkToDelete: $bookmarkToDelete)
                             }
                         }
@@ -47,9 +47,9 @@ struct BookmarksView: View {
                         .toolbar {
                             ToolbarItem(placement: .navigationBarTrailing) {
                                 Menu {
-                                    ForEach(BookmarksViewModel.SortType.allCases, id: \.self) { type in
+                                    ForEach(SortType.allCases, id: \.self) { type in
                                         Button(type.rawValue) {
-                                            vm.selectedSortType = type
+                                            globalSettings.selectedSortType = type
                                         }
                                     }
                                 } label: {
@@ -64,23 +64,16 @@ struct BookmarksView: View {
                     }
                 }
             }
-            .onAppear {
-                let filteredArray = globalSettings.tempBookmarks.filter { bookmark in
-                    !vm.bookmarks.contains(bookmark)
-                }
-                vm.bookmarks.append(contentsOf: filteredArray)
-                globalSettings.tempBookmarks.removeAll()
-            }
             .onChange(of: scenePhase) { phase in
                 if phase == .inactive {
-                    vm.saveToDisk()
+                    globalSettings.saveToDisk()
                 }
             }
             .onChange(of: bookmarkToDelete) { bookmark in
                 if let bookmark {
-                    if let index = vm.bookmarks.firstIndex(of: bookmark) {
+                    if let index = globalSettings.bookmarks.firstIndex(of: bookmark) {
                         withAnimation(.spring()) {
-                            vm.bookmarks.remove(at: index)
+                            _ = globalSettings.bookmarks.remove(at: index)
                         }
                     }
                     bookmarkToDelete = nil

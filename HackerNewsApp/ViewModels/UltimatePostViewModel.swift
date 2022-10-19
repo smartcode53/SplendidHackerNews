@@ -17,6 +17,7 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     @Published var urlDomain: String?
     
     @Published var showStoryInComments = false
+    @Published var isBookmarked: Bool = false
     
     lazy var networkManager = NetworkManager.instance
     lazy var commentsCacheManager = CommentsCache.instance

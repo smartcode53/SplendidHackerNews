@@ -22,4 +22,6 @@ struct Settings: Codable {
         case light = "Light"
         case automatic = "Automatic"
     }
+    
+    static let defaultSettings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
 }

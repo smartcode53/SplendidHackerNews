@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B406D84B29000D0800723391 /* SortType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B406D84A29000D0800723391 /* SortType.swift */; };
 		B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */; };
 		B41CD14028DEF0AA0091E865 /* TabEnclosingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */; };
 		B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD14628DF3DF30091E865 /* BookmarksView.swift */; };
@@ -80,6 +81,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B406D84A29000D0800723391 /* SortType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortType.swift; sourceTree = "<group>"; };
 		B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonsViewModifier.swift; sourceTree = "<group>"; };
 		B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabEnclosingView.swift; sourceTree = "<group>"; };
 		B41CD14628DF3DF30091E865 /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 			isa = PBXGroup;
 			children = (
 				B42D60F828F95AB5001BD06E /* StoryType.swift */,
+				B406D84A29000D0800723391 /* SortType.swift */,
 				B42D60FC28F95B03001BD06E /* SortOptions.swift */,
 				B42D60FA28F95AC8001BD06E /* ErrorHandler.swift */,
 			);
@@ -479,6 +482,7 @@
 				B42D60FB28F95AC8001BD06E /* ErrorHandler.swift in Sources */,
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B41E2F4028F53B37008E98A6 /* ImagePlaceholderView.swift in Sources */,
+				B406D84B29000D0800723391 /* SortType.swift in Sources */,
 				B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */,
 				B489E3EB28DCAED60071B869 /* UltimatePostViewModel.swift in Sources */,
 				B4E6128A28E04A8A003D8A0E /* GlobalSettingsViewModel.swift in Sources */,

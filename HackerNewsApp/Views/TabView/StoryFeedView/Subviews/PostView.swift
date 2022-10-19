@@ -14,8 +14,9 @@ struct PostView: View {
     @State private var wrapper: StoryWrapper
     @Namespace var namespace
     @Binding var selectedStory: Story?
+    let story: Story
     
-
+    
     var body: some View {
         
         CustomNavLink {
@@ -28,6 +29,14 @@ struct PostView: View {
                 compactCard
             }
         }
+        .onAppear {
+            let bookmarkStories = globalSettings.bookmarks.map { bookmark in
+                bookmark.story
+            }
+            if !bookmarkStories.contains(story) {
+                vm.isBookmarked = false
+            }
+        }
     }
 }
 
@@ -35,133 +44,117 @@ extension PostView {
     
     // MARK: Compact Card
     @ViewBuilder var compactCard: some View {
-        if let story = vm.story {
-            VStack(alignment: .leading, spacing: 0) {
-                
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        if let unsafeUrl = story.url,
-                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
-                           let urlDomain = url.urlDomain {
-                            Text(urlDomain)
-                                .foregroundColor(.orange)
-                                .font(.caption.weight(.semibold))
-                                .padding(.bottom, 5)
-                        }
-                        
-                        
-                        Button {
-                            selectedStory = story
-                        } label: {
-                            Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                                .foregroundColor(Color("PostTitle"))
-                                .font(.headline.weight(.bold))
-                                .multilineTextAlignment(.leading)
-                                .contentShape(Circle())
-                        }
-                        .padding(.bottom, 5)
-                        
-                        
-                        
-                        HStack {
-                            Text(Date.getTimeInterval(with: story.time))
-                            Text("|")
-                                .foregroundColor(Color("DateNameSeparator"))
-                            Text(story.by)
-                            
-                            Spacer()
-                        }
-                        .foregroundColor(Color("PostDateName"))
-                        .font(.caption.weight(.semibold))
-                        
+        VStack(alignment: .leading, spacing: 0) {
+            
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 0) {
+                    if let unsafeUrl = story.url,
+                       let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
+                       let urlDomain = url.urlDomain {
+                        Text(urlDomain)
+                            .foregroundColor(.orange)
+                            .font(.caption.weight(.semibold))
+                            .padding(.bottom, 5)
                     }
                     
-                    Spacer()
                     
-                    if let imageUrl = vm.imageUrl {
-                        if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-                            cachedImage
+                    Button {
+                        selectedStory = story
+                    } label: {
+                        Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
+                            .foregroundColor(Color("PostTitle"))
+                            .font(.headline.weight(.bold))
+                            .multilineTextAlignment(.leading)
+                            .contentShape(Circle())
+                    }
+                    .padding(.bottom, 5)
+                    
+                    
+                    
+                    HStack {
+                        Text(Date.getTimeInterval(with: story.time))
+                        Text("|")
+                            .foregroundColor(Color("DateNameSeparator"))
+                        Text(story.by)
+                        
+                        Spacer()
+                    }
+                    .foregroundColor(Color("PostDateName"))
+                    .font(.caption.weight(.semibold))
+                    
+                }
+                
+                Spacer()
+                
+                if let imageUrl = vm.imageUrl {
+                    if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
+                        cachedImage
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipped()
+                            .cornerRadius(8)
+                            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                    } else {
+                        AsyncImage(url: imageUrl) { image in
+                            image
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 100, height: 100)
                                 .clipped()
                                 .cornerRadius(8)
                                 .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                        } else {
-                            AsyncImage(url: imageUrl) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                                    .clipped()
-                                    .cornerRadius(8)
-                                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                                    .onAppear {
-                                        vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-                                    }
-                            } placeholder: {
-                                ImagePlaceholderView(height: 100, width: 100)
-                            }
-                        }
-                    }
-                    
-                    
-                }
-                .padding(20)
-                .padding(.bottom, 10)
-                
-                HStack {
-                    Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
-                        .font(.subheadline.weight(.medium))
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 20) {
-                        //Bookmark Button
-                        if wrapper.bookmarkSaved {
-                            Image(systemName: "bookmark.fill")
-                                .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
-                        } else {
-                            Button {
-                                let bookmark = Bookmark(story: story)
-                                globalSettings.tempBookmarks.append(bookmark)
-                                withAnimation(.spring()) {
-                                    wrapper.bookmarkSaved = true
+                                .onAppear {
+                                    vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
                                 }
-                            } label: {
-                                Image(systemName: "bookmark")
-                                    .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
-                            }
-                        }
-                        
-                        // Share button
-                        
-                        if let unsafeUrl = story.url,
-                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
-                            ShareLink(item: url) {
-                                Image(systemName: "square.and.arrow.up")
-                            }
-                        }
-                        
-                        // Comment Label
-                        if let commentCount = story.descendants {
-                            Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
+                        } placeholder: {
+                            ImagePlaceholderView(height: 100, width: 100)
                         }
                     }
-                    .foregroundColor(Color("ButtonColor"))
-                    .font(.subheadline.weight(.semibold))
-                    
                 }
-                .padding(20)
+                
                 
             }
-            .background(Color("CardColor"))
-            .padding(.bottom, 5)
-            .task {
-                if let unsafeUrl = story.url {
-                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-                    vm.loadImage(fromUrl: url)
+            .padding(20)
+            .padding(.bottom, 10)
+            
+            HStack {
+                Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
+                    .font(.subheadline.weight(.medium))
+                
+                Spacer()
+                
+                HStack(spacing: 20) {
+                    //Bookmark Button
+                    bookmarkButton
+                    
+                    // Share button
+                    
+                    if let unsafeUrl = story.url,
+                       let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
+                        ShareLink(item: url) {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                    }
+                    
+                    // Comment Label
+                    if let commentCount = story.descendants {
+                        Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
+                    }
                 }
+                .foregroundColor(Color("ButtonColor"))
+                .font(.subheadline.weight(.semibold))
+                
+            }
+            .padding(20)
+            
+        }
+        .background(Color("CardColor"))
+        .padding(.bottom, 5)
+        .task {
+            if let unsafeUrl = story.url {
+                let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
+                vm.loadImage(fromUrl: url)
             }
         }
     }
@@ -237,33 +230,18 @@ extension PostView {
                         }
                     }
                 }
-                    
+                
                 
                 // Points and Actionable Buttons
                 VStack {
                     HStack {
                         Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
-                                .font(.headline)
+                            .font(.headline)
                         
                         Spacer()
                         
                         HStack(spacing: 20) {
-                            if wrapper.bookmarkSaved {
-                                Image(systemName: "bookmark.fill")
-                                    .matchedGeometryEffect(id: "bookmarkButton", in: namespace)
-                            } else {
-                                Button {
-                                    let bookmark = Bookmark(story: story)
-                                    globalSettings.tempBookmarks.append(bookmark)
-                                    withAnimation(.spring()) {
-                                        wrapper.bookmarkSaved = true
-                                    }
-                                } label: {
-                                    Image(systemName: "bookmark")
-                                        .matchedGeometryEffect(id: "bookmarkButton", in: namespace)
-                                }
-                                
-                            }
+                            bookmarkButton
                             
                             
                             // Share Button
@@ -273,7 +251,7 @@ extension PostView {
                                     Image(systemName: "square.and.arrow.up")
                                 }
                             }
-                        
+                            
                             //Comments Button
                             if let commentCount = story.descendants {
                                 Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
@@ -298,7 +276,25 @@ extension PostView {
                 }
             }
         }
-
+        
+    }
+    
+    @ViewBuilder var bookmarkButton: some View {
+        if vm.isBookmarked {
+            Image(systemName: "bookmark.fill")
+                .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
+        } else {
+            Button {
+                let bookmark = Bookmark(story: story)
+                globalSettings.bookmarks.append(bookmark)
+                withAnimation(.spring()) {
+                    vm.isBookmarked = true
+                }
+            } label: {
+                Image(systemName: "bookmark")
+                    .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
+            }
+        }
     }
     
 }
@@ -308,6 +304,7 @@ extension PostView {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self._wrapper = State(initialValue: wrapper)
         self._selectedStory = selectedStory
+        self.story = story
     }
 }
 

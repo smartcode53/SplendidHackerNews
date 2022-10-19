@@ -15,6 +15,8 @@ enum ErrorHandler: Error, LocalizedError {
     case decodingError
     case noStoryArray
     case infiniteLoadingFailed
+    case bookmarkLoadFailed
+    case settingsLoadError
     
     var errorDescription: String? {
         switch self {
@@ -30,6 +32,10 @@ enum ErrorHandler: Error, LocalizedError {
             return NSLocalizedString("Stories could not be fetched at the moment. Please try again", comment: "")
         case .infiniteLoadingFailed:
             return NSLocalizedString("Could not load posts further, try refreshing the page", comment: "")
+        case .bookmarkLoadFailed:
+            return NSLocalizedString("Failed to load bookmark. Please reinstall the app.", comment: "")
+        case .settingsLoadError:
+            return "Failed to load saved settings. Reverting to defaults."
         }
     }
 }
