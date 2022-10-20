@@ -42,9 +42,7 @@ extension CommentsButtonProtocol {
     func loadComments(withId id: Int) {
         if let cachedItem = commentsCacheManager.getFromCache(withKey: id) {
             comments = cachedItem
-            print("Item loaded from cache")
         } else {
-            print("Item needed to be downloaded from the server")
             Task {
                 let result = await networkManager.getComments(forId: id)
                 await MainActor.run { [weak self] in
@@ -53,7 +51,6 @@ extension CommentsButtonProtocol {
                 
                 if let safeResult = result {
                     commentsCacheManager.saveToCache(safeResult, withKey: id)
-                    print("Comment cache save successful with id: \(id)")
                 }
             }
         }

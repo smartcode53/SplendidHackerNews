@@ -39,7 +39,6 @@ extension String {
         do {
             let dom = try HTMLParser().parse(html: html)
             let markdown = dom.toMarkdown(options: .unorderedListBullets)
-            print(markdown.convertToString())
             return try! AttributedString(markdown: markdown.convertToString())
         } catch {
             // parsing error

@@ -17,6 +17,8 @@ class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButto
     
     @Published var showStoryInComments: Bool = false
     
+    lazy var imageCacheManager = UltimatePostViewModel.ImageCache.instance
+    
     lazy var networkManager: NetworkManager = NetworkManager.instance
     lazy var commentsCacheManager: CommentsCache = CommentsCache.instance
     

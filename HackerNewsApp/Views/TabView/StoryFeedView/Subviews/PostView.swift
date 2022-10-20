@@ -29,6 +29,7 @@ struct PostView: View {
                 compactCard
             }
         }
+        .createPressableButton()
         .onAppear {
             let bookmarkStories = globalSettings.bookmarks.map { bookmark in
                 bookmark.story
