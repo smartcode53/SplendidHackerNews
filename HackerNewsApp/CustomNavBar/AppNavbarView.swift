@@ -42,6 +42,9 @@ struct AppNavbarView: View {
                     .transition(.asymmetric(insertion: .move(edge: .top), removal: .move(edge: .top)))
             }
         }
+        .onAppear {
+            vm.notificationsManager.requestAuthorization()
+        }
     }
 }
 

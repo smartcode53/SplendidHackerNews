@@ -33,8 +33,9 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     }
     
     lazy var commentsCacheManager: CommentsCache = CommentsCache.instance
-    let networkManager: NetworkManager = NetworkManager.instance
-    let cacheManager: StoriesCache = StoriesCache.instance
+    lazy var networkManager: NetworkManager = NetworkManager.instance
+    lazy var cacheManager: StoriesCache = StoriesCache.instance
+    lazy var notificationsManager: NotificationsManager = NotificationsManager.instance
     @Published var networkChecker: NetworkChecker = NetworkChecker()
     
     let fileUrl = FileManager().documentsDirectory.appending(component: "stories.txt")
@@ -55,17 +56,6 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     @Published var isLoading: Bool = false
     @Published var isRefreshing: Bool = false
     @Published var hasAskedToReload: Bool = false
-//    @Published var showToast = false {
-//        didSet {
-//            if showToast {
-//                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-//                    withAnimation(.spring()) {
-//                        self?.showToast = false
-//                    }
-//                }
-//            }
-//        }
-//    }
     @Published var functionHasRan = false
     @Published var showStoryInComments: Bool = false
     @Published var showNoInternetScreen: Bool = false
