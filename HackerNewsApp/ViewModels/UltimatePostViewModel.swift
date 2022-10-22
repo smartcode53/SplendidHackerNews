@@ -41,6 +41,13 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     func saveImageToCache(_ image: Image, storyId: Int) {
         imageCacheManager.saveToCache(image, withKey: String(storyId))
     }
+    
+    func updateBookmarkStatus(globalSettings: GlobalSettingsViewModel, story: Story) {
+        let bookmarkStories = globalSettings.bookmarks.map { $0.story }
+        if !bookmarkStories.contains(story) {
+            isBookmarked = false
+        }
+    }
 }
 
 

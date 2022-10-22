@@ -30,7 +30,7 @@ struct HackerNewsAppApp: App {
                 )
                 .onChange(of: scenePhase) { phase in
                     if phase == .inactive {
-                        globalSettings.saveSettings()
+                        globalSettings.saveSettingsToDisk()
                     }
                 }
         }

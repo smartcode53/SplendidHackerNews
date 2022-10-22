@@ -74,7 +74,7 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                                     Image(systemName: "square.and.arrow.up")
                                         .font(.title3.weight(.semibold))
                                 }
-//                                .createPressableButton()
+                                .createRegularButton()
                             }
                             
                             

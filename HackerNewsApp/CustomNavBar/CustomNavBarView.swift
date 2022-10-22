@@ -15,25 +15,29 @@ struct CustomNavBarView: View {
     let title: String
     
     var body: some View {
-        HStack {
+        
+        ZStack {
             
-            if showBackButton {
-                backButton
+            Color("NavigationBarColor").ignoresSafeArea()
+            
+            HStack {
+                
+                if showBackButton {
+                    backButton
+                }
+                
+                gradientLogo
+                
+                titleSection
+                
+                Spacer()
+                
             }
-            
-            gradientLogo
-            
-            titleSection
-            
-            Spacer()
-            
+            .padding(.horizontal, 10)
         }
-        .padding(.horizontal, 10)
+        .frame(height: 80)
         .tint(.white)
         .font(.headline)
-        .background {
-            Color("NavigationBarColor").ignoresSafeArea()
-        }
     }
 }
 
@@ -46,6 +50,7 @@ extension CustomNavBarView {
         } label: {
             Image(systemName: "arrow.backward")
                 .font(.title3.weight(.semibold))
+                .foregroundColor(.primary)
         }
     }
     
@@ -53,7 +58,7 @@ extension CustomNavBarView {
         VStack(spacing: 4) {
             Text(title)
                 .font(.title2.weight(.bold))
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
         }
     }
     

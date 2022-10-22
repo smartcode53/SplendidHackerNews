@@ -30,6 +30,19 @@ class GlobalSettingsViewModel: ObservableObject {
             }
         }
     }
+    @Published var appError: ErrorType? = nil {
+        didSet {
+            if appError != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                    withAnimation(.spring()) {
+                        self?.appError = nil
+                    }
+                }
+            }
+        }
+    }
+    @Published var toastText: String = "All Good!"
+    @Published var toastTextColor: Color = .primary
     
     let firstTimeBoolKey: String = "firstTime"
     let userDefaults: UserDefaults = UserDefaults.standard
@@ -94,7 +107,7 @@ class GlobalSettingsViewModel: ObservableObject {
         }
     }
     
-    func saveSettings() {
+    func saveSettingsToDisk() {
         do {
             let data = try JSONEncoder().encode(settings)
             try data.write(to: settingsUrl)
@@ -103,7 +116,7 @@ class GlobalSettingsViewModel: ObservableObject {
         }
     }
     
-    func saveToDisk() {
+    func saveBookmarksToDisk() {
         do {
             let data = try JSONEncoder().encode(bookmarks)
             try data.write(to: bookmarkUrl, options: [.atomic])

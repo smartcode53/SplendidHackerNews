@@ -66,7 +66,7 @@ struct BookmarksView: View {
             }
             .onChange(of: scenePhase) { phase in
                 if phase == .inactive {
-                    globalSettings.saveToDisk()
+                    globalSettings.saveBookmarksToDisk()
                 }
             }
             .onChange(of: bookmarkToDelete) { bookmark in

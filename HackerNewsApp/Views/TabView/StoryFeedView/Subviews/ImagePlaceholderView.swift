@@ -16,6 +16,7 @@ struct ImagePlaceholderView: View {
         ZStack(alignment: .bottomTrailing) {
             LinearGradient(colors: [.orange, .indigo], startPoint: .top, endPoint: .bottom)
                 .frame(width: width, height: height)
+//                .frame(height: height)
                 .blur(radius: 60)
                 .cornerRadius(8)
                 .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
@@ -23,7 +24,7 @@ struct ImagePlaceholderView: View {
             Text("HN")
                 .fontWeight(.bold)
                 .font(.title3)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.secondary)
                 .padding()
                 .rotation3DEffect(Angle(degrees: -15), axis: (x: 0, y: 1, z: 0))
         }

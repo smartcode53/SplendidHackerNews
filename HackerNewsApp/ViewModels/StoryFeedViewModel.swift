@@ -84,6 +84,7 @@ extension StoryFeedViewModel {
             case .success(let array):
                 await MainActor.run { [weak self] in
                     self?.storiesDict[storyType] = array
+                    self?.cacheManager.saveToCache(storiesDict[storyType, default: []], withKey: storyType.rawValue)
                 }
             case .failure(_):
                 
@@ -124,7 +125,6 @@ extension StoryFeedViewModel {
             
             switch storiesArray {
             case .success(let array):
-                cacheManager.saveToCache(array, withKey: storyType.rawValue)
                 return array
             case .failure(let error):
                 throw error
@@ -163,6 +163,7 @@ extension StoryFeedViewModel {
     }
     
     func loadInfinitely() async {
+        
         await MainActor.run {
             self.isLoading = true
         }
@@ -178,6 +179,7 @@ extension StoryFeedViewModel {
         case .success(let array):
             await MainActor.run { [weak self] in
                 self?.storiesDict[storyType]?.append(contentsOf: array)
+                cacheManager.saveToCache(storiesDict[storyType, default: []], withKey: storyType.rawValue)
             }
         case .failure(_):
             await MainActor.run { [weak self] in

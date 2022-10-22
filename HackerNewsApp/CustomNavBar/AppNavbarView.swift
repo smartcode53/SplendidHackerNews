@@ -29,8 +29,6 @@ struct AppNavbarView: View {
                     scrollView
                 }
                 
-                
-                
             }
             .customNavigationTitle("Top Stories")
             .customNavigationBarBackButtonHidden(true)
@@ -131,8 +129,9 @@ extension AppNavbarView  {
                     // MARK: GeometryReader for custom Pull-To-Refresh button
                     GeometryReader { proxy in
                         EmptyView()
-                            .onChange(of: proxy.frame(in: .named("scrollView")).minY) { newPosition in
-                                if newPosition > 190 && !vm.functionHasRan {
+                            .onChange(of: proxy.frame(in: .named("scrollView")).midY) { newPosition in
+                                
+                                if ceil(newPosition) > 190 && !vm.functionHasRan {
                                     vm.functionHasRan = true
                                     withAnimation(.spring()) {
                                         vm.hasAskedToReload = true
@@ -166,6 +165,89 @@ extension AppNavbarView  {
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .coordinateSpace(name: "scrollView")
+    }
+    
+    var listView: some View {
+        List {
+            StorySelectionView(selectedStoryType: $vm.storyType)
+                .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            
+            listStories
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .refreshable {
+            vm.refreshStories()
+        }
+        .onChange(of: scenePhase, perform: { phase in
+            if phase == .inactive {
+                vm.saveStoriesToDisk()
+            }
+        })
+        .task {
+            if networkChecker.isConnected {
+                Task {
+                    await vm.loadStoriesTheFirstTime()
+                }
+            } else {
+                vm.storiesDict = vm.getStoriesFromDisk()
+                
+                if vm.storiesDict.isEmpty {
+                    vm.showNoInternetScreen = true
+                } else {
+                    
+                    let error = ErrorHandler.noInternet
+                    vm.toastText = error.localizedDescription
+                    vm.toastTextColor = .red.opacity(0.8)
+                    vm.appError = ErrorType(error: .noInternet)
+                }
+                
+            }
+        }
+        .fullScreenCover(item: $selectedStory) { story in
+            if let storyUrl = story.url {
+                SafariView(vm: vm, url: storyUrl)
+            }
+        }
+    }
+    
+    @ViewBuilder var listStories: some View {
+        if !vm.storiesDict[vm.storyType, default: []].isEmpty {
+            ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
+                if let story = wrapper.story {
+                    
+                    PostView(withWrapper: wrapper, story: story, selectedStory: $selectedStory)
+                            .task {
+
+                                guard let lastStoryWrapperIndex = vm.storiesDict[vm.storyType, default: []].last?.index else { return }
+
+                                if wrapper.index == lastStoryWrapperIndex {
+                                    await vm.loadInfinitely()
+                                }
+                            }
+                }
+            }
+                .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                
+        } else {
+            HStack {
+                Spacer()
+                ProgressView()
+                Spacer()
+            }
+                .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+        }
+        
+        if vm.isLoading {
+            ProgressView()
+                .padding()
+        }
     }
     
     var bookmarkConfirmationView: some View {
