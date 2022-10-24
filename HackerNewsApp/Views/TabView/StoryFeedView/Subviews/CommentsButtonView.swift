@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoader {
+struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoader, T: CustomPullToRefresh {
     
     @ObservedObject var vm: T
     @State private var linkActive = false

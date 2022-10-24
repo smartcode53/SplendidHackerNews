@@ -24,6 +24,10 @@ class CommentsCache {
     func saveToCache(_ object: Item, withKey key: Int) {
         cache.setObject(CommentsCacheValueWrapper(object), forKey: String(key) as NSString)
     }
+    
+    func removeFromCache(withKey key: Int) {
+        cache.removeObject(forKey: String(key) as NSString)
+    }
 }
 
 class CommentsCacheValueWrapper<T> {

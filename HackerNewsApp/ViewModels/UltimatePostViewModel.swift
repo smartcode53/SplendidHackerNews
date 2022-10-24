@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol {
+class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol, CustomPullToRefresh {
     
     @Published var story: Story?
     @Published var comments: Item?
@@ -16,8 +16,10 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     @Published var imageUrl: URL?
     @Published var urlDomain: String?
     
-    @Published var showStoryInComments = false
+    @Published var showStoryInComments: Bool = false
     @Published var isBookmarked: Bool = false
+    @Published var functionHasRan: Bool = false
+    @Published var hasAskedToReload: Bool = false
     
     lazy var networkManager = NetworkManager.instance
     lazy var commentsCacheManager = CommentsCache.instance
@@ -46,6 +48,15 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
         let bookmarkStories = globalSettings.bookmarks.map { $0.story }
         if !bookmarkStories.contains(story) {
             isBookmarked = false
+        }
+    }
+    
+    func refresh() {
+        if let id = story?.id {
+            commentsCacheManager.removeFromCache(withKey: id)
+            comments = nil
+            loadComments(withId: id)
+            hasAskedToReload = false
         }
     }
 }

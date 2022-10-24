@@ -63,13 +63,10 @@ extension CustomNavBarView {
     }
     
     private var gradientLogo: some View {
-        Rectangle()
-            .fill(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .frame(width: 60, height: 60)
-            .mask {
-                Text("HN")
-                    .font(.largeTitle.weight(.bold))
-            }
+        
+        Text("HN")
+            .font(.largeTitle.weight(.bold))
+            .foregroundStyle(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
             .rotation3DEffect(Angle(degrees: -15), axis: (x: 0, y: 1, z: 0))
     }
 }

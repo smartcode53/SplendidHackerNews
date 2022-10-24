@@ -20,17 +20,9 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     ]
     @Published var storiesToDisplay: [StoryWrapper] = []
     @Published var fetchedIds: [StoryWrapper] = []
-    @Published var appError: ErrorType? = nil {
-        didSet {
-            if appError != nil {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-                    withAnimation(.spring()) {
-                        self?.appError = nil
-                    }
-                }
-            }
-        }
-    }
+    @Published var subError: ErrorType? = nil 
+    
+    
     
     lazy var commentsCacheManager: CommentsCache = CommentsCache.instance
     lazy var networkManager: NetworkManager = NetworkManager.instance
@@ -47,8 +39,8 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     }
     @Published var selectedStory: Story? = nil
     @Published var generatedError: ErrorHandler? = nil
-    @Published var toastText: String = "All Good!"
-    @Published var toastTextColor: Color = .primary
+    @Published var subToastText: String = "All Good!"
+    @Published var subToastTextColor: Color = .primary
     @Published var story: Story?
     @Published var comments: Item?
     
@@ -59,6 +51,7 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     @Published var functionHasRan = false
     @Published var showStoryInComments: Bool = false
     @Published var showNoInternetScreen: Bool = false
+    @Published var storiesLoaded: Bool = false
     
 }
 
@@ -85,19 +78,23 @@ extension StoryFeedViewModel {
                 await MainActor.run { [weak self] in
                     self?.storiesDict[storyType] = array
                     self?.cacheManager.saveToCache(storiesDict[storyType, default: []], withKey: storyType.rawValue)
+                    self?.storiesLoaded = true
                 }
             case .failure(_):
                 
                 await MainActor.run { [weak self] in
                     let handler = ErrorHandler.noStoryArray
-                    self?.toastText = handler.localizedDescription
-                    self?.toastTextColor = .black
-                    self?.appError = ErrorType(error: ErrorHandler.noStoryArray)
+                    self?.subToastText = handler.localizedDescription
+                    self?.subToastTextColor = .black
+                    self?.subError = ErrorType(error: ErrorHandler.noStoryArray)
                 }
             }
             
-        case .failure(let error):
-            appError = ErrorType(error: error)
+        case .failure(_):
+            let errorType = ErrorType(error: .noStoryArray)
+            subToastText = errorType.error.localizedDescription
+            subToastTextColor = .black
+            subError = errorType
         }
         
 //        do {
@@ -113,10 +110,6 @@ extension StoryFeedViewModel {
     func downloadStories() async throws -> [StoryWrapper] {
         
         if let cachedStories = cacheManager.getFromCache(withKey: storyType.rawValue) {
-//            await MainActor.run { [weak self] in
-//                self?.storiesDict[storyType] = cachedStories
-//            }
-            
             return cachedStories
         } else {
             let extractedStories = await extractLimitedStories()
@@ -129,18 +122,6 @@ extension StoryFeedViewModel {
             case .failure(let error):
                 throw error
             }
-            
-//            switch storiesArray {
-//            case .success(let array):
-//                await MainActor.run { [weak self] in
-//                    self?.storiesDict[storyType]?.append(contentsOf: array)
-//                }
-//                cacheManager.saveToCache(storiesDict[storyType] ?? [], withKey: storyType.rawValue)
-//            case .failure(_):
-//
-//            }
-            
-            
         }
         
     }
@@ -164,11 +145,11 @@ extension StoryFeedViewModel {
     
     func loadInfinitely() async {
         
+        cacheManager.removeFromCache(key: storyType.rawValue)
+        
         await MainActor.run {
             self.isLoading = true
         }
-        
-        cacheManager.removeFromCache(key: storyType.rawValue)
         
         let downloadTask = Task { () -> [StoryWrapper] in
             let returnedStories = try await downloadStories()
@@ -183,10 +164,10 @@ extension StoryFeedViewModel {
             }
         case .failure(_):
             await MainActor.run { [weak self] in
-                let handler = ErrorHandler.infiniteLoadingFailed
-                self?.toastText = handler.localizedDescription
-                self?.toastTextColor = .black
-                self?.appError = ErrorType(error: ErrorHandler.infiniteLoadingFailed)
+                let errorType = ErrorType(error: .infiniteLoadingFailed)
+                self?.subToastText = errorType.error.localizedDescription
+                self?.subToastTextColor = .black
+                self?.subError = errorType
             }
         }
         
@@ -210,7 +191,6 @@ extension StoryFeedViewModel {
         Task {
             await loadStoriesTheFirstTime()
         }
-        hasAskedToReload = false
     }
     
     nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
@@ -221,8 +201,11 @@ extension StoryFeedViewModel {
         do {
             let data = try JSONEncoder().encode(storiesDict)
             try data.write(to: fileUrl, options: [.atomic])
-        } catch let error {
-            print("THere was an error encoding and saving the stories array. Here's the error description: \(error)")
+        } catch {
+            let errorType = ErrorType(error: .diskSaveError)
+            subToastText = errorType.error.localizedDescription
+            subToastTextColor = .black
+            subError = errorType
         }
     }
     
@@ -233,8 +216,11 @@ extension StoryFeedViewModel {
             do {
                 let safeData = try JSONDecoder().decode([StoryType: [StoryWrapper]].self, from: data)
                 return safeData
-            } catch let error {
-                print("There was an error decoding the bookmarks array. Here's the error description: \(error)")
+            } catch {
+                let errorType = ErrorType(error: .diskLoadError)
+                subToastText = errorType.error.localizedDescription
+                subToastTextColor = .black
+                subError = errorType
             }
         }
         

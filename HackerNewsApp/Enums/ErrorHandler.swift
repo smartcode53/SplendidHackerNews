@@ -17,6 +17,8 @@ enum ErrorHandler: Error, LocalizedError {
     case infiniteLoadingFailed
     case bookmarkLoadFailed
     case settingsLoadError
+    case diskSaveError
+    case diskLoadError
     
     var errorDescription: String? {
         switch self {
@@ -35,13 +37,17 @@ enum ErrorHandler: Error, LocalizedError {
         case .bookmarkLoadFailed:
             return NSLocalizedString("Failed to load bookmark. Please reinstall the app.", comment: "")
         case .settingsLoadError:
-            return "Failed to load saved settings. Reverting to defaults."
+            return NSLocalizedString("Failed to load saved settings. Reverting to defaults.", comment: "")
+        case .diskSaveError:
+            return NSLocalizedString("Failed to save stories to the disk, please reinstall the app", comment: "")
+        case .diskLoadError:
+            return NSLocalizedString("Failed to load stories from disk. Make sure you're connected to the internet and try again.", comment: "")
         }
     }
 }
 
 
-struct ErrorType: Identifiable {
+struct ErrorType: Identifiable, Equatable {
     let id = UUID()
     let error: ErrorHandler
 }

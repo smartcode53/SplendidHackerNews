@@ -52,6 +52,6 @@ struct Item: Identifiable, Codable {
         self.title = try container.decode(String.self, forKey: .title)
         self.url = try container.decode(String?.self, forKey: .url)
         self.points = try container.decode(Int.self, forKey: .points)
-        self.children = try container.decode([Comment].self, forKey: .children)
+        self.children = try container.decode([Comment]?.self, forKey: .children)
     }
 }

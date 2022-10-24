@@ -13,6 +13,7 @@ struct AppNavbarView: View {
     @Environment(\.scenePhase) var scenePhase
     @StateObject var networkChecker = NetworkChecker()
     @StateObject var vm = StoryFeedViewModel()
+    @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @State var selectedStory: Story? = nil
     @Namespace var namespace
     
@@ -34,8 +35,8 @@ struct AppNavbarView: View {
             .customNavigationBarBackButtonHidden(true)
         }
         .overlay {
-            if vm.appError != nil {
-                ToastView(text: vm.toastText, textColor: vm.toastTextColor)
+            if globalSettings.appError != nil {
+                ToastView(text: globalSettings.toastText, textColor: globalSettings.toastTextColor)
                     .zIndex(2)
                     .transition(.asymmetric(insertion: .move(edge: .top), removal: .move(edge: .top)))
             }
@@ -43,10 +44,20 @@ struct AppNavbarView: View {
         .onAppear {
             vm.notificationsManager.requestAuthorization()
         }
+        .onChange(of: vm.subError) { error in
+            globalSettings.appError = error
+        }
+        .onChange(of: vm.subToastText) { text in
+            globalSettings.toastText = text
+        }
+        .onChange(of: vm.subToastTextColor) { color in
+            globalSettings.toastTextColor = color
+        }
     }
 }
 
 
+// View Components
 extension AppNavbarView  {
     
     var stories: some View {
@@ -82,8 +93,10 @@ extension AppNavbarView  {
         })
         .task {
             if networkChecker.isConnected {
-                Task {
-                    await vm.loadStoriesTheFirstTime()
+                if !vm.storiesLoaded {
+                    Task {
+                        await vm.loadStoriesTheFirstTime()
+                    }
                 }
             } else {
                 vm.storiesDict = vm.getStoriesFromDisk()
@@ -93,9 +106,9 @@ extension AppNavbarView  {
                 } else {
                     
                     let error = ErrorHandler.noInternet
-                    vm.toastText = error.localizedDescription
-                    vm.toastTextColor = .red.opacity(0.8)
-                    vm.appError = ErrorType(error: .noInternet)
+                    globalSettings.toastText = error.localizedDescription
+                    globalSettings.toastTextColor = .red.opacity(0.8)
+                    globalSettings.appError = ErrorType(error: .noInternet)
                 }
                 
             }
@@ -120,36 +133,36 @@ extension AppNavbarView  {
                 
                 
                 // MARK: ProgressView indicator shown upon pulling down on the ScrollView
-                if vm.hasAskedToReload {
-                    Rectangle()
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .transition(.move(edge: .bottom))
-                } else {
-                    // MARK: GeometryReader for custom Pull-To-Refresh button
-                    GeometryReader { proxy in
-                        EmptyView()
-                            .onChange(of: proxy.frame(in: .named("scrollView")).midY) { newPosition in
-                                
-                                if ceil(newPosition) > 190 && !vm.functionHasRan {
-                                    vm.functionHasRan = true
-                                    withAnimation(.spring()) {
-                                        vm.hasAskedToReload = true
-                                    }
-
-                                    vm.refreshStories()
-                                    
-                                }
-                                
-                                if newPosition < 100 {
-                                    vm.functionHasRan = false
-                                }
-                            }
-                            .frame(height: 10)
-                            .frame(maxWidth: .infinity)
-                    }
-
-                }
+//                if vm.hasAskedToReload {
+//                    ProgressView()
+//                        .frame(maxWidth: .infinity)
+//                        .padding()
+//                        .transition(.move(edge: .bottom))
+//                } else {
+//                    // MARK: GeometryReader for custom Pull-To-Refresh button
+//                    GeometryReader { proxy in
+//                        EmptyView()
+//                            .onChange(of: proxy.frame(in: .named("scrollView")).midY) { newPosition in
+//
+//                                if ceil(newPosition) > 190 && !vm.functionHasRan {
+//                                    vm.functionHasRan = true
+//                                    withAnimation(.spring()) {
+//                                        vm.hasAskedToReload = true
+//                                    }
+//
+//                                    vm.refreshStories()
+//
+//                                }
+//
+//                                if newPosition < 100 {
+//                                    vm.functionHasRan = false
+//                                }
+//                            }
+//                            .frame(height: 10)
+//                            .frame(maxWidth: .infinity)
+//                    }
+//
+//                }
                             
                 
                 // MARK: List of stories
@@ -165,6 +178,21 @@ extension AppNavbarView  {
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .coordinateSpace(name: "scrollView")
+        .overlay(alignment: .bottomTrailing) {
+            Button {
+                vm.refreshStories()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .padding()
+                    .shadow(color: .black.opacity(0.20), radius: 20, x: 0, y: 10)
+                
+            }
+        }
     }
     
     var listView: some View {
@@ -199,9 +227,9 @@ extension AppNavbarView  {
                 } else {
                     
                     let error = ErrorHandler.noInternet
-                    vm.toastText = error.localizedDescription
-                    vm.toastTextColor = .red.opacity(0.8)
-                    vm.appError = ErrorType(error: .noInternet)
+                    vm.subToastText = error.localizedDescription
+                    vm.subToastTextColor = .red.opacity(0.8)
+                    vm.subError = ErrorType(error: .noInternet)
                 }
                 
             }
