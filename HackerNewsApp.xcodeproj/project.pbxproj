@@ -41,6 +41,8 @@
 		B48C6FDB28FB05B000A12E22 /* CustomNavLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FDA28FB05B000A12E22 /* CustomNavLink.swift */; };
 		B48C6FDD28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FDC28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift */; };
 		B48C6FDF28FB577800A12E22 /* UINavigationControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48C6FDE28FB577800A12E22 /* UINavigationControllerExtension.swift */; };
+		B49F7A6C2907B48A00CD1CE4 /* RefreshButtonOverlayViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49F7A6B2907B48A00CD1CE4 /* RefreshButtonOverlayViewModifier.swift */; };
+		B49F7A6E29081BAC00CD1CE4 /* DragToRefreshView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49F7A6D29081BAC00CD1CE4 /* DragToRefreshView.swift */; };
 		B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */; };
 		B4AE96A129025300009E8736 /* NotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4AE96A029025300009E8736 /* NotificationsManager.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
@@ -122,6 +124,8 @@
 		B48C6FDA28FB05B000A12E22 /* CustomNavLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavLink.swift; sourceTree = "<group>"; };
 		B48C6FDC28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavBarPreferenceKeys.swift; sourceTree = "<group>"; };
 		B48C6FDE28FB577800A12E22 /* UINavigationControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UINavigationControllerExtension.swift; sourceTree = "<group>"; };
+		B49F7A6B2907B48A00CD1CE4 /* RefreshButtonOverlayViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshButtonOverlayViewModifier.swift; sourceTree = "<group>"; };
+		B49F7A6D29081BAC00CD1CE4 /* DragToRefreshView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragToRefreshView.swift; sourceTree = "<group>"; };
 		B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InclusiveTextView.swift; sourceTree = "<group>"; };
 		B4AE96A029025300009E8736 /* NotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsManager.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
@@ -171,6 +175,7 @@
 			children = (
 				B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */,
 				B4FBF3752906676200253092 /* SayNoToListsViewModifier.swift */,
+				B49F7A6B2907B48A00CD1CE4 /* RefreshButtonOverlayViewModifier.swift */,
 			);
 			path = ViewModifiers;
 			sourceTree = "<group>";
@@ -203,6 +208,7 @@
 			isa = PBXGroup;
 			children = (
 				B4C1426F28BFA14700585142 /* SafariView.swift */,
+				B49F7A6D29081BAC00CD1CE4 /* DragToRefreshView.swift */,
 				B4CBDEEA28FD4B5400D5DB7A /* NoInternetView.swift */,
 				B4F5FB2F28F710D300D25F43 /* ToastView.swift */,
 			);
@@ -518,6 +524,7 @@
 				B4FFC92E28BD4A80001D5AB3 /* SingleCommentView.swift in Sources */,
 				B41E2F4028F53B37008E98A6 /* ImagePlaceholderView.swift in Sources */,
 				B4FBF37B29067E6400253092 /* CommentsButtonProtocol.swift in Sources */,
+				B49F7A6E29081BAC00CD1CE4 /* DragToRefreshView.swift in Sources */,
 				B406D84B29000D0800723391 /* SortType.swift in Sources */,
 				B4571F5C29029AC6008ADF1E /* RegularButton.swift in Sources */,
 				B41CD14728DF3DF30091E865 /* BookmarksView.swift in Sources */,
@@ -555,6 +562,7 @@
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,
 				B42D60F928F95AB5001BD06E /* StoryType.swift in Sources */,
 				B4E5092428BF767E00035FF8 /* SFSafariViewWrapper.swift in Sources */,
+				B49F7A6C2907B48A00CD1CE4 /* RefreshButtonOverlayViewModifier.swift in Sources */,
 				B48C6FDD28FB505700A12E22 /* CustomNavBarPreferenceKeys.swift in Sources */,
 				B4E6C9EC28C63EA600A2982B /* StringExtension.swift in Sources */,
 				B4E6128C28E0577D003D8A0E /* FileManagerExtension.swift in Sources */,

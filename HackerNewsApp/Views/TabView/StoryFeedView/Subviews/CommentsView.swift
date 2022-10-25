@@ -69,19 +69,7 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                     Spacer()
                 }
                 .overlay(alignment: .bottomTrailing) {
-                    Button {
-                        vm.refresh()
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(.secondary)
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                            .padding()
-                            .shadow(color: .black.opacity(0.20), radius: 20, x: 0, y: 10)
-                        
-                    }
+                    DragToRefreshView(refreshFunc: vm.refresh)
                 }
                 
             }
@@ -187,11 +175,12 @@ extension CommentsView {
     }
     
     @ViewBuilder var recursiveComments: some View {
-        if let comments = vm.comments?.children {
+        if let comments = vm.comments?.children,
+           let storyAuthor = vm.story?.by {
             LazyVStack {
                 ForEach(comments) { comment in
                     if let _ = comment.text {
-                        SingleCommentView(comment: comment)
+                        SingleCommentView(comment: comment, storyAuthor: storyAuthor)
                     }
                 }
             }

@@ -378,8 +378,8 @@ extension PostView {
                     .foregroundColor(Color("PostTitle"))
                     .padding(.bottom, 10)
                     .multilineTextAlignment(.leading)
-                    .contentShape(Rectangle())
             }
+            .contentShape(Rectangle())
             .createRegularButton()
         } else {
             Text(story.title)

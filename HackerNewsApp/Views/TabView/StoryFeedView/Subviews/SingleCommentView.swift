@@ -17,6 +17,7 @@ struct SingleCommentView: View {
     var commentReplies: [Comment]?
     var commentAuthor: String?
     var commentDate: Int
+    var storyAuthor: String
     
     
     var animateArrow: Bool {
@@ -45,7 +46,7 @@ struct SingleCommentView: View {
                 if let commentReplies {
                     LazyVStack {
                         ForEach(commentReplies) { comment in
-                            SingleCommentView(comment: comment, indentLevel: vm.indentLevel + 1)
+                            SingleCommentView(comment: comment, indentLevel: vm.indentLevel + 1, storyAuthor: storyAuthor)
                                 .overlay(
                                     Capsule()
                                         .fill(Color.orange)
@@ -69,8 +70,25 @@ extension SingleCommentView {
     
     var commentMetaInfo: some View {
         HStack {
-            Text(commentAuthor ?? "Unknown")
+            if commentAuthor == storyAuthor {
+                HStack {
+                    Text(commentAuthor ?? "Unknown")
+                    
+                    Text("Author")
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(.regularMaterial)
+                        .font(.caption.bold())
+                        .clipShape(Capsule())
+                }
                 .padding(.trailing)
+                
+                
+            } else {
+                Text(commentAuthor ?? "Unknown")
+                    .padding(.trailing)
+            }
+            
             
             Text(Date.getTimeInterval(with: commentDate))
             
@@ -92,11 +110,12 @@ extension SingleCommentView {
         }
     }
     
-    init(comment: Comment, indentLevel: Double = 0) {
+    init(comment: Comment, indentLevel: Double = 0, storyAuthor: String) {
         self.commentText = comment.text
         self.commentReplies = comment.commentChildren
         self.commentAuthor = comment.author
         self.commentDate = comment.createdAtI
+        self.storyAuthor = storyAuthor
     }
 }
 
