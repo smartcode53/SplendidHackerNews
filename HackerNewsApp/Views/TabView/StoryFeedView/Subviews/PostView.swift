@@ -78,7 +78,7 @@ extension PostView {
                 Spacer()
                 
                 // Image View
-                compactImage
+                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .compact)
                 
             }
             .padding(20)
@@ -110,12 +110,12 @@ extension PostView {
         .cornerRadius(12)
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
-        .task {
-            if let unsafeUrl = story.url {
-                let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-                vm.loadImage(fromUrl: url)
-            }
-        }
+//        .task {
+//            if let unsafeUrl = story.url {
+//                let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
+//                vm.loadImage(fromUrl: url)
+//            }
+//        }
     }
     
     var largeCompactCardContent: some View {
@@ -138,7 +138,7 @@ extension PostView {
                 Spacer()
                 
                 // Image View
-                compactImage
+                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .compact)
                 
             }
             .padding(20)
@@ -170,12 +170,12 @@ extension PostView {
         .background(Color("CardColor"))
         .cornerRadius(12)
         .padding(.vertical, 5)
-        .task {
-            if let unsafeUrl = story.url {
-                let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-                vm.loadImage(fromUrl: url)
-            }
-        }
+//        .task {
+//            if let unsafeUrl = story.url {
+//                let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
+//                vm.loadImage(fromUrl: url)
+//            }
+//        }
     }
     
     @ViewBuilder var smallNormalCardContent: some View {
@@ -196,7 +196,7 @@ extension PostView {
                 .padding([.horizontal, .top])
                 
                 // Image
-                normalImage
+                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .large)
                 
                 
                 // Points and Actionable Buttons
@@ -236,12 +236,12 @@ extension PostView {
             .cornerRadius(12)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .task {
-                if let unsafeUrl = story.url {
-                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-                    vm.loadImage(fromUrl: url)
-                }
-            }
+//            .task {
+//                if let unsafeUrl = story.url {
+//                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
+//                    vm.loadImage(fromUrl: url)
+//                }
+//            }
         }
     }
     
@@ -263,7 +263,7 @@ extension PostView {
                 .padding([.horizontal, .top])
                 
                 // Image
-                normalImage
+                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .large)
                 
                 // Points and Actionable Buttons
                 VStack {
@@ -302,12 +302,12 @@ extension PostView {
             .background(Color("CardColor"))
             .cornerRadius(12)
             .padding(.vertical, 5)
-            .task {
-                if let unsafeUrl = story.url {
-                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-                    vm.loadImage(fromUrl: url)
-                }
-            }
+//            .task {
+//                if let unsafeUrl = story.url {
+//                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
+//                    vm.loadImage(fromUrl: url)
+//                }
+//            }
         }
     }
 }
@@ -351,7 +351,8 @@ extension PostView {
                 selectedStory = story
             } label: {
                 Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
-                    .foregroundColor(Color("PostTitle"))
+//                    .foregroundColor(Color("PostTitle"))
+                    .foregroundColor(.primary)
                     .font(.headline.weight(.bold))
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
@@ -361,7 +362,8 @@ extension PostView {
             .createRegularButton()
         } else {
             Text(story.title)
-                .foregroundColor(Color("PostTitle"))
+//                .foregroundColor(Color("PostTitle"))
+                .foregroundColor(.primary)
                 .font(.headline.weight(.bold))
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
@@ -375,7 +377,8 @@ extension PostView {
             } label: {
                 Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
                     .font(.title3.weight(.bold))
-                    .foregroundColor(Color("PostTitle"))
+//                    .foregroundColor(Color("PostTitle"))
+                    .foregroundColor(.primary)
                     .padding(.bottom, 10)
                     .multilineTextAlignment(.leading)
             }
@@ -384,7 +387,8 @@ extension PostView {
         } else {
             Text(story.title)
                 .font(.title3.weight(.bold))
-                .foregroundColor(Color("PostTitle"))
+//                .foregroundColor(Color("PostTitle"))
+                .foregroundColor(.primary)
                 .padding(.bottom, 10)
                 .multilineTextAlignment(.leading)
         }
@@ -401,7 +405,8 @@ extension PostView {
             
             Spacer()
         }
-        .foregroundColor(Color("PostDateName"))
+//        .foregroundColor(Color("PostDateName"))
+        .foregroundColor(.blue)
         .font(.caption.weight(.semibold))
     }
     
@@ -414,96 +419,97 @@ extension PostView {
             
             Spacer()
         }
-        .foregroundColor(Color("PostDateName"))
+//        .foregroundColor(Color("PostDateName"))
+        .foregroundColor(.blue)
         .padding(.bottom, 16)
         .font(.caption.weight(.semibold))
     }
     
-    @ViewBuilder var compactImage: some View {
-        if let imageUrl = vm.imageUrl {
-            if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-                cachedImage
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipped()
-                    .cornerRadius(8)
-                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-            } else {
-                AsyncImage(url: imageUrl) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 100, height: 100)
-                        .clipped()
-                        .cornerRadius(8)
-                        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                        .onAppear {
-                            vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-                        }
-                } placeholder: {
-                    ImagePlaceholderView(height: 100, width: 100)
-                }
-            }
-        }
-    }
+//    @ViewBuilder var compactImage: some View {
+//        if let imageUrl = vm.imageUrl {
+//            if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
+//                cachedImage
+//                    .resizable()
+//                    .scaledToFill()
+//                    .frame(width: 100, height: 100)
+//                    .clipped()
+//                    .cornerRadius(8)
+//                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+//            } else {
+//                AsyncImage(url: imageUrl) { image in
+//                    image
+//                        .resizable()
+//                        .scaledToFill()
+//                        .frame(width: 100, height: 100)
+//                        .clipped()
+//                        .cornerRadius(8)
+//                        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+//                        .onAppear {
+//                            vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
+//                        }
+//                } placeholder: {
+//                    ImagePlaceholderView(height: 100, width: 100)
+//                }
+//            }
+//        }
+//    }
     
-    @ViewBuilder var normalImage: some View {
-        if horizontalSizeClass == .compact && verticalSizeClass == .regular || horizontalSizeClass == .regular && verticalSizeClass == .compact {
-            if let imageUrl = vm.imageUrl {
-                if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-                    cachedImage
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: imageWidth)
-                        .frame(height: 270)
-                        .clipped()
-                } else {
-                    AsyncImage(url: imageUrl) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: imageWidth)
-                            .frame(height: 270)
-                            .clipped()
-                            .onAppear {
-                                vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-                            }
-                    } placeholder: {
-                        ImagePlaceholderView(height: 270, width: imageWidth)
-                    }
-                }
-            }
-        } else if  horizontalSizeClass == .regular && verticalSizeClass == .regular {
-            if let imageUrl = vm.imageUrl {
-                if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-                    cachedImage
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: imageWidth)
-                        .frame(height: 400)
-                        .clipped()
-                } else {
-                    AsyncImage(url: imageUrl) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: imageWidth)
-                            .frame(height: 400)
-                            .clipped()
-                            .onAppear {
-                                vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-                            }
-                    } placeholder: {
-                        ImagePlaceholderView(height: 400, width: imageWidth)
-                    }
-                }
-            }
-        }
-        
-        
-        
-    }
+//    @ViewBuilder var normalImage: some View {
+//        if horizontalSizeClass == .compact && verticalSizeClass == .regular || horizontalSizeClass == .regular && verticalSizeClass == .compact {
+//            if let imageUrl = vm.imageUrl {
+//                if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
+//                    cachedImage
+//                        .resizable()
+//                        .scaledToFill()
+//                        .frame(width: imageWidth)
+//                        .frame(height: 270)
+//                        .clipped()
+//                } else {
+//                    AsyncImage(url: imageUrl) { image in
+//                        image
+//                            .resizable()
+//                            .scaledToFill()
+//                            .frame(width: imageWidth)
+//                            .frame(height: 270)
+//                            .clipped()
+//                            .onAppear {
+//                                vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
+//                            }
+//                    } placeholder: {
+//                        ImagePlaceholderView(height: 270, width: imageWidth)
+//                    }
+//                }
+//            }
+//        } else if  horizontalSizeClass == .regular && verticalSizeClass == .regular {
+//            if let imageUrl = vm.imageUrl {
+//                if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
+//                    cachedImage
+//                        .resizable()
+//                        .scaledToFill()
+//                        .frame(width: imageWidth)
+//                        .frame(height: 400)
+//                        .clipped()
+//                } else {
+//                    AsyncImage(url: imageUrl) { image in
+//                        image
+//                            .resizable()
+//                            .scaledToFill()
+//                            .frame(width: imageWidth)
+//                            .frame(height: 400)
+//                            .clipped()
+//                            .onAppear {
+//                                vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
+//                            }
+//                    } placeholder: {
+//                        ImagePlaceholderView(height: 400, width: imageWidth)
+//                    }
+//                }
+//            }
+//        }
+//
+//
+//
+//    }
     
     var compactScoreLabel: some View {
         Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")

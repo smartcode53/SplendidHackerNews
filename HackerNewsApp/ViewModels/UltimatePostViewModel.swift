@@ -12,9 +12,12 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     
     @Published var story: Story?
     @Published var comments: Item?
+    @Published var subError: ErrorType?
     
-    @Published var imageUrl: URL?
+//    @Published var imageUrl: URL?
     @Published var urlDomain: String?
+    @Published var subToastText: String = ""
+    @Published var subToastTextColor: Color = .black
     
     @Published var showStoryInComments: Bool = false
     @Published var isBookmarked: Bool = false
@@ -31,14 +34,14 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
         self.urlDomain = story.url?.urlDomain
     }
     
-    func loadImage(fromUrl url: String) {
-        Task {
-            let resultUrl = await networkManager.getImage(fromUrl: url)
-            await MainActor.run { [weak self] in
-                self?.imageUrl = resultUrl
-            }
-        }
-    }
+//    func loadImage(fromUrl url: String) {
+//        Task {
+//            let resultUrl = await networkManager.getImage(fromUrl: url)
+//            await MainActor.run { [weak self] in
+//                self?.imageUrl = resultUrl
+//            }
+//        }
+//    }
 
     func saveImageToCache(_ image: Image, storyId: Int) {
         imageCacheManager.saveToCache(image, withKey: String(storyId))
@@ -55,7 +58,14 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
         if let id = story?.id {
             commentsCacheManager.removeFromCache(withKey: id)
             comments = nil
-            loadComments(withId: id)
+            loadComments(withId: id) { [weak self] error in
+                if let error {
+                    let errorType = ErrorType(error: error)
+                    self?.subToastText = errorType.error.localizedDescription
+                    self?.subError = errorType
+                }
+                
+            }
             hasAskedToReload = false
         }
     }

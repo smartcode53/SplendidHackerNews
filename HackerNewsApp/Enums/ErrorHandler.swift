@@ -19,6 +19,7 @@ enum ErrorHandler: Error, LocalizedError {
     case settingsLoadError
     case diskSaveError
     case diskLoadError
+    case commentLoadError
     
     var errorDescription: String? {
         switch self {
@@ -42,6 +43,8 @@ enum ErrorHandler: Error, LocalizedError {
             return NSLocalizedString("Failed to save stories to the disk, please reinstall the app", comment: "")
         case .diskLoadError:
             return NSLocalizedString("Failed to load stories from disk. Make sure you're connected to the internet and try again.", comment: "")
+        case .commentLoadError:
+            return NSLocalizedString("Failed to load comments. Make sure you're connected to the internet and try refreshing the page.", comment: "")
         }
     }
 }

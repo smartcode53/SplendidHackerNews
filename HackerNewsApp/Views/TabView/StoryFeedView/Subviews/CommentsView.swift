@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoader, T: CustomPullToRefresh {
     
+    @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @Environment(\.dismiss) var dismiss
     @ObservedObject var vm: T
     
@@ -17,36 +18,6 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
             VStack(spacing: 0) {
                 
                 ScrollView {
-                    // Top section (Info Card with back navigation button)
-//                    if vm.hasAskedToReload {
-//                        ProgressView()
-//                            .frame(maxWidth: .infinity)
-//                            .padding()
-//                            .transition(.move(edge: .bottom))
-//                    } else {
-//                        GeometryReader { proxy in
-//                            EmptyView()
-//                                .onChange(of: proxy.frame(in: .named("scrollView")).midY) { newPosition in
-//
-//                                    if ceil(newPosition) > 190 && !vm.functionHasRan {
-//                                        vm.functionHasRan = true
-//                                        withAnimation(.spring()) {
-//                                            vm.hasAskedToReload = true
-//                                        }
-//
-//                                        vm.refresh()
-//
-//                                    }
-//
-//                                    if newPosition < 100 {
-//                                        vm.functionHasRan = false
-//                                    }
-//                                }
-//                        }
-//                        .frame(height: 0)
-//                    }
-                    
-                    
                     infoCard
                     
                     // Comment count
@@ -55,7 +26,14 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                     recursiveComments
                         .background(Color("BackgroundColor"))
                         .onAppear {
-                            vm.loadComments(withId: story.id)
+                            vm.loadComments(withId: story.id) { error in
+                                if let error {
+                                    let errorType = ErrorType(error: error)
+                                    globalSettings.toastText = errorType.error.localizedDescription
+                                    globalSettings.toastTextColor = .black
+                                    globalSettings.appError = errorType
+                                }
+                            }
                         }
                         .task {
                             if vm.comments != nil {
@@ -80,6 +58,12 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color("NavigationBarColor"), for: .navigationBar)
+            .onChange(of: vm.subToastText) { newValue in
+                globalSettings.toastText = newValue
+            }
+            .onChange(of: vm.subError) { newValue in
+                globalSettings.appError = newValue
+            }
         }
     }
 }

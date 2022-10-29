@@ -16,7 +16,7 @@ struct SFSafariViewWrapper: UIViewControllerRepresentable {
     var safariViewController: SFSafariViewController {
         let controller = SFSafariViewController(url: url)
         controller.preferredControlTintColor = .white
-        controller.preferredBarTintColor = UIColor(named: "DarkBlue")
+        controller.preferredBarTintColor = .black
         controller.dismissButtonStyle = .close
         return controller
     }

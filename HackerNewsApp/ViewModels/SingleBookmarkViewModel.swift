@@ -12,8 +12,11 @@ class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButto
     
     @Published var comments: Item?
     @Published var story: Story?
+    @Published var subError: ErrorType? = nil
     
     @Published var imageUrl: URL?
+    @Published var subToastText: String = ""
+    @Published var subToastTextColor: Color = .black
     
     @Published var showStoryInComments: Bool = false
     

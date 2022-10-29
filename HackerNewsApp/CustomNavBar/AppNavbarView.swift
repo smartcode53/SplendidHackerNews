@@ -22,9 +22,7 @@ struct AppNavbarView: View {
     var body: some View {
         CustomNavView {
             ZStack {
-                LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .ignoresSafeArea()
-                    .opacity(0.5)
+                Color("BackgroundColor").ignoresSafeArea()
                 
                 if vm.showNoInternetScreen {
                     NoInternetView(vm: vm)
@@ -63,20 +61,21 @@ struct AppNavbarView: View {
 extension AppNavbarView  {
     
     var stories: some View {
-        LazyVStack(spacing: 0) {
-            if !vm.storiesDict[vm.storyType, default: []].isEmpty {
+        VStack(spacing: 0) {
+//            if !vm.storiesDict[vm.storyType, default: []].isEmpty
+            if !vm.isInitiallyLoading {
                 ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
                     if let story = wrapper.story {
                         
                         PostView(withWrapper: wrapper, story: story, selectedStory: $selectedStory)
-                                .task {
-
-                                    guard let lastStoryWrapperIndex = vm.storiesDict[vm.storyType, default: []].last?.index else { return }
-
-                                    if wrapper.index == lastStoryWrapperIndex {
-                                        await vm.loadInfinitely()
-                                    }
-                                }
+//                            .task {
+//
+//                                guard let lastStoryWrapperIndex = vm.storiesDict[vm.storyType, default: []].last?.index else { return }
+//
+//                                if wrapper.index == lastStoryWrapperIndex {
+//                                    await vm.loadInfinitely()
+//                                }
+//                            }
                     }
                 }
             } else {
@@ -147,6 +146,21 @@ extension AppNavbarView  {
             .navigationBarTitleDisplayMode(.automatic)
             .toolbarBackground(Color("NavigationBarColor"), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            
+            
+            if vm.showBlankColor {
+                LazyVStack {
+                    Color.clear
+                        .frame(width: 100, height: 3)
+                        .onAppear {
+                            print("It appeared")
+                            Task {
+                                await vm.loadInfinitely()
+                            }
+                        }
+                }
+            }
+            
         }
         .coordinateSpace(name: "scrollView")
         .overlay(alignment: .bottomTrailing) {

@@ -45,6 +45,9 @@
 		B49F7A6E29081BAC00CD1CE4 /* DragToRefreshView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49F7A6D29081BAC00CD1CE4 /* DragToRefreshView.swift */; };
 		B4A25E8328CF299000E73AF5 /* InclusiveTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */; };
 		B4AE96A129025300009E8736 /* NotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4AE96A029025300009E8736 /* NotificationsManager.swift */; };
+		B4B69EFA290961BE00755183 /* CustomAsyncImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B69EF9290961BE00755183 /* CustomAsyncImageView.swift */; };
+		B4B69EFC290961D300755183 /* CustomAsyncImageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B69EFB290961D300755183 /* CustomAsyncImageViewModel.swift */; };
+		B4B69EFE290A77A400755183 /* SizeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B69EFD290A77A400755183 /* SizeTypes.swift */; };
 		B4B8427528C34520000D2D8F /* PressableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B8427428C34520000D2D8F /* PressableButton.swift */; };
 		B4BF5D2528EE97EF00A393CC /* StoryWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4BF5D2428EE97EF00A393CC /* StoryWrapper.swift */; };
 		B4C1427028BFA14700585142 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C1426F28BFA14700585142 /* SafariView.swift */; };
@@ -128,6 +131,9 @@
 		B49F7A6D29081BAC00CD1CE4 /* DragToRefreshView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragToRefreshView.swift; sourceTree = "<group>"; };
 		B4A25E8228CF299000E73AF5 /* InclusiveTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InclusiveTextView.swift; sourceTree = "<group>"; };
 		B4AE96A029025300009E8736 /* NotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsManager.swift; sourceTree = "<group>"; };
+		B4B69EF9290961BE00755183 /* CustomAsyncImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomAsyncImageView.swift; sourceTree = "<group>"; };
+		B4B69EFB290961D300755183 /* CustomAsyncImageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomAsyncImageViewModel.swift; sourceTree = "<group>"; };
+		B4B69EFD290A77A400755183 /* SizeTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SizeTypes.swift; sourceTree = "<group>"; };
 		B4B8427428C34520000D2D8F /* PressableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButton.swift; sourceTree = "<group>"; };
 		B4BF5D2428EE97EF00A393CC /* StoryWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryWrapper.swift; sourceTree = "<group>"; };
 		B4C1426F28BFA14700585142 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
@@ -211,6 +217,7 @@
 				B49F7A6D29081BAC00CD1CE4 /* DragToRefreshView.swift */,
 				B4CBDEEA28FD4B5400D5DB7A /* NoInternetView.swift */,
 				B4F5FB2F28F710D300D25F43 /* ToastView.swift */,
+				B4B69EF9290961BE00755183 /* CustomAsyncImageView.swift */,
 			);
 			path = "Reusable Views";
 			sourceTree = "<group>";
@@ -228,6 +235,7 @@
 			isa = PBXGroup;
 			children = (
 				B42D60F828F95AB5001BD06E /* StoryType.swift */,
+				B4B69EFD290A77A400755183 /* SizeTypes.swift */,
 				B406D84A29000D0800723391 /* SortType.swift */,
 				B42D60FC28F95B03001BD06E /* SortOptions.swift */,
 				B42D60FA28F95AC8001BD06E /* ErrorHandler.swift */,
@@ -370,6 +378,7 @@
 			isa = PBXGroup;
 			children = (
 				B478F9D028AD8020002B893C /* StoryFeedViewModel.swift */,
+				B4B69EFB290961D300755183 /* CustomAsyncImageViewModel.swift */,
 				B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */,
 				B489E3EA28DCAED60071B869 /* UltimatePostViewModel.swift */,
 				B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */,
@@ -509,6 +518,7 @@
 			files = (
 				B4FBF3762906676200253092 /* SayNoToListsViewModifier.swift in Sources */,
 				B48880C028F5A58D00E6B8A5 /* NetworkChecker.swift in Sources */,
+				B4B69EFC290961D300755183 /* CustomAsyncImageViewModel.swift in Sources */,
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
 				B4CBDEEB28FD4B5400D5DB7A /* NoInternetView.swift in Sources */,
 				B48C6FDF28FB577800A12E22 /* UINavigationControllerExtension.swift in Sources */,
@@ -550,6 +560,7 @@
 				B48C6FD728FACB4D00A12E22 /* CustomNavbarContainerView.swift in Sources */,
 				B478F9D128AD8020002B893C /* StoryFeedViewModel.swift in Sources */,
 				B46F2CFB28C9DEF300DE0D19 /* Story.swift in Sources */,
+				B4B69EFA290961BE00755183 /* CustomAsyncImageView.swift in Sources */,
 				B41CD14928DF3E1C0091E865 /* BookmarksViewModel.swift in Sources */,
 				B4ECFDC528E171860063FBF0 /* SettingsViewModel.swift in Sources */,
 				B4FBF37D29067E8200253092 /* CustomPullToRefreshProtocol.swift in Sources */,
@@ -557,6 +568,7 @@
 				B4D2473428D1005C00E6CDEB /* FilterButton.swift in Sources */,
 				B429F22F28F8C11D001F3250 /* StorySelectionView.swift in Sources */,
 				B4AE96A129025300009E8736 /* NotificationsManager.swift in Sources */,
+				B4B69EFE290A77A400755183 /* SizeTypes.swift in Sources */,
 				B47628C128B8B47C00E491D3 /* CommentsView.swift in Sources */,
 				B48C6FD928FACE2000A12E22 /* CustomNavView.swift in Sources */,
 				B4F0327328C07B4300E463BF /* Results.swift in Sources */,

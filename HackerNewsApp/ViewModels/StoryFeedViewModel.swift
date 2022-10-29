@@ -45,7 +45,18 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     @Published var comments: Item?
     
     // MARK: Boolean Values
-    @Published var isLoading: Bool = false
+    @Published var isInitiallyLoading: Bool = false {
+        didSet {
+            if isInitiallyLoading {
+                showBlankColor = false
+            } else {
+                showBlankColor = true
+            }
+            print("isInitiallyLoading = \(isInitiallyLoading)")
+        }
+    }
+    @Published var showBlankColor: Bool = false
+    @Published var isLoading: Bool = false 
     @Published var isRefreshing: Bool = false
     @Published var hasAskedToReload: Bool = false
     @Published var functionHasRan = false
@@ -61,8 +72,13 @@ extension StoryFeedViewModel {
     
     func loadStoriesTheFirstTime() async {
         
+        await MainActor.run { [weak self] in
+            self?.isInitiallyLoading = true
+        }
+        
         let wrappedStories = await networkManager.getStoryIds(ofType: storyType)
         
+                
         switch wrappedStories {
         case .success(let array):
             await MainActor.run { [weak self] in
@@ -79,6 +95,7 @@ extension StoryFeedViewModel {
                     self?.storiesDict[storyType] = array
                     self?.cacheManager.saveToCache(storiesDict[storyType, default: []], withKey: storyType.rawValue)
                     self?.storiesLoaded = true
+                    self?.isInitiallyLoading = false
                 }
             case .failure(_):
                 
@@ -96,14 +113,6 @@ extension StoryFeedViewModel {
             subToastTextColor = .black
             subError = errorType
         }
-        
-//        do {
-//            let wrappedStories = try await networkManager.getStoryIds(ofType: storyType).get()
-//        } catch {
-//            print("There was an error loading stories. Please try again")
-//        }
-        
-//        guard let wrappedStoriesArray = await networkManager.getStoryIds(ofType: storyType) else { return }
         
     }
     
@@ -149,6 +158,7 @@ extension StoryFeedViewModel {
         
         await MainActor.run {
             self.isLoading = true
+            self.showBlankColor = false
         }
         
         let downloadTask = Task { () -> [StoryWrapper] in
@@ -173,6 +183,7 @@ extension StoryFeedViewModel {
         
         await MainActor.run {
             self.isLoading = false
+            self.showBlankColor = true
         }
     }
     
