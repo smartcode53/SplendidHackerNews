@@ -8,12 +8,10 @@
 import SwiftUI
 
 struct CustomAsyncImageView: View {
+
     
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.verticalSizeClass) var verticalSizeClass
     @StateObject var imageViewModel: CustomAsyncImageViewModel
     let id: Int
-    let width: CGFloat
     let sizeType: SizeTypes
     
     var body: some View {
@@ -35,52 +33,73 @@ extension CustomAsyncImageView {
     
     @ViewBuilder var compactImage: some View {
             if let cachedImage = imageViewModel.imageCacheManager.getFromCache(withKey: String(id)) {
-                cachedImage
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipped()
-                    .cornerRadius(8)
-                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                
+                VStack {
+                    cachedImage
+                        .resizable()
+                        .scaledToFill()
+                        .layoutPriority(-1)
+                }
+                .frame(width: 100, height: 100)
+                .cornerRadius(8)
+                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .clipped()
             } else if imageViewModel.image != nil {
-                Image(uiImage: imageViewModel.image!)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipped()
-                    .cornerRadius(8)
-                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                    .onAppear {
-                        imageViewModel.imageCacheManager.saveToCache(Image(uiImage: imageViewModel.image!), withKey: String(id))
-                    }
+                VStack {
+                    Image(uiImage: imageViewModel.image!)
+                        .resizable()
+                        .scaledToFill()
+//                        .clipped()
+                        .layoutPriority(-1)
+                }
+                .frame(width: 100, height: 100)
+                .cornerRadius(8)
+                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .onAppear {
+                    imageViewModel.imageCacheManager.saveToCache(Image(uiImage: imageViewModel.image!), withKey: String(id))
+                }
+                .clipped()
             }
     }
     
     @ViewBuilder var normalImage: some View {
             if let cachedImage = imageViewModel.imageCacheManager.getFromCache(withKey: String(id)) {
-                cachedImage
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: width, height: 270)
-                    .clipped()
-            } else if imageViewModel.image != nil {
-                Image(uiImage: imageViewModel.image!)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: width, height: 270)
-                    .clipped()
-                    .onAppear {
-                        imageViewModel.imageCacheManager.saveToCache(Image(uiImage: imageViewModel.image!), withKey: String(id))
+                VStack {
+                    GeometryReader { proxy in
+                        cachedImage
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: proxy.frame(in: .local).width)
+                            .clipped()
                     }
+                }
+                .frame(height: 270)
+                .frame(maxWidth: .infinity)
+                .clipped()
+            } else if imageViewModel.image != nil {
+                VStack {
+                    GeometryReader { proxy in
+                        Image(uiImage: imageViewModel.image!)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: proxy.frame(in: .local).width)
+                            .clipped()
+                    }
+                }
+                .frame(height: 270)
+                .frame(maxWidth: .infinity)
+                .onAppear {
+                    imageViewModel.imageCacheManager.saveToCache(Image(uiImage: imageViewModel.image!), withKey: String(id))
+                }
+                .clipped()
             }
     }
 }
 
 extension CustomAsyncImageView {
     
-    init(url: String?, id: Int, width: CGFloat, sizeType: SizeTypes) {
+    init(url: String?, id: Int, sizeType: SizeTypes) {
         self._imageViewModel = StateObject(wrappedValue: CustomAsyncImageViewModel(url: url))
-        self.width = width
         self.id = id
         self.sizeType = sizeType
     }
@@ -89,6 +108,6 @@ extension CustomAsyncImageView {
 
 struct CustomAsyncImageView_Previews: PreviewProvider {
     static var previews: some View {
-        CustomAsyncImageView(url: "", id: 1, width: 200, sizeType: .large)
+        CustomAsyncImageView(url: "", id: 1, sizeType: .large)
     }
 }

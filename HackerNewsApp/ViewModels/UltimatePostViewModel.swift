@@ -66,6 +66,18 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
                 }
                 
             }
+            if comments != nil && story != nil {
+                Task {
+                    if let (numComments, points) = await getCommentAndPointCounts(forPostWithId: story!.id) {
+                        await MainActor.run { [weak self] in
+                            self?.story!.descendants = numComments
+                            self?.story!.score = points
+                        }
+                        
+                    }
+                }
+            }
+            
             hasAskedToReload = false
         }
     }

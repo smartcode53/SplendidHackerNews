@@ -62,20 +62,10 @@ extension AppNavbarView  {
     
     var stories: some View {
         VStack(spacing: 0) {
-//            if !vm.storiesDict[vm.storyType, default: []].isEmpty
             if !vm.isInitiallyLoading {
                 ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
                     if let story = wrapper.story {
-                        
                         PostView(withWrapper: wrapper, story: story, selectedStory: $selectedStory)
-//                            .task {
-//
-//                                guard let lastStoryWrapperIndex = vm.storiesDict[vm.storyType, default: []].last?.index else { return }
-//
-//                                if wrapper.index == lastStoryWrapperIndex {
-//                                    await vm.loadInfinitely()
-//                                }
-//                            }
                     }
                 }
             } else {
@@ -151,14 +141,15 @@ extension AppNavbarView  {
             if vm.showBlankColor {
                 LazyVStack {
                     Color.clear
-                        .frame(width: 100, height: 3)
+                        .frame(width: 0, height: 0)
                         .onAppear {
-                            print("It appeared")
                             Task {
                                 await vm.loadInfinitely()
                             }
                         }
                 }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
             }
             
         }

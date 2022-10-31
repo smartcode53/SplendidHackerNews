@@ -10,6 +10,7 @@ import SwiftUI
 struct CustomNavBarView: View {
     
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     
     let showBackButton: Bool
     let title: String
@@ -27,6 +28,7 @@ struct CustomNavBarView: View {
                 }
                 
                 gradientLogo
+                    .padding(.trailing, 10)
                 
                 titleSection
                 
@@ -57,7 +59,8 @@ extension CustomNavBarView {
     private var titleSection: some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.title2.weight(.bold))
+//                .font(.title2.weight(.bold))
+                .font(.system(size: 22, weight: .bold, width: .expanded))
                 .foregroundColor(.primary)
         }
     }
@@ -67,7 +70,23 @@ extension CustomNavBarView {
         Text("HN")
             .font(.largeTitle.weight(.bold))
             .foregroundStyle(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .rotation3DEffect(Angle(degrees: -15), axis: (x: 0, y: 1, z: 0))
+//            .rotation3DEffect(Angle(degrees: -25), axis: (x: 0, y: 1, z: 0))
+            .kerning(-3)
+    }
+}
+
+struct Logo: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let width = rect.size.width
+        let height = rect.size.height
+        path.move(to: CGPoint(x: 0.00124*width, y: 0.29539*height))
+        path.addLine(to: CGPoint(x: 0.00124*width, y: 0.81605*height))
+        path.addLine(to: CGPoint(x: 0.99876*width, y: 0.99857*height))
+        path.addLine(to: CGPoint(x: 0.99876*width, y: 0.00143*height))
+        path.addLine(to: CGPoint(x: 0.00124*width, y: 0.29539*height))
+        path.closeSubpath()
+        return path
     }
 }
 

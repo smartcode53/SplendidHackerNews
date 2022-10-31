@@ -48,6 +48,7 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                 }
                 .overlay(alignment: .bottomTrailing) {
                     DragToRefreshView(refreshFunc: vm.refresh)
+                        .padding()
                 }
                 
             }

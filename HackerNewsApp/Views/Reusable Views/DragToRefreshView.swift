@@ -40,7 +40,7 @@ struct DragToRefreshView: View {
             
         }
         .frame(width: 50, height: 300)
-        .background(.black.opacity(isDragging ? 0.15 : 0))
+        .background(.regularMaterial.opacity(isDragging ? 1 : 0))
         .clipShape(Capsule())
     }
 }

@@ -35,7 +35,7 @@ struct SingleBookmarkView: View {
                             selectedStory = story
                         } label: {
                             Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                                .foregroundColor(Color("PostTitle"))
+                                .foregroundColor(.primary)
                                 .font(.headline.weight(.bold))
                                 .multilineTextAlignment(.leading)
                                 .contentShape(Circle())
@@ -44,51 +44,16 @@ struct SingleBookmarkView: View {
                         
                         
                         Text("by \(story.by)")
-                            .foregroundColor(Color("PostDateName"))
+                            .foregroundColor(.blue)
                             .font(.caption.weight(.semibold))
                         
                     }
                     
                     Spacer()
                     
-//                    AsyncImage(url: vm.imageUrl) { image in
-//                        image
-//                            .resizable()
-//                            .scaledToFill()
-//                            .frame(width: 100, height: 100)
-//                            .clipped()
-//                            .cornerRadius(8)
-//                            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-//                    } placeholder: {
-//                        ImagePlaceholderView(height: 100, width: 100)
-//                    }
                     
-                    if let imageUrl = vm.imageUrl {
-                        if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-                            cachedImage
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 100, height: 100)
-                                .clipped()
-                                .cornerRadius(8)
-                                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                        } else {
-                            AsyncImage(url: imageUrl) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                                    .clipped()
-                                    .cornerRadius(8)
-                                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                                    .onAppear {
-                                        vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-                                    }
-                            } placeholder: {
-                                ImagePlaceholderView(height: 100, width: 100)
-                            }
-                        }
-                    }
+                    CustomAsyncImageView(url: story.url, id: story.id, sizeType: .compact)
+                    
                     
                 }
                 .padding(20)
@@ -130,7 +95,9 @@ struct SingleBookmarkView: View {
                 .padding(20)
             }
             .background(Color("CardColor"))
+            .cornerRadius(12)
             .padding(.bottom, 5)
+            .padding(.horizontal, 10)
             .task {
                 vm.imageUrl = await vm.getImageUrl(fromUrl: story.url)
             }

@@ -17,6 +17,7 @@ struct PostView: View {
     @Namespace var namespace
     @Binding var selectedStory: Story?
     @State private var imageWidth: CGFloat = UIScreen.main.bounds.width
+    @State private var imageLoaded: Bool = false
     let story: Story
     
     // Body
@@ -78,8 +79,9 @@ extension PostView {
                 Spacer()
                 
                 // Image View
-                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .compact)
                 
+                CustomAsyncImageView(url: story.url, id: story.id, sizeType: .compact)
+                                
             }
             .padding(20)
             .padding(.bottom, 10)
@@ -110,12 +112,6 @@ extension PostView {
         .cornerRadius(12)
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
-//        .task {
-//            if let unsafeUrl = story.url {
-//                let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-//                vm.loadImage(fromUrl: url)
-//            }
-//        }
     }
     
     var largeCompactCardContent: some View {
@@ -138,7 +134,7 @@ extension PostView {
                 Spacer()
                 
                 // Image View
-                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .compact)
+                CustomAsyncImageView(url: story.url, id: story.id, sizeType: .compact)
                 
             }
             .padding(20)
@@ -196,7 +192,8 @@ extension PostView {
                 .padding([.horizontal, .top])
                 
                 // Image
-                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .large)
+                
+                CustomAsyncImageView(url: story.url, id: story.id, sizeType: .large)
                 
                 
                 // Points and Actionable Buttons
@@ -223,25 +220,19 @@ extension PostView {
                     }
                     .padding()
                 }
-                .overlay {
-                    GeometryReader { proxy in
-                        Color.clear
-                            .onAppear {
-                                imageWidth = proxy.frame(in: .local).width
-                            }
-                    }
-                }
+//                .overlay {
+//                    GeometryReader { proxy in
+//                        Color.clear
+//                            .onAppear {
+//                                imageWidth = proxy.frame(in: .local).width
+//                            }
+//                    }
+//                }
             }
             .background(Color("CardColor"))
             .cornerRadius(12)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-//            .task {
-//                if let unsafeUrl = story.url {
-//                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-//                    vm.loadImage(fromUrl: url)
-//                }
-//            }
         }
     }
     
@@ -263,7 +254,8 @@ extension PostView {
                 .padding([.horizontal, .top])
                 
                 // Image
-                CustomAsyncImageView(url: story.url, id: story.id, width: imageWidth, sizeType: .large)
+                CustomAsyncImageView(url: story.url, id: story.id, sizeType: .large)
+                
                 
                 // Points and Actionable Buttons
                 VStack {
@@ -289,25 +281,19 @@ extension PostView {
                     }
                     .padding()
                 }
-                .overlay {
-                    GeometryReader { proxy in
-                        Color.clear
-                            .onAppear {
-                                imageWidth = proxy.frame(in: .local).width
-                            }
-                    }
-                }
+//                .overlay {
+//                    GeometryReader { proxy in
+//                        Color.clear
+//                            .onAppear {
+//                                imageWidth = proxy.frame(in: .local).width
+//                            }
+//                    }
+//                }
             }
             .frame(width: UIScreen.main.bounds.width * 0.7)
             .background(Color("CardColor"))
             .cornerRadius(12)
             .padding(.vertical, 5)
-//            .task {
-//                if let unsafeUrl = story.url {
-//                    let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-//                    vm.loadImage(fromUrl: url)
-//                }
-//            }
         }
     }
 }

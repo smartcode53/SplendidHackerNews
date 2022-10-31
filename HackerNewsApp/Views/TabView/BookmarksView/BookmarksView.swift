@@ -30,7 +30,6 @@ struct BookmarksView: View {
                 } else {
                     ScrollView {
                         LazyVStack {
-                            
                             Rectangle()
                                 .fill(.primary)
                                 .frame(height: 2)

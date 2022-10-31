@@ -52,7 +52,6 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
             } else {
                 showBlankColor = true
             }
-            print("isInitiallyLoading = \(isInitiallyLoading)")
         }
     }
     @Published var showBlankColor: Bool = false
