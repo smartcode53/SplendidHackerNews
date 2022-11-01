@@ -67,28 +67,19 @@ extension CustomNavBarView {
     
     private var gradientLogo: some View {
         
-        Text("HN")
-            .font(.largeTitle.weight(.bold))
+        
+        Logo()
+            .frame(width: 40, height: 40)
             .foregroundStyle(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-//            .rotation3DEffect(Angle(degrees: -25), axis: (x: 0, y: 1, z: 0))
-            .kerning(-3)
+        
+//        Text("HN")
+//            .font(.largeTitle.weight(.bold))
+//            .foregroundStyle(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+////            .rotation3DEffect(Angle(degrees: -25), axis: (x: 0, y: 1, z: 0))
+//            .kerning(-4)
     }
 }
 
-struct Logo: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let width = rect.size.width
-        let height = rect.size.height
-        path.move(to: CGPoint(x: 0.00124*width, y: 0.29539*height))
-        path.addLine(to: CGPoint(x: 0.00124*width, y: 0.81605*height))
-        path.addLine(to: CGPoint(x: 0.99876*width, y: 0.99857*height))
-        path.addLine(to: CGPoint(x: 0.99876*width, y: 0.00143*height))
-        path.addLine(to: CGPoint(x: 0.00124*width, y: 0.29539*height))
-        path.closeSubpath()
-        return path
-    }
-}
 
 struct CustomNavBarView_Previews: PreviewProvider {
     static var previews: some View {

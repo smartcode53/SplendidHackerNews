@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol {
+class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol, CustomPullToRefresh {
     
     @Published var comments: Item?
     @Published var story: Story?
@@ -19,6 +19,9 @@ class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButto
     @Published var subToastTextColor: Color = .black
     
     @Published var showStoryInComments: Bool = false
+    @Published var functionHasRan: Bool = false
+    @Published var hasAskedToReload: Bool = false
+    @Published var deleteBookmark: Bool = false
     
     lazy var imageCacheManager = UltimatePostViewModel.ImageCache.instance
     
@@ -34,5 +37,33 @@ class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButto
             return await networkManager.getImage(fromUrl: url)
         }
         return nil
+    }
+    
+    func refresh() {
+        if let id = story?.id {
+            commentsCacheManager.removeFromCache(withKey: id)
+            comments = nil
+            loadComments(withId: id) { [weak self] error in
+                if let error {
+                    let errorType = ErrorType(error: error)
+                    self?.subToastText = errorType.error.localizedDescription
+                    self?.subError = errorType
+                }
+                
+            }
+            if comments != nil && story != nil {
+                Task {
+                    if let (numComments, points) = await getCommentAndPointCounts(forPostWithId: story!.id) {
+                        await MainActor.run { [weak self] in
+                            self?.story!.descendants = numComments
+                            self?.story!.score = points
+                        }
+                        
+                    }
+                }
+            }
+            
+            hasAskedToReload = false
+        }
     }
 }

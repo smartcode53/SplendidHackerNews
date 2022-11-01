@@ -21,12 +21,17 @@ struct ImagePlaceholderView: View {
                 .cornerRadius(8)
                 .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
 
-            Text("HN")
-                .fontWeight(.bold)
-                .font(.title3)
-                .foregroundColor(.secondary)
+            Logo()
+                .frame(width: 40, height: 40)
                 .padding()
-                .rotation3DEffect(Angle(degrees: -15), axis: (x: 0, y: 1, z: 0))
+                .foregroundStyle(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+            
+//            Text("HN")
+//                .fontWeight(.bold)
+//                .font(.title3)
+//                .foregroundColor(.secondary)
+//                .padding()
+//                .rotation3DEffect(Angle(degrees: -15), axis: (x: 0, y: 1, z: 0))
         }
     }
 }

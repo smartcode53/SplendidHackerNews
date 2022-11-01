@@ -33,11 +33,9 @@ extension StorySelectionView {
                     ForEach(StoryType.allCases, id: \.rawValue) { type in
                         Text(type.rawValue)
                             .padding(10)
-                            .background(selectedStoryType == type ? LinearGradient(colors: [.blue, .blue.opacity(0.5)], startPoint: .topLeading, endPoint: .bottomTrailing) : LinearGradient(colors: [.blue.opacity(0.2), .blue.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .foregroundColor(.white)
-                            .font(.headline.weight(.bold))
-                            .cornerRadius(12)
-                            .padding(.vertical)
+                            .foregroundStyle(selectedStoryType == type ? LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing) : LinearGradient(colors: [.primary, .primary], startPoint: .top, endPoint: .bottom))
+                            .font(.title2.weight(.bold))
+                            .padding(.vertical, 5)
                             .padding(.horizontal, 10)
                             .id(selectedStoryType)
                             .onTapGesture {

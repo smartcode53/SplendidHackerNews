@@ -17,101 +17,173 @@ struct SingleBookmarkView: View {
     
     
     var body: some View {
-        if let story = vm.story {
-            VStack(alignment: .leading, spacing: 0) {
-                
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        if let unsafeUrl = story.url,
-                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
-                           let urlDomain = url.urlDomain {
-                            Text(urlDomain)
-                                .foregroundColor(.orange)
-                                .font(.caption.weight(.semibold))
-                                .padding(.bottom, 5)
-                        }
-                        
-                        Button {
-                            selectedStory = story
-                        } label: {
-                            Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                                .foregroundColor(.primary)
-                                .font(.headline.weight(.bold))
-                                .multilineTextAlignment(.leading)
-                                .contentShape(Circle())
-                        }
-                        .padding(.bottom, 5)
-                        
-                        
-                        Text("by \(story.by)")
-                            .foregroundColor(.blue)
-                            .font(.caption.weight(.semibold))
-                        
-                    }
-                    
-                    Spacer()
-                    
-                    
-                    CustomAsyncImageView(url: story.url, id: story.id, sizeType: .compact)
-                    
-                    
-                }
-                .padding(20)
-                .padding(.bottom, 10)
-                
-                HStack {
-                    Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
-                        .font(.subheadline.weight(.medium))
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 20) {
-                        //Bookmark Button
-                        Button {
-                            bookmarkToDelete = bookmark
-                        } label: {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red.opacity(0.7))
-                        }
-                        
-                        // Share button
-                        
-                        if let unsafeUrl = story.url,
-                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
-                            ShareLink(item: url) {
-                                Image(systemName: "square.and.arrow.up")
-                            }
-                        }
-                        
-                        // Comment Label
-                        if let commentCount = story.descendants {
-                            Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
-                        }
-                    }
-                    .foregroundColor(Color("ButtonColor"))
-                    .font(.subheadline.weight(.semibold))
-                    
-                }
-                .padding(20)
-            }
-            .background(Color("CardColor"))
-            .cornerRadius(12)
-            .padding(.bottom, 5)
-            .padding(.horizontal, 10)
-            .task {
-                vm.imageUrl = await vm.getImageUrl(fromUrl: story.url)
-            }
-            .sheet(item: $selectedStory) { story in
-                SafariView(vm: vm, url: story.url)
-            }
+        CustomNavLink {
+            CommentsView(vm: vm)
+                .customNavigationTitle("Comments")
+        } label: {
+            card
         }
     }
     
+}
+
+// Initializer
+extension SingleBookmarkView {
     init(bookmark: Bookmark, selectedStory: Binding<Story?>, bookmarkToDelete: Binding<Bookmark?>) {
         self.bookmark = bookmark
         self._vm = StateObject(wrappedValue: SingleBookmarkViewModel(withStory: bookmark.story))
         self._selectedStory = selectedStory
         self._bookmarkToDelete = bookmarkToDelete
+    }
+}
+
+// Card
+extension SingleBookmarkView {
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            
+            infoSection
+            
+            HStack {
+                scoreLabel
+                
+                Spacer()
+                
+                buttons
+                
+            }
+            .padding(20)
+        }
+        .background(Color("CardColor"))
+        .cornerRadius(12)
+        .padding(.bottom, 5)
+        .padding(.horizontal, 10)
+        .task {
+            if let story = vm.story {
+                vm.imageUrl = await vm.getImageUrl(fromUrl: story.url)
+            }
+            
+            
+        }
+        .sheet(item: $selectedStory) { story in
+            SafariView(vm: vm, url: story.url)
+        }
+    }
+}
+
+// Card Components
+extension SingleBookmarkView {
+    
+    private var infoSection: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 0) {
+               
+                domainLabel
+                
+                titleLabel
+                
+                authorLabel
+                
+            }
+            
+            Spacer()
+            if let story = vm.story {
+                CustomAsyncImageView(url: story.url, id: story.id, sizeType: .compact)
+            }
+        }
+        .padding(20)
+        .padding(.bottom, 10)
+    }
+    
+    @ViewBuilder private var domainLabel: some View {
+        if let story = vm.story,
+           let unsafeUrl = story.url,
+           let urlDomain = vm.networkManager.getSecureUrlString(url: unsafeUrl).urlDomain {
+            Text(urlDomain)
+                .foregroundColor(.orange)
+                .font(.caption.weight(.semibold))
+                .padding(.bottom, 5)
+        }
+    }
+    
+    @ViewBuilder private var titleLabel: some View {
+        if let story = vm.story {
+            Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
+                .foregroundColor(.primary)
+                .font(.headline.weight(.bold))
+                .multilineTextAlignment(.leading)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    selectedStory = story
+                }
+                .padding(.bottom, 5)
+        }
+        
+    }
+    
+   @ViewBuilder private var authorLabel: some View {
+       if let story = vm.story {
+           Text("by \(story.by)")
+               .foregroundColor(.blue)
+               .font(.caption.weight(.semibold))
+       }
+    }
+    
+    @ViewBuilder private var scoreLabel: some View {
+        if let story = vm.story {
+            Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
+                .font(.subheadline.weight(.medium))
+        }
+    }
+    
+    private var buttons: some View {
+        HStack(spacing: 20) {
+            
+            //Bookmark Button
+            deleteButton
+            
+            // Share button
+            shareButton
+            
+            // Comment Label
+            commentLabel
+        }
+        .foregroundColor(Color("ButtonColor"))
+        .font(.subheadline.weight(.semibold))
+    }
+    
+    private var deleteButton: some View {
+        Button {
+            vm.deleteBookmark = true
+        } label: {
+            Image(systemName: "trash")
+                .foregroundColor(.red.opacity(0.7))
+        }
+        .alert("Are you sure you want to delete this bookmark?", isPresented: $vm.deleteBookmark) {
+            
+            Button("Cancel", role: .cancel) {}
+            
+            Button("Delete", role: .destructive) {
+                bookmarkToDelete = bookmark
+            }
+            
+        }
+    }
+    
+    @ViewBuilder private var shareButton: some View {
+        if let story = vm.story,
+           let unsafeUrl = story.url {
+            ShareLink(item: vm.networkManager.getSecureUrlString(url: unsafeUrl)) {
+                Image(systemName: "square.and.arrow.up")
+            }
+        }
+    }
+    
+    @ViewBuilder private var commentLabel: some View {
+        if let story = vm.story,
+           let commentCount = story.descendants {
+            Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
+        }
     }
 }
 
