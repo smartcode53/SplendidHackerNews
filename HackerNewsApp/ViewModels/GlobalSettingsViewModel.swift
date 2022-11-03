@@ -147,4 +147,17 @@ class GlobalSettingsViewModel: ObservableObject {
             }
         }
     }
+    
+    func writeReview() {
+        let url = URL(string: "https://itunes.apple.com/app/id6444180018")!
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.queryItems = [
+            URLQueryItem(name: "action", value: "write-review")
+        ]
+        guard let writeReviewURL = components?.url else {
+            return
+        }
+        UIApplication.shared.open(writeReviewURL)
+    }
 }

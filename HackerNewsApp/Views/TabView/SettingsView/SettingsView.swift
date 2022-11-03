@@ -322,6 +322,9 @@ extension SettingsView {
                     
                 }
                 .padding()
+                .onTapGesture {
+                    globalSettings.writeReview()
+                }
             }
             .padding(.horizontal, 10)
             

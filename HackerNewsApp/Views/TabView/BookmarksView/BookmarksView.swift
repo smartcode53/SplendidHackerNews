@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import StoreKit
 
 struct BookmarksView: View {
     
+    @Environment(\.requestReview) var requestReview
     @Environment(\.scenePhase) var scenePhase
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @State var selectedStory: Story?
@@ -70,6 +72,11 @@ extension BookmarksView {
             LazyVStack {
                 ForEach(globalSettings.sortBookmarks()) { bookmark in
                     SingleBookmarkView(bookmark: bookmark, selectedStory: $selectedStory, bookmarkToDelete: $bookmarkToDelete)
+                        .onAppear {
+                            if globalSettings.bookmarks.count > 5 {
+                                requestReview()
+                            }
+                        }
                 }
             }
         }
