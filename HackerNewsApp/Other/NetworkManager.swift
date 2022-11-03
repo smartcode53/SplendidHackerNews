@@ -89,45 +89,6 @@ class NetworkManager {
         }
     }
     
-    // Function to fetch stories from the dictionary of post IDs
-//    func getStories(using wrapperArray: [StoryWrapper]) async -> [StoryWrapper]  {
-//
-//        do {
-//            let stories = try await withThrowingTaskGroup(of: StoryWrapper?.self, body: { group in
-//
-//                var storyArray: [StoryWrapper] = []
-//
-//                for wrapper in wrapperArray {
-//                    group.addTask {
-//                        guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
-//                        let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
-////                        self.cacheManager.saveToCache(story, withKey: String(newWrapper.id))
-//                        return newWrapper
-//                    }
-//                }
-//
-//                for try await result in group {
-//                    if let result {
-//                        storyArray.append(result)
-//                    }
-//                }
-//
-//                storyArray.sort { wrapper1, wrapper2 in
-//                    wrapper1.index < wrapper2.index
-//                }
-//
-//                return storyArray
-//
-//            })
-//
-//            return stories
-//
-//        } catch let error {
-//            print(error.localizedDescription)
-//            return []
-//        }
-//
-//    }
     
     func getStories(using wrapperArray: [StoryWrapper]) async -> Result<[StoryWrapper], ErrorHandler>  {
         

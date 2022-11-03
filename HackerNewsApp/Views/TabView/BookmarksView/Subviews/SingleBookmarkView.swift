@@ -31,7 +31,7 @@ struct SingleBookmarkView: View {
 extension SingleBookmarkView {
     init(bookmark: Bookmark, selectedStory: Binding<Story?>, bookmarkToDelete: Binding<Bookmark?>) {
         self.bookmark = bookmark
-        self._vm = StateObject(wrappedValue: SingleBookmarkViewModel(withStory: bookmark.story))
+        self._vm = StateObject(wrappedValue: SingleBookmarkViewModel(withBookmark: bookmark))
         self._selectedStory = selectedStory
         self._bookmarkToDelete = bookmarkToDelete
     }

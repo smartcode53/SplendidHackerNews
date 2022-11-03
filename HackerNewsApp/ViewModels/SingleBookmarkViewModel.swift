@@ -13,6 +13,7 @@ class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButto
     @Published var comments: Item?
     @Published var story: Story?
     @Published var subError: ErrorType? = nil
+    @Published var bookmark: Bookmark
     
     @Published var imageUrl: URL?
     @Published var subToastText: String = ""
@@ -28,8 +29,9 @@ class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButto
     lazy var networkManager: NetworkManager = NetworkManager.instance
     lazy var commentsCacheManager: CommentsCache = CommentsCache.instance
     
-    init(withStory story: Story) {
-        self.story = story
+    init(withBookmark bookmark: Bookmark) {
+        self.bookmark = bookmark
+        self.story = bookmark.story
     }
     
     func getImageUrl(fromUrl url: String?) async -> URL? {

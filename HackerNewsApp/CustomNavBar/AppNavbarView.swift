@@ -41,9 +41,6 @@ struct AppNavbarView: View {
                     .transition(.asymmetric(insertion: .move(edge: .top), removal: .move(edge: .top)))
             }
         }
-        .onAppear {
-            vm.notificationsManager.requestAuthorization()
-        }
         .onChange(of: vm.subError) { error in
             globalSettings.appError = error
         }

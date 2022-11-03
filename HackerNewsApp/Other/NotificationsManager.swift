@@ -12,14 +12,4 @@ import UserNotifications
 class NotificationsManager {
     
     static let instance = NotificationsManager()
-    
-    func requestAuthorization() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
-            if let error {
-                print("Error: \(error)")
-            } else {
-                print(success)
-            }
-        }
-    }
 }

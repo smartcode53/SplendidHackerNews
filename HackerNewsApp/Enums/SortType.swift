@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-enum SortType: String, CaseIterable {
+enum SortType: String, CaseIterable, Codable {
     case lastSaved = "Last Saved"
     case comments = "Comments"
     case points = "Points"

@@ -14,7 +14,7 @@ class GlobalSettingsViewModel: ObservableObject {
     @Published var bookmarks: [Bookmark] = []
     @Published var selectedSortType: SortType = .lastSaved {
         didSet {
-            switch oldValue {
+            switch selectedSortType {
             case .lastSaved:
                 bookmarks.sort { item1, item2 in
                     item1.date > item2.date
@@ -75,6 +75,7 @@ class GlobalSettingsViewModel: ObservableObject {
     
     init() {
         
+        
         // Checking if it's the first time the Settings screen is being accessed.
         if userDefaults.value(forKey: firstTimeBoolKey) == nil {
             userDefaults.set(true, forKey: firstTimeBoolKey)
@@ -96,15 +97,20 @@ class GlobalSettingsViewModel: ObservableObject {
             }
         }
         
+        
         // Loading bookmarks from disk
         do {
             let data = try Data(contentsOf: bookmarkUrl)
             let convertedArray = try JSONDecoder().decode([Bookmark].self, from: data)
             self.bookmarks = convertedArray
+            self.bookmarks = self.bookmarks.sorted { item1, item2 in
+                item1.date > item2.date
+            }
         } catch {
             // MARK: Return error here
             print("Error loading bookmarks")
         }
+        
     }
     
     func saveSettingsToDisk() {
@@ -122,6 +128,23 @@ class GlobalSettingsViewModel: ObservableObject {
             try data.write(to: bookmarkUrl, options: [.atomic])
         } catch let error {
             print("There was an error encoding and saving the bookmarks array. Here's the error description: \(error)")
+        }
+    }
+    
+    func sortBookmarks() -> [Bookmark] {
+        switch selectedSortType {
+        case .lastSaved:
+            return bookmarks.sorted { item1, item2 in
+                item1.date > item2.date
+            }
+        case .comments:
+            return bookmarks.sorted { item1, item2 in
+                item1.story.descendants ?? 0 > item2.story.descendants ?? 0
+            }
+        case .points:
+            return bookmarks.sorted { item1, item2 in
+                item1.story.score > item2.story.score
+            }
         }
     }
 }

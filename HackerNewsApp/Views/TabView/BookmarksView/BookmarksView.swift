@@ -63,29 +63,15 @@ extension BookmarksView {
 extension BookmarksView {
     private var scrollView: some View  {
         ScrollView {
+            
+            // Add sorting option here
+            SortingView()
+            
             LazyVStack {
-                ForEach(globalSettings.bookmarks) { bookmark in
+                ForEach(globalSettings.sortBookmarks()) { bookmark in
                     SingleBookmarkView(bookmark: bookmark, selectedStory: $selectedStory, bookmarkToDelete: $bookmarkToDelete)
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        ForEach(SortType.allCases, id: \.self) { type in
-                            Button(type.rawValue) {
-                                globalSettings.selectedSortType = type
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "arrow.up.arrow.down.square")
-                            Text("Sort")
-                        }
-                    }
-                    
-                }
-            }
-            .padding(.top)
         }
     }
 }
