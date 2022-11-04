@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CustomNavbarContainerView<Content: View>: View {
     
+    @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @State private var showBackButton: Bool = true
     @State private var title: String = "No Title"
     

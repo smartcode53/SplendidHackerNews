@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MessageUI
 
 struct SettingsView: View {
     
@@ -328,30 +329,51 @@ extension SettingsView {
             }
             .padding(.horizontal, 10)
             
-            // Section item 2
-//            if let mailUrl = vm.mailUrl {
-//                Link(destination: mailUrl) {
-//
-//                }
-//            }
-            
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color("CardColor"))
-                
-                HStack {
-                    Label("Report an issue", systemImage: "exclamationmark.bubble.fill")
-                        .font(.headline)
+            if MFMailComposeViewController.canSendMail() {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
                     
-                    Spacer()
-                    
+                    HStack {
+                        Label("Tell the developer about bugs or give feedback", systemImage: "exclamationmark.bubble.fill")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                    }
+                    .padding()
                 }
-                .padding()
+                .padding(.horizontal, 10)
+                .onTapGesture {
+                    vm.sendEmail = true
+                }
+                .sheet(isPresented: $vm.sendEmail) {
+                    MailView()
+                }
+            } else {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
+                    
+                    HStack {
+                        VStack(spacing: 30) {
+                            Label("Tell the developer about bugs or give feedback", systemImage: "exclamationmark.bubble.fill")
+                                .font(.headline)
+                            
+                            Text("Please set a Mail account on your device in order to leave feedback")
+                                .foregroundColor(.red.opacity(0.7))
+                                .font(.caption)
+                            
+                        }
+                        
+                        Spacer()
+                        
+                    }
+                    .padding()
+                }
+                .padding(.horizontal, 10)
             }
-            .padding(.horizontal, 10)
-            .onTapGesture {
-                vm.openMail()
-            }
+            
             
         }
         .padding(.top, 30)

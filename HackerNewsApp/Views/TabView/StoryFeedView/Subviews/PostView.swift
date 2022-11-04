@@ -112,6 +112,7 @@ extension PostView {
         .cornerRadius(12)
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
+        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
     }
     
     var largeCompactCardContent: some View {
@@ -166,12 +167,7 @@ extension PostView {
         .background(Color("CardColor"))
         .cornerRadius(12)
         .padding(.vertical, 5)
-//        .task {
-//            if let unsafeUrl = story.url {
-//                let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-//                vm.loadImage(fromUrl: url)
-//            }
-//        }
+        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
     }
     
     @ViewBuilder var smallNormalCardContent: some View {
@@ -233,6 +229,7 @@ extension PostView {
             .cornerRadius(12)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
+            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
         }
     }
     
@@ -294,6 +291,7 @@ extension PostView {
             .background(Color("CardColor"))
             .cornerRadius(12)
             .padding(.vertical, 5)
+            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
         }
     }
 }

@@ -18,6 +18,8 @@ struct CustomNavView<Content: View>: View {
             }
             .toolbar(.hidden, for: .navigationBar)
         }
+        .toolbarColorScheme(.dark, for: .navigationBar)
+
     }
 }
 

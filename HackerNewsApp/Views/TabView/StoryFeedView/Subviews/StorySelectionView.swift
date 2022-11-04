@@ -34,7 +34,7 @@ extension StorySelectionView {
                         Text(type.rawValue)
                             .padding(10)
                             .foregroundStyle(selectedStoryType == type ? LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing) : LinearGradient(colors: [.primary, .primary], startPoint: .top, endPoint: .bottom))
-                            .font(.title2.weight(.bold))
+                            .font(.title3.weight(.bold))
                             .padding(.vertical, 5)
                             .padding(.horizontal, 10)
                             .id(selectedStoryType)
