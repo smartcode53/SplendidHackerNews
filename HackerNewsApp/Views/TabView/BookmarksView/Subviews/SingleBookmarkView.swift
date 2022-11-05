@@ -11,6 +11,8 @@ struct SingleBookmarkView: View {
     
     let bookmark: Bookmark
     
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
     @StateObject var vm: SingleBookmarkViewModel
     @Binding var selectedStory: Story?
     @Binding var bookmarkToDelete: Bookmark?
@@ -21,7 +23,11 @@ struct SingleBookmarkView: View {
             CommentsView(vm: vm)
                 .customNavigationTitle("Comments")
         } label: {
-            card
+            if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                regularCard
+            } else {
+                card
+            }
         }
     }
     
@@ -69,6 +75,37 @@ extension SingleBookmarkView {
             SafariView(vm: vm, url: story.url)
         }
     }
+    
+    private var regularCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            
+            infoSection
+            
+            HStack {
+                scoreLabel
+                
+                Spacer()
+                
+                buttons
+                
+            }
+            .padding(20)
+        }
+        .frame(width: UIScreen.main.bounds.width * 0.7)
+        .background(Color("CardColor"))
+        .cornerRadius(12)
+        .padding(.bottom, 5)
+        .task {
+            if let story = vm.story {
+                vm.imageUrl = await vm.getImageUrl(fromUrl: story.url)
+            }
+            
+            
+        }
+        .sheet(item: $selectedStory) { story in
+            SafariView(vm: vm, url: story.url)
+        }
+    }
 }
 
 // Card Components
@@ -77,7 +114,7 @@ extension SingleBookmarkView {
     private var infoSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 0) {
-               
+                
                 domainLabel
                 
                 titleLabel
@@ -121,12 +158,12 @@ extension SingleBookmarkView {
         
     }
     
-   @ViewBuilder private var authorLabel: some View {
-       if let story = vm.story {
-           Text("by \(story.by)")
-               .foregroundColor(.blue)
-               .font(.caption.weight(.semibold))
-       }
+    @ViewBuilder private var authorLabel: some View {
+        if let story = vm.story {
+            Text("by \(story.by)")
+                .foregroundColor(.blue)
+                .font(.caption.weight(.semibold))
+        }
     }
     
     @ViewBuilder private var scoreLabel: some View {

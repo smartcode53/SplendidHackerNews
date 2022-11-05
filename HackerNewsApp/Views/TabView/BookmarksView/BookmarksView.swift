@@ -12,6 +12,8 @@ struct BookmarksView: View {
     
     @Environment(\.requestReview) var requestReview
     @Environment(\.scenePhase) var scenePhase
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @State var selectedStory: Story?
     @State var bookmarkToDelete: Bookmark?
@@ -24,7 +26,7 @@ struct BookmarksView: View {
             .padding()
         } else {
             CustomNavView {
-                card
+                content
             }
         }
     }
@@ -32,7 +34,7 @@ struct BookmarksView: View {
 
 // Card
 extension BookmarksView {
-    private var card: some View {
+    private var content: some View {
         ZStack {
             
             Color("BackgroundColor").ignoresSafeArea()
@@ -66,8 +68,13 @@ extension BookmarksView {
     private var scrollView: some View  {
         ScrollView {
             
-            // Add sorting option here
-            SortingView()
+            if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                SortingView()
+                    .frame(width: UIScreen.main.bounds.width * 0.7)
+            } else {
+                SortingView()
+            }
+            
             
             LazyVStack {
                 ForEach(globalSettings.sortBookmarks()) { bookmark in

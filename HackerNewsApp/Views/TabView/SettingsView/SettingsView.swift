@@ -10,6 +10,8 @@ import MessageUI
 
 struct SettingsView: View {
     
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm = SettingsViewModel()
@@ -17,26 +19,26 @@ struct SettingsView: View {
     @Namespace var namespace
     
     var body: some View {
-        ZStack {
-            Color("SettingsBackgroundColor")
-                .ignoresSafeArea()
-                .zIndex(1)
-            
-            ScrollView {
-                VStack {
+        CustomNavView {
+            ZStack {
+                Color("SettingsBackgroundColor")
+                    .ignoresSafeArea()
+                    .zIndex(1)
+                
+                ScrollView {
+                    if verticalSizeClass == .regular && horizontalSizeClass == .regular {
+                        content
+                            .frame(width: UIScreen.main.bounds.width * 0.7)
+                    } else {
+                        content
+                    }
                     
-                    // Section 1
-                    firstSection
-                    
-                    // Section 2
-                    secondSection
-                    
-                    // Section 3
-                    thirdSection
                 }
+                .zIndex(2)
+                
             }
-            .zIndex(2)
-            
+            .customNavigationTitle("Settings")
+            .customNavigationBarBackButtonHidden(true)
         }
     }
 }
@@ -44,16 +46,22 @@ struct SettingsView: View {
 
 extension SettingsView {
     
+    private var content: some View {
+        VStack {
+            
+            // Section 1
+            firstSection
+            
+            // Section 2
+            secondSection
+            
+            // Section 3
+            thirdSection
+        }
+    }
+    
     private var firstSection: some View {
         VStack() {
-            
-            // Section Label
-            HStack {
-                Text("Settings")
-                    .font(.title.weight(.semibold))
-                Spacer()
-            }
-            .padding(.horizontal)
             
             // Section item 1
             if vm.showCardStylingOptions {
@@ -70,6 +78,7 @@ extension SettingsView {
             }
             
         }
+        .padding(.top)
     }
     
     private var feedStyleCollapsed: some View {

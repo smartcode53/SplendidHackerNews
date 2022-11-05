@@ -58,7 +58,7 @@ extension CustomNavBarView {
     
     private var titleSection: some View {
         VStack(spacing: 4) {
-            Text("Story Feed")
+            Text(title)
 //                .font(.title2.weight(.bold))
                 .font(.system(size: 22, weight: .heavy, width: .standard))
                 .foregroundColor(.primary)
