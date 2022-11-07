@@ -27,11 +27,13 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     lazy var networkManager = NetworkManager.instance
     lazy var commentsCacheManager = CommentsCache.instance
     lazy var imageCacheManager = ImageCache.instance
+    var storyFeedVm: StoryFeedViewModel
     
     
-    init(withStory story: Story) {
+    init(withStory story: Story, storyFeedVm: StoryFeedViewModel) {
         self._story = Published(initialValue: story)
         self.urlDomain = story.url?.urlDomain
+        self.storyFeedVm = storyFeedVm
     }
     
 //    func loadImage(fromUrl url: String) {

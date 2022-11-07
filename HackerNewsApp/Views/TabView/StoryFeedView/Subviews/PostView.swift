@@ -18,12 +18,14 @@ struct PostView: View {
     @Binding var selectedStory: Story?
     @State private var imageWidth: CGFloat = UIScreen.main.bounds.width
     @State private var imageLoaded: Bool = false
+    @State var bindedCommentCount: Int? = nil
+    @State var bindedPostPoints: Int? = nil
     let story: Story
     
     // Body
     var body: some View {
         CustomNavLink {
-            CommentsView(vm: vm)
+            CommentsView(vm: vm, bindedCommentCount: $bindedCommentCount, bindedPostPoints: $bindedPostPoints)
                 .customNavBarItems(title: "Comments", backButtonHidden: false)
         } label: {
             if globalSettings.selectedCardStyle == .normal {
@@ -34,6 +36,50 @@ struct PostView: View {
         }
         .createPressableButton()
         .onAppear { vm.updateBookmarkStatus(globalSettings: globalSettings, story: story) }
+        .onChange(of: bindedCommentCount) { newValue in
+            if newValue != nil {
+                let currentStoryType = vm.storyFeedVm.storyType
+                var storyArray = vm.storyFeedVm.cacheManager.getFromCache(withKey: currentStoryType.rawValue)
+                if storyArray != nil {
+                    var currentStory = storyArray!.filter { wrapper in
+                        wrapper.id == self.wrapper.id
+                    }[0]
+                    currentStory.story?.descendants = newValue
+                    storyArray!.removeAll { wrapper in
+                        wrapper.id == self.wrapper.id
+                    }
+                    storyArray!.append(currentStory)
+                    storyArray!.sort { wrapper1, wrapper2 in
+                        wrapper1.index < wrapper2.index
+                    }
+                    vm.storyFeedVm.cacheManager.removeFromCache(key: currentStoryType.rawValue)
+                    vm.storyFeedVm.cacheManager.saveToCache(storyArray!, withKey: currentStoryType.rawValue)
+                }
+                bindedCommentCount = nil
+            }
+        }
+        .onChange(of: bindedPostPoints) { newValue in
+            if newValue != nil {
+                let currentStoryType = vm.storyFeedVm.storyType
+                var storyArray = vm.storyFeedVm.cacheManager.getFromCache(withKey: currentStoryType.rawValue)
+                if storyArray != nil {
+                    var currentStory = storyArray!.filter { wrapper in
+                        wrapper.id == self.wrapper.id
+                    }[0]
+                    currentStory.story?.score = newValue!
+                    storyArray!.removeAll { wrapper in
+                        wrapper.id == self.wrapper.id
+                    }
+                    storyArray!.append(currentStory)
+                    storyArray!.sort { wrapper1, wrapper2 in
+                        wrapper1.index < wrapper2.index
+                    }
+                    vm.storyFeedVm.cacheManager.removeFromCache(key: currentStoryType.rawValue)
+                    vm.storyFeedVm.cacheManager.saveToCache(storyArray!, withKey: currentStoryType.rawValue)
+                }
+                bindedPostPoints = nil
+            }
+        }
     }
 }
 
@@ -335,7 +381,6 @@ extension PostView {
                 selectedStory = story
             } label: {
                 Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
-//                    .foregroundColor(Color("PostTitle"))
                     .foregroundColor(.primary)
                     .font(.headline.weight(.bold))
                     .multilineTextAlignment(.leading)
@@ -346,7 +391,6 @@ extension PostView {
             .createRegularButton()
         } else {
             Text(story.title)
-//                .foregroundColor(Color("PostTitle"))
                 .foregroundColor(.primary)
                 .font(.headline.weight(.bold))
                 .multilineTextAlignment(.leading)
@@ -361,7 +405,6 @@ extension PostView {
             } label: {
                 Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
                     .font(.title3.weight(.bold))
-//                    .foregroundColor(Color("PostTitle"))
                     .foregroundColor(.primary)
                     .padding(.bottom, 10)
                     .multilineTextAlignment(.leading)
@@ -371,7 +414,6 @@ extension PostView {
         } else {
             Text(story.title)
                 .font(.title3.weight(.bold))
-//                .foregroundColor(Color("PostTitle"))
                 .foregroundColor(.primary)
                 .padding(.bottom, 10)
                 .multilineTextAlignment(.leading)
@@ -389,7 +431,6 @@ extension PostView {
             
             Spacer()
         }
-//        .foregroundColor(Color("PostDateName"))
         .foregroundColor(.blue)
         .font(.caption.weight(.semibold))
     }
@@ -403,97 +444,11 @@ extension PostView {
             
             Spacer()
         }
-//        .foregroundColor(Color("PostDateName"))
         .foregroundColor(.blue)
         .padding(.bottom, 16)
         .font(.caption.weight(.semibold))
     }
     
-//    @ViewBuilder var compactImage: some View {
-//        if let imageUrl = vm.imageUrl {
-//            if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-//                cachedImage
-//                    .resizable()
-//                    .scaledToFill()
-//                    .frame(width: 100, height: 100)
-//                    .clipped()
-//                    .cornerRadius(8)
-//                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-//            } else {
-//                AsyncImage(url: imageUrl) { image in
-//                    image
-//                        .resizable()
-//                        .scaledToFill()
-//                        .frame(width: 100, height: 100)
-//                        .clipped()
-//                        .cornerRadius(8)
-//                        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-//                        .onAppear {
-//                            vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-//                        }
-//                } placeholder: {
-//                    ImagePlaceholderView(height: 100, width: 100)
-//                }
-//            }
-//        }
-//    }
-    
-//    @ViewBuilder var normalImage: some View {
-//        if horizontalSizeClass == .compact && verticalSizeClass == .regular || horizontalSizeClass == .regular && verticalSizeClass == .compact {
-//            if let imageUrl = vm.imageUrl {
-//                if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-//                    cachedImage
-//                        .resizable()
-//                        .scaledToFill()
-//                        .frame(width: imageWidth)
-//                        .frame(height: 270)
-//                        .clipped()
-//                } else {
-//                    AsyncImage(url: imageUrl) { image in
-//                        image
-//                            .resizable()
-//                            .scaledToFill()
-//                            .frame(width: imageWidth)
-//                            .frame(height: 270)
-//                            .clipped()
-//                            .onAppear {
-//                                vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-//                            }
-//                    } placeholder: {
-//                        ImagePlaceholderView(height: 270, width: imageWidth)
-//                    }
-//                }
-//            }
-//        } else if  horizontalSizeClass == .regular && verticalSizeClass == .regular {
-//            if let imageUrl = vm.imageUrl {
-//                if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-//                    cachedImage
-//                        .resizable()
-//                        .scaledToFill()
-//                        .frame(width: imageWidth)
-//                        .frame(height: 400)
-//                        .clipped()
-//                } else {
-//                    AsyncImage(url: imageUrl) { image in
-//                        image
-//                            .resizable()
-//                            .scaledToFill()
-//                            .frame(width: imageWidth)
-//                            .frame(height: 400)
-//                            .clipped()
-//                            .onAppear {
-//                                vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-//                            }
-//                    } placeholder: {
-//                        ImagePlaceholderView(height: 400, width: imageWidth)
-//                    }
-//                }
-//            }
-//        }
-//
-//
-//
-//    }
     
     var compactScoreLabel: some View {
         Text(story.score == 1 ? "\(story.score) point" : "\(story.score.compressedNumber) points")
@@ -533,8 +488,8 @@ extension PostView {
 
 // Initializer
 extension PostView {
-    init(withWrapper wrapper: StoryWrapper, story: Story, selectedStory: Binding<Story?>) {
-        self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
+    init(withWrapper wrapper: StoryWrapper, story: Story, selectedStory: Binding<Story?>, storyFeedVm: StoryFeedViewModel) {
+        self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story, storyFeedVm: storyFeedVm))
         self._wrapper = State(initialValue: wrapper)
         self._selectedStory = selectedStory
         self.story = story

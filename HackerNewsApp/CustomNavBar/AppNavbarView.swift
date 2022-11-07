@@ -31,7 +31,7 @@ struct AppNavbarView: View {
                 }
                 
             }
-            .customNavigationTitle("Top Stories")
+            .customNavigationTitle("Story Feed")
             .customNavigationBarBackButtonHidden(true)
         }
         .overlay {
@@ -62,7 +62,7 @@ extension AppNavbarView  {
             if !vm.isInitiallyLoading {
                 ForEach(vm.storiesDict[vm.storyType] ?? []) { wrapper in
                     if let story = wrapper.story {
-                        PostView(withWrapper: wrapper, story: story, selectedStory: $selectedStory)
+                        PostView(withWrapper: wrapper, story: story, selectedStory: $selectedStory, storyFeedVm: vm)
                     }
                 }
             } else {

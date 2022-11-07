@@ -20,7 +20,7 @@ struct SingleBookmarkView: View {
     
     var body: some View {
         CustomNavLink {
-            CommentsView(vm: vm)
+            CommentsView(vm: vm, bindedCommentCount: .constant(nil), bindedPostPoints: .constant(nil))
                 .customNavigationTitle("Comments")
         } label: {
             if horizontalSizeClass == .regular && verticalSizeClass == .regular {

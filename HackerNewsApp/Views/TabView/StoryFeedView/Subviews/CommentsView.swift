@@ -12,6 +12,8 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @Environment(\.dismiss) var dismiss
     @ObservedObject var vm: T
+    @Binding var bindedCommentCount: Int?
+    @Binding var bindedPostPoints: Int?
     
     var body: some View {
         if let story = vm.story {
@@ -38,8 +40,11 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                         .task {
                             if vm.comments != nil {
                                 if let (numComments, points) = await vm.getCommentAndPointCounts(forPostWithId: story.id) {
-                                    vm.story?.descendants = numComments
-                                    vm.story?.score = points
+//                                    vm.story?.descendants = numComments
+//                                    vm.story?.score = points
+                                    
+                                    bindedCommentCount = numComments
+                                    bindedPostPoints = points
                                 }
                             }
                         }

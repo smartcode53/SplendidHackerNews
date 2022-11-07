@@ -16,7 +16,7 @@ struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariVie
         if let commentCount =  vm.story?.descendants {
             
             NavigationLink {
-                CommentsView(vm: vm)
+                CommentsView(vm: vm, bindedCommentCount: .constant(nil), bindedPostPoints: .constant(nil))
             } label: {
                 Label(String(commentCount.compressedNumber), systemImage: "bubble.right")
 //                    .foregroundColor(.black.opacity(0.6))
