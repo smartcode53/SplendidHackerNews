@@ -145,15 +145,23 @@ extension SingleBookmarkView {
     
     @ViewBuilder private var titleLabel: some View {
         if let story = vm.story {
-            Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                .foregroundColor(.primary)
-                .font(.headline.weight(.bold))
-                .multilineTextAlignment(.leading)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    selectedStory = story
-                }
-                .padding(.bottom, 5)
+            if story.url != nil {
+                Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
+                    .foregroundColor(.primary)
+                    .font(.headline.weight(.bold))
+                    .multilineTextAlignment(.leading)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedStory = story
+                    }
+                    .padding(.bottom, 5)
+            } else {
+                Text(story.title)
+                    .foregroundColor(.primary)
+                    .font(.headline.weight(.bold))
+                    .multilineTextAlignment(.leading)
+                    .padding(.bottom, 5)
+            }
         }
         
     }

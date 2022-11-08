@@ -94,7 +94,9 @@ extension CommentsView {
                         .padding(.bottom, 12)
                         .foregroundColor(Color("PostTitle"))
                         .onTapGesture {
-                            vm.showStoryInComments = true
+                            if story.url != nil {
+                                vm.showStoryInComments = true
+                            }
                         }
                     
                     HStack {

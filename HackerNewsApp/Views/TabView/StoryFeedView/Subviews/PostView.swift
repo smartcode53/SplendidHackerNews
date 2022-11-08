@@ -377,40 +377,38 @@ extension PostView {
     @ViewBuilder var compactInteractiveTitleLabel: some View {
         
         if story.url != nil {
-            Button {
-                selectedStory = story
-            } label: {
-                Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
-                    .foregroundColor(.primary)
-                    .font(.headline.weight(.bold))
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .contentShape(Circle())
-            }
-            .padding(.bottom, 5)
-            .createRegularButton()
+            Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
+                .foregroundColor(.primary)
+                .font(.headline.weight(.bold))
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    selectedStory = story
+                }
+                .padding(.bottom, 5)
         } else {
             Text(story.title)
                 .foregroundColor(.primary)
                 .font(.headline.weight(.bold))
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
+                .padding(.bottom, 5)
         }
     }
     
     @ViewBuilder var normalInteractiveTitleLabel: some View {
         if story.url != nil {
-            Button {
-                selectedStory = story
-            } label: {
-                Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
-                    .font(.title3.weight(.bold))
-                    .foregroundColor(.primary)
-                    .padding(.bottom, 10)
-                    .multilineTextAlignment(.leading)
-            }
-            .contentShape(Rectangle())
-            .createRegularButton()
+            Text("\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
+                .font(.title3.weight(.bold))
+                .foregroundColor(.primary)
+                .padding(.bottom, 10)
+                .multilineTextAlignment(.leading)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    selectedStory = story
+                }
+                .createRegularButton()
         } else {
             Text(story.title)
                 .font(.title3.weight(.bold))
