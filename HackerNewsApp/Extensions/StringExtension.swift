@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftSoup
-import HTML2Markdown
+//import HTML2Markdown
 
 extension String {
     var parsedText: String {
@@ -33,19 +33,19 @@ extension String {
         return ""
     }
     
-    var markdown: AttributedString {
-        let html = self
-
-        do {
-            let dom = try HTMLParser().parse(html: html)
-            let markdown = dom.toMarkdown(options: .unorderedListBullets)
-            return try! AttributedString(markdown: markdown.convertToString())
-        } catch {
-            // parsing error
-            return "⚠️ Error parsing Comment"
-        }
-
-    }
+//    var markdown: AttributedString {
+//        let html = self
+//
+//        do {
+//            let dom = try HTMLParser().parse(html: html)
+//            let markdown = dom.toMarkdown(options: .unorderedListBullets)
+//            return try! AttributedString(markdown: markdown.convertToString())
+//        } catch {
+//            // parsing error
+//            return "⚠️ Error parsing Comment"
+//        }
+//
+//    }
     
     var urlDomain: String? {
         if let generatedUrl = URL(string: self) {

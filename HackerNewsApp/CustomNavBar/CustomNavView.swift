@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CustomNavView<Content: View>: View {
     
+    @EnvironmentObject var nav: GlobalNavigator
     let content: Content
     
     var body: some View {

@@ -12,11 +12,14 @@ struct HackerNewsAppApp: App {
     
     @Environment(\.scenePhase) var scenePhase
     @StateObject var globalSettings = GlobalSettingsViewModel()
+    @StateObject var nav = GlobalNavigator()
+    let dependencies = Dependencies()
     
     var body: some Scene {
         WindowGroup {
-            TabEnclosingView()
+            TabEnclosingView(dependencies: dependencies)
                 .environmentObject(globalSettings)
+                .environmentObject(nav)
                 .preferredColorScheme(
                     globalSettings.selectedTheme == .automatic
                     ?

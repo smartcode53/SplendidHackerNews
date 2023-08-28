@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol, CustomPullToRefresh {
+class StoryViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol, CustomPullToRefresh {
     
     @Published var story: Story?
     @Published var comments: Item?
@@ -27,10 +27,10 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     lazy var networkManager = NetworkManager.instance
     lazy var commentsCacheManager = CommentsCache.instance
     lazy var imageCacheManager = ImageCache.instance
-    var storyFeedVm: StoryFeedViewModel
+    var storyFeedVm: FeedViewModel
     
     
-    init(withStory story: Story, storyFeedVm: StoryFeedViewModel) {
+    init(withStory story: Story, storyFeedVm: FeedViewModel) {
         self._story = Published(initialValue: story)
         self.urlDomain = story.url?.urlDomain
         self.storyFeedVm = storyFeedVm
@@ -86,7 +86,7 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
 }
 
 
-extension UltimatePostViewModel {
+extension StoryViewModel {
     
     class ImageCache {
         

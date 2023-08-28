@@ -34,7 +34,8 @@ struct SingleCommentView: View {
             if vm.isExpanded {
                 
                 if let text = commentText {
-                    Text(text.markdown)
+//                    Text(text.markdown)
+                    Text(text)
                         .tint(.orange)
                 } else {
                     Text("Comment Not found")

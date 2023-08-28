@@ -17,16 +17,43 @@ struct BookmarksView: View {
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @State var selectedStory: Story?
     @State var bookmarkToDelete: Bookmark?
+    @EnvironmentObject var nav: GlobalNavigator
     
     var body: some View {
-        if globalSettings.bookmarks.isEmpty {
-            VStack {
-                Text("You've not bookmarked any stories yet. To do so, tap the bookmark button (\(Image(systemName: "bookmark"))) on a story within the story feed.")
+        NavigationStack(path: $nav.bookmarksRoutes) {
+            Group {
+                if globalSettings.bookmarks.isEmpty {
+                    VStack {
+                        Text("You've not bookmarked any stories yet. To do so, tap the bookmark button (\(Image(systemName: "bookmark"))) on a story within the story feed.")
+                    }
+                    .padding()
+                } else {
+                    content
+                }
             }
-            .padding()
-        } else {
-            CustomNavView {
-                content
+            .navigationTitle("Saved Stories")
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Logo()
+                        .frame(width: 30, height: 30)
+                        .foregroundStyle(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                }
+            })
+            .onChange(of: scenePhase) { phase in
+                if phase == .inactive {
+                    globalSettings.saveBookmarksToDisk()
+                }
+            }
+            .onChange(of: bookmarkToDelete) { bookmark in
+                if let bookmark {
+                    if let index = globalSettings.bookmarks.firstIndex(of: bookmark) {
+                        withAnimation(.spring()) {
+                            _ = globalSettings.bookmarks.remove(at: index)
+                        }
+                        globalSettings.saveBookmarksToDisk()
+                    }
+                    bookmarkToDelete = nil
+                }
             }
         }
     }
@@ -36,28 +63,8 @@ struct BookmarksView: View {
 extension BookmarksView {
     private var content: some View {
         ZStack {
-            
             Color("BackgroundColor").ignoresSafeArea()
-            
             scrollView
-        }
-        .customNavigationTitle("Saved Stories")
-        .customNavigationBarBackButtonHidden(true)
-        .onChange(of: scenePhase) { phase in
-            if phase == .inactive {
-                globalSettings.saveBookmarksToDisk()
-            }
-        }
-        .onChange(of: bookmarkToDelete) { bookmark in
-            if let bookmark {
-                if let index = globalSettings.bookmarks.firstIndex(of: bookmark) {
-                    withAnimation(.spring()) {
-                        _ = globalSettings.bookmarks.remove(at: index)
-                    }
-                    globalSettings.saveBookmarksToDisk()
-                }
-                bookmarkToDelete = nil
-            }
         }
     }
 }

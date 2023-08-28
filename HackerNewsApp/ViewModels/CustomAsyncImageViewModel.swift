@@ -16,7 +16,7 @@ class CustomAsyncImageViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     
-    lazy var imageCacheManager: UltimatePostViewModel.ImageCache = .instance
+    lazy var imageCacheManager: StoryViewModel.ImageCache = .instance
     lazy var networkManager: NetworkManager = .instance
     
     init(url: String?) {

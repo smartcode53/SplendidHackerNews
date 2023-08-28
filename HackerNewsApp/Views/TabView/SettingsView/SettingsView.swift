@@ -15,11 +15,12 @@ struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm = SettingsViewModel()
+    @EnvironmentObject var nav: GlobalNavigator
     
     @Namespace var namespace
     
     var body: some View {
-        CustomNavView {
+        NavigationStack(path: $nav.settingsRoutes) {
             ZStack {
                 Color("SettingsBackgroundColor")
                     .ignoresSafeArea()
@@ -37,8 +38,14 @@ struct SettingsView: View {
                 .zIndex(2)
                 
             }
-            .customNavigationTitle("Settings")
-            .customNavigationBarBackButtonHidden(true)
+            .navigationTitle("Settings")
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Logo()
+                        .frame(width: 30, height: 30)
+                        .foregroundStyle(LinearGradient(colors: [.orange, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                }
+            })
         }
     }
 }

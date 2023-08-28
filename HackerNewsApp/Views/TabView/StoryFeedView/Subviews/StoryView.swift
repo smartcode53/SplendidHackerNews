@@ -7,25 +7,30 @@
 
 import SwiftUI
 
-struct PostView: View {
+struct StoryView: View {
     
-    @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
-    @StateObject var vm: UltimatePostViewModel
-    @State private var wrapper: StoryWrapper
+    
+    @EnvironmentObject var globalSettings: GlobalSettingsViewModel
+    @EnvironmentObject var nav: GlobalNavigator
+    
     @Namespace var namespace
-    @Binding var selectedStory: Story?
+    
+    @StateObject var storyVm: StoryViewModel
+    @State private var wrapper: StoryWrapper
     @State private var imageWidth: CGFloat = UIScreen.main.bounds.width
     @State private var imageLoaded: Bool = false
     @State var bindedCommentCount: Int? = nil
     @State var bindedPostPoints: Int? = nil
+    @Binding var selectedStory: Story?
+    
     let story: Story
     
     // Body
     var body: some View {
         CustomNavLink {
-            CommentsView(vm: vm, bindedCommentCount: $bindedCommentCount, bindedPostPoints: $bindedPostPoints)
+            CommentsView(vm: storyVm, bindedCommentCount: $bindedCommentCount, bindedPostPoints: $bindedPostPoints)
                 .customNavBarItems(title: "Comments", backButtonHidden: false)
         } label: {
             if globalSettings.selectedCardStyle == .normal {
@@ -35,56 +40,14 @@ struct PostView: View {
             }
         }
         .createPressableButton()
-        .onAppear { vm.updateBookmarkStatus(globalSettings: globalSettings, story: story) }
-        .onChange(of: bindedCommentCount) { newValue in
-            if newValue != nil {
-                let currentStoryType = vm.storyFeedVm.storyType
-                var storyArray = vm.storyFeedVm.cacheManager.getFromCache(withKey: currentStoryType.rawValue)
-                if storyArray != nil {
-                    var currentStory = storyArray!.filter { wrapper in
-                        wrapper.id == self.wrapper.id
-                    }[0]
-                    currentStory.story?.descendants = newValue
-                    storyArray!.removeAll { wrapper in
-                        wrapper.id == self.wrapper.id
-                    }
-                    storyArray!.append(currentStory)
-                    storyArray!.sort { wrapper1, wrapper2 in
-                        wrapper1.index < wrapper2.index
-                    }
-                    vm.storyFeedVm.cacheManager.removeFromCache(key: currentStoryType.rawValue)
-                    vm.storyFeedVm.cacheManager.saveToCache(storyArray!, withKey: currentStoryType.rawValue)
-                }
-                bindedCommentCount = nil
-            }
-        }
-        .onChange(of: bindedPostPoints) { newValue in
-            if newValue != nil {
-                let currentStoryType = vm.storyFeedVm.storyType
-                var storyArray = vm.storyFeedVm.cacheManager.getFromCache(withKey: currentStoryType.rawValue)
-                if storyArray != nil {
-                    var currentStory = storyArray!.filter { wrapper in
-                        wrapper.id == self.wrapper.id
-                    }[0]
-                    currentStory.story?.score = newValue!
-                    storyArray!.removeAll { wrapper in
-                        wrapper.id == self.wrapper.id
-                    }
-                    storyArray!.append(currentStory)
-                    storyArray!.sort { wrapper1, wrapper2 in
-                        wrapper1.index < wrapper2.index
-                    }
-                    vm.storyFeedVm.cacheManager.removeFromCache(key: currentStoryType.rawValue)
-                    vm.storyFeedVm.cacheManager.saveToCache(storyArray!, withKey: currentStoryType.rawValue)
-                }
-                bindedPostPoints = nil
-            }
-        }
+        .onAppear(perform: updateBookmarkStatus)
+        .onChange(of: bindedCommentCount, perform: updateCommentCount)
+        .onChange(of: bindedPostPoints, perform: updateStoryPoints)
     }
 }
 
-// Card Styles
-extension PostView {
+// MARK: Card Styles
+extension StoryView {
     
     @ViewBuilder var compactCard: some View {
         if horizontalSizeClass == .compact {
@@ -103,8 +66,8 @@ extension PostView {
     }
 }
 
-// Card Styles based on device and their respective orientations
-extension PostView {
+// MARK: Card Styles based on device and their respective orientations
+extension StoryView {
     var smallCompactCardContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             
@@ -217,7 +180,7 @@ extension PostView {
     }
     
     @ViewBuilder var smallNormalCardContent: some View {
-        if let story = vm.story {
+        if let story = storyVm.story {
             VStack {
                 
                 VStack(alignment: .leading, spacing: 0) {
@@ -280,7 +243,7 @@ extension PostView {
     }
     
     @ViewBuilder var largeNormalCardContent: some View {
-        if let story = vm.story {
+        if let story = storyVm.story {
             VStack {
                 
                 VStack(alignment: .leading, spacing: 0) {
@@ -342,11 +305,11 @@ extension PostView {
     }
 }
 
-// Card Components
-extension PostView {
+// MARK: Card Components
+extension StoryView {
     
     @ViewBuilder var bookmarkButton: some View {
-        if vm.isBookmarked {
+        if storyVm.isBookmarked {
             Image(systemName: "bookmark.fill")
                 .matchedGeometryEffect(id: "compactBookmarkButton", in: namespace)
         } else {
@@ -354,7 +317,7 @@ extension PostView {
                 let bookmark = Bookmark(story: story)
                 globalSettings.bookmarks.append(bookmark)
                 withAnimation(.spring()) {
-                    vm.isBookmarked = true
+                    storyVm.isBookmarked = true
                 }
             } label: {
                 Image(systemName: "bookmark")
@@ -460,7 +423,7 @@ extension PostView {
     
     @ViewBuilder var shareButton: some View {
         if let url = story.url {
-            ShareLink(item: vm.networkManager.getSecureUrlString(url: url)) {
+            ShareLink(item: storyVm.networkManager.getSecureUrlString(url: url)) {
                 Image(systemName: "square.and.arrow.up")
             }
             .createRegularButton()
@@ -484,13 +447,68 @@ extension PostView {
     
 }
 
-// Initializer
-extension PostView {
-    init(withWrapper wrapper: StoryWrapper, story: Story, selectedStory: Binding<Story?>, storyFeedVm: StoryFeedViewModel) {
-        self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story, storyFeedVm: storyFeedVm))
+// MARK: Initializer
+extension StoryView {
+    init(withWrapper wrapper: StoryWrapper, story: Story, selectedStory: Binding<Story?>, storyFeedVm: FeedViewModel) {
+        self._storyVm = StateObject(wrappedValue: StoryViewModel(withStory: story, storyFeedVm: storyFeedVm))
         self._wrapper = State(initialValue: wrapper)
         self._selectedStory = selectedStory
         self.story = story
     }
 }
+
+// MARK: Functions
+extension StoryView {
+    private func updateCommentCount(_ count: Int?) {
+        if count != nil {
+            let currentStoryType = storyVm.storyFeedVm.storyType
+            var storyArray = storyVm.storyFeedVm.cacheManager.getFromCache(withKey: currentStoryType.rawValue)
+            if storyArray != nil {
+                var currentStory = storyArray!.filter { wrapper in
+                    wrapper.id == self.wrapper.id
+                }[0]
+                currentStory.story?.descendants = count
+                storyArray!.removeAll { wrapper in
+                    wrapper.id == self.wrapper.id
+                }
+                storyArray!.append(currentStory)
+                storyArray!.sort { wrapper1, wrapper2 in
+                    wrapper1.index < wrapper2.index
+                }
+                storyVm.storyFeedVm.cacheManager.removeFromCache(key: currentStoryType.rawValue)
+                storyVm.storyFeedVm.cacheManager.saveToCache(storyArray!, withKey: currentStoryType.rawValue)
+            }
+            bindedCommentCount = nil
+        }
+    }
+    
+    private func updateStoryPoints(_ count: Int?) {
+        if count != nil {
+            let currentStoryType = storyVm.storyFeedVm.storyType
+            var storyArray = storyVm.storyFeedVm.cacheManager.getFromCache(withKey: currentStoryType.rawValue)
+            if storyArray != nil {
+                var currentStory = storyArray!.filter { wrapper in
+                    wrapper.id == self.wrapper.id
+                }[0]
+                currentStory.story?.score = count!
+                storyArray!.removeAll { wrapper in
+                    wrapper.id == self.wrapper.id
+                }
+                storyArray!.append(currentStory)
+                storyArray!.sort { wrapper1, wrapper2 in
+                    wrapper1.index < wrapper2.index
+                }
+                storyVm.storyFeedVm.cacheManager.removeFromCache(key: currentStoryType.rawValue)
+                storyVm.storyFeedVm.cacheManager.saveToCache(storyArray!, withKey: currentStoryType.rawValue)
+            }
+            bindedPostPoints = nil
+        }
+    }
+    
+    private func updateBookmarkStatus() {
+        storyVm.updateBookmarkStatus(globalSettings: globalSettings, story: story)
+    }
+}
+
+
 

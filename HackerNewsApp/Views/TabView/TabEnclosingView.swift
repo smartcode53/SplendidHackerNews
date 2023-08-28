@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct TabEnclosingView: View {
+    
+    let dependencies: Dependencies
+    
     var body: some View {
         TabView {
-            AppNavbarView()
+            FeedView(dependencies: dependencies)
                 .tabItem {
                     Image(systemName: "newspaper")
                     Text("Feed")
@@ -33,7 +36,7 @@ struct TabEnclosingView: View {
             tabBarAppearance.configureWithOpaqueBackground()
             UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
         }
-        .accentColor(.orange)
+        .accentColor(.blue)
     }
 }
 

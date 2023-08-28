@@ -12,8 +12,6 @@ class CommentsCache {
     
     static let instance = CommentsCache()
     
-    private init() {}
-    
     let cache = NSCache<NSString, CommentsCacheValueWrapper<Item>>()
     
     func getFromCache(withKey key: Int) -> Item? {

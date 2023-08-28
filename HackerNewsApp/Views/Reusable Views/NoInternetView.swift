@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NoInternetView: View {
     
-    @ObservedObject var vm: StoryFeedViewModel
+    @ObservedObject var vm: FeedViewModel
     
     var body: some View {
         VStack {
@@ -50,6 +50,6 @@ struct NoInternetView: View {
 
 struct NoInternetView_Previews: PreviewProvider {
     static var previews: some View {
-        NoInternetView(vm: StoryFeedViewModel())
+        NoInternetView(vm: FeedViewModel())
     }
 }

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 
-class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
+class FeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     
     @Published var storiesDict: [StoryType: [StoryWrapper]] = [
         .topstories: [],
@@ -20,14 +20,19 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
     ]
     @Published var storiesToDisplay: [StoryWrapper] = []
     @Published var fetchedIds: [StoryWrapper] = []
-    @Published var subError: ErrorType? = nil 
+    @Published var subError: ErrorType? = nil
     
+    let dependencies: Dependencies
     
+    init(dependencies: Dependencies) {
+        self.dependencies = dependencies
+    }
     
-    lazy var commentsCacheManager: CommentsCache = CommentsCache.instance
-    lazy var networkManager: NetworkManager = NetworkManager.instance
-    lazy var cacheManager: StoriesCache = StoriesCache.instance
-    lazy var notificationsManager: NotificationsManager = NotificationsManager.instance
+    lazy var commentsCacheManager: CommentsCache = dependencies.commentsCacheManager
+    lazy var networkManager: NetworkManager = dependencies.networkManager
+    let cacheManager = StoriesCache()
+    lazy var notificationsManager: NotificationsManager = dependencies.notificationsManager
+    
     @Published var networkChecker: NetworkChecker = NetworkChecker()
     
     let fileUrl = FileManager().documentsDirectory.appending(component: "stories.txt")
@@ -67,7 +72,7 @@ class StoryFeedViewModel: SafariViewLoader, CommentsButtonProtocol {
 
 
 // MARK: Methods
-extension StoryFeedViewModel {
+extension FeedViewModel {
     
     func loadStoriesTheFirstTime() async {
         
@@ -246,15 +251,11 @@ extension StoryFeedViewModel {
 
 
 // MARK: Stories Cache Manager
-extension StoryFeedViewModel {
+extension FeedViewModel {
     class StoriesCache {
-        
-        static let instance = StoriesCache()
         
         private let dateProvider: () -> Date = Date.init
         private let entryLifetime: TimeInterval = 12 * 60 * 60
-        
-        private init() {}
         
         let cache = NSCache<NSString, StoriesCacheValueWrapper<[StoryWrapper]>>()
         
