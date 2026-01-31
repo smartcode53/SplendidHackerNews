@@ -12,17 +12,33 @@ import SafariServices
 struct SFSafariViewWrapper: UIViewControllerRepresentable {
     
     let url: URL
+    var onFinish: (() -> Void)? = nil
+    
+    final class Coordinator: NSObject, SFSafariViewControllerDelegate {
+        let onFinish: (() -> Void)?
+        
+        init(onFinish: (() -> Void)?) {
+            self.onFinish = onFinish
+        }
+        
+        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+            onFinish?()
+        }
+    }
     
     var safariViewController: SFSafariViewController {
         let controller = SFSafariViewController(url: url)
-        controller.preferredControlTintColor = .white
-        controller.preferredBarTintColor = .black
-        controller.dismissButtonStyle = .close
         return controller
     }
     
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onFinish: onFinish)
+    }
+    
     func makeUIViewController(context: Context) -> some UIViewController {
-        return safariViewController
+        let controller = safariViewController
+        controller.delegate = context.coordinator
+        return controller
     }
     
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {

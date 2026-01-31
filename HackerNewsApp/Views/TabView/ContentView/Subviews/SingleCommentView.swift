@@ -6,59 +6,49 @@
 //
 
 import SwiftUI
-import SwiftSoup
-import Atributika
-
 struct SingleCommentView: View {
-    
-    @StateObject var vm = SingleCommentViewModel()
-    
-    var commentText: String?
-    var commentReplies: [Comment]?
-    var commentAuthor: String?
-    var commentDate: Int
-    
-    
-    var animateArrow: Bool {
-        vm.isExpanded
-    }
+    let comment: Comment
+    @ObservedObject var threadVM: CommentsThreadViewModel
+    let indentLevel: Int
     
     var body: some View {
-        
-        VStack(alignment: .leading) {
-            
-            commentMetaInfo
-            
-            
-            if vm.isExpanded {
+        if threadVM.isVisible(comment.id) {
+            VStack(alignment: .leading) {
                 
-                if let text = commentText {
+                commentMetaInfo
+                
+                if !threadVM.isCollapsed(comment.id) {
                     
-                    Text(text.markdown)
-                        .tint(.orange)
-                }
-                
-                Spacer()
-                
-                if commentReplies != nil {
-                    LazyVStack {
-                        ForEach(commentReplies!) { comment in
-                            SingleCommentView(comment: comment, indentLevel: vm.indentLevel + 1)
-                                .overlay(
-                                    Capsule()
-                                        .fill(Color.orange)
-                                        .frame(width: 1)
-                                        ,
-                                    alignment: .leading
-                                )
+                    if let text = comment.text {
+                        Text(text.markdown)
+                            .tint(.accentColor)
+                    }
+                    
+                    Spacer()
+                    
+                    if let replies = comment.commentChildren {
+                        LazyVStack {
+                            ForEach(replies) { child in
+                                if threadVM.isVisible(child.id) {
+                                    SingleCommentView(comment: child, threadVM: threadVM, indentLevel: indentLevel + 1)
+                                        .overlay(
+                                            Capsule()
+                                                .fill(Color.orange)
+                                                .frame(width: 1)
+                                            ,
+                                            alignment: .leading
+                                        )
+                                }
+                            }
                         }
                     }
                 }
             }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color("CardColor"))
+            .padding(.leading, CGFloat(indentLevel) * 8)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color("CardColor"))
     }
 }
 
@@ -66,34 +56,26 @@ extension SingleCommentView {
     
     var commentMetaInfo: some View {
         HStack {
-            Text(commentAuthor ?? "Unknown")
+            Text(comment.author ?? "Unknown")
                 .padding(.trailing)
             
-            Text(Date.getTimeInterval(with: commentDate))
+            Text(Date.getTimeInterval(with: comment.createdAtI))
             
             Spacer()
             
             
             Image(systemName: "chevron.up")
-                .rotationEffect(Angle(degrees: !animateArrow ? 180 : 0))
+                .rotationEffect(Angle(degrees: threadVM.isCollapsed(comment.id) ? 180 : 0))
         }
         .font(.callout)
         .background(Color("CardColor"))
         .padding(.bottom, 10)
-        .foregroundColor(.orange)
+        .foregroundColor(.secondary)
         .onTapGesture {
             withAnimation(.easeInOut) {
-                vm.isExpanded.toggle()
+                threadVM.toggleCollapse(comment.id)
             }
             
         }
     }
-    
-    init(comment: Comment, indentLevel: Double = 0) {
-        self.commentText = comment.text
-        self.commentReplies = comment.commentChildren
-        self.commentAuthor = comment.author
-        self.commentDate = comment.createdAtI
-    }
 }
-

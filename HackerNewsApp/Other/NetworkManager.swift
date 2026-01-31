@@ -12,7 +12,6 @@ import OpenGraph
 class NetworkManager {
     
     static let instance = NetworkManager()
-    let cacheManager: ContentViewModel.StoriesCache = ContentViewModel.StoriesCache.instance
     
     // Function to get the array of post IDs and convert it into a dictionary.
     func getStoryIds(ofType type: StoryType) async -> [StoryWrapper]? {
@@ -30,6 +29,8 @@ class NetworkManager {
             urlStoryType = "showstories"
         case .topstories:
             urlStoryType = "topstories"
+        case .jobstories:
+            urlStoryType = "jobstories"
         }
         
         guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(urlStoryType).json") else { return nil }
@@ -62,18 +63,8 @@ class NetworkManager {
                 
                 for wrapper in wrapperArray {
                     group.addTask {
-                        
-                        if let cachedStory = self.cacheManager.getFromCache(withKey: String(wrapper.id)) {
-                            var editedWrapper = wrapper
-                            editedWrapper.story = cachedStory
-                            editedWrapper.isLoadedFromCache = true
-                            return editedWrapper
-                        }
-                        
                         guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
                         let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
-                        self.cacheManager.saveToCache(story, withKey: String(newWrapper.id))
-                        print("Story Saved to Cache")
                         return newWrapper
                     }
                 }

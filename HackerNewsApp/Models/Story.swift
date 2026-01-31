@@ -30,4 +30,3 @@ struct Story: Identifiable, Codable, Equatable, Hashable {
     let type: String
     let url: String?
 }
-

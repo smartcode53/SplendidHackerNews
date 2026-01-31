@@ -15,7 +15,7 @@ struct FilterButton: ButtonStyle {
             .padding(.vertical, 10)
             .background(configuration.isPressed ? Color("SortButtonBackground") : .clear)
             .cornerRadius(12)
-            .foregroundColor(configuration.isPressed ? Color("SortButtonText") : Color("PostTitle"))
+            .foregroundColor(configuration.isPressed ? Color("SortButtonText") : .primary)
     }
 }
 

@@ -10,10 +10,12 @@ import SwiftUI
 struct PostView: View {
     
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
+    @EnvironmentObject var feedVM: ContentViewModel
+    @Environment(\.openURL) var openURL
     @StateObject var vm: UltimatePostViewModel
-    @Binding var selectedStory: Story?
     let index: Int
-    let isLoadedFromCache: Bool
+    let isRead: Bool
+    @Binding var path: [AppRoute]
 
     
     
@@ -23,7 +25,6 @@ struct PostView: View {
         } else {
             compactCard
         }
-        
     }
 }
 
@@ -34,40 +35,40 @@ extension PostView {
         if let story = vm.story {
             VStack {
                 
-                Text(String(index))
-                Text(isLoadedFromCache ? "From Cache" : "Downloaded")
-                    .padding(.horizontal)
-                
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 0) {
-                        if let unsafeUrl = story.url,
-                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
-                           let urlDomain = url.urlDomain {
-                            Text(urlDomain)
-                                .foregroundColor(.orange)
-                                .font(.callout.weight(.semibold))
-                                .padding(.bottom, 5)
-                        }
-                        
-                        Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                            .foregroundColor(Color("PostTitle"))
-                            .font(.title3.weight(.bold))
+                    if let unsafeUrl = story.url,
+                        let urlDomain = vm.networkManager.getSecureUrlString(url: unsafeUrl).urlDomain {
+                        Text(urlDomain)
+                            .foregroundColor(.accentColor)
+                            .font(.caption.weight(.semibold))
+                            .padding(.bottom, 5)
+                    }
+                    
+                    Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
+                            .foregroundColor(.primary)
+                            .font(.title3.weight(.semibold))
                             .padding(.bottom, 10)
+                            .opacity(isRead ? 0.55 : 1)
                             .onTapGesture {
-                                selectedStory = story
+                                if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+                                    openURL(safe, prefersInApp: true)
+                                }
+                                Task { await feedVM.openStory(story) }
                             }
                         
                         HStack {
                             Text(Date.getTimeInterval(with: story.time))
                             Text("|")
-                                .foregroundColor(Color("DateNameSeparator"))
+                                .foregroundColor(.secondary)
                             Text(story.by)
                             
                             Spacer()
                         }
-                        .foregroundColor(Color("PostDateName"))
+                        .foregroundColor(.secondary)
                         .padding(.bottom, 16)
                         .font(.subheadline)
+                        .opacity(isRead ? 0.55 : 1)
                         
                     }
                     
@@ -82,12 +83,19 @@ extension PostView {
                     } placeholder: {
                         EmptyView()
                     }
+                    .onTapGesture {
+                        if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+                            openURL(safe, prefersInApp: true)
+                        }
+                        Task { await feedVM.openStory(story) }
+                    }
                     
                 }
                 
                 HStack {
                     Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
                         .font(.callout.weight(.medium))
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
@@ -100,34 +108,47 @@ extension PostView {
                             .fontWeight(.medium)
                     }
                     .buttonStyle(.bordered)
+                    .tint(.red)
                     
                     // Share button
                     
-                    if let unsafeUrl = story.url,
-                       let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
-                        ShareLink(item: url) {
+                    if let unsafeUrl = story.url {
+                        ShareLink(item: vm.networkManager.getSecureUrlString(url: unsafeUrl)) {
                             Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.primary)
                                 .fontWeight(.medium)
                         }
                         .buttonStyle(.bordered)
+                        .tint(.accentColor)
                     }
                     
                     // Comment Button
-                    CommentsButtonView(vm: vm)
+                    CommentsButtonView(vm: vm) {
+                        path.append(.comments(story))
+                        Task { await feedVM.openComments(story) }
+                    }
                     
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(15)
             .background(Color("CardColor"))
             .cornerRadius(12)
-            .padding(.horizontal, 5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding(.vertical, 2)
             .task {
                 if let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
                     vm.loadImage(fromUrl: url)
                 }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                path.append(.comments(story))
+                Task { await feedVM.openComments(story) }
             }
         }
     }
@@ -139,82 +160,55 @@ extension PostView {
             VStack {
                 
                 VStack(alignment: .leading, spacing: 0) {
-                    
-                    HStack {
-                        Text(String(index))
-                        Text(isLoadedFromCache ? "From Cache" : "Downloaded")
-                            .padding(.horizontal)
-                    }
-                    
-                    
                     // Domain Name
                     if let unsafeUrl = story.url,
-                       let url = vm.networkManager.getSecureUrlString(url: unsafeUrl),
-                       let urlDomain = url.urlDomain {
+                       let urlDomain = vm.networkManager.getSecureUrlString(url: unsafeUrl).urlDomain {
                         Text(urlDomain)
-                            .font(.caption.weight(.bold))
-                            .foregroundColor(.orange)
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.accentColor)
                             .padding(.bottom, 10)
                     }
                     
                     // Story Title
-                    if let storyTitle = story.title {
-                        Text(story.url != nil ? "\(storyTitle) \(Image(systemName: "arrow.up.forward.app"))" : "\(storyTitle)")
-                            .font(.title2.weight(.bold))
-                            .foregroundColor(Color("PostTitle"))
+                    
+                    Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
+                            .font(.title3.weight(.semibold))
+                            .foregroundColor(.primary)
                             .padding(.bottom, 16)
-                    }
+                            .opacity(isRead ? 0.55 : 1)
+                            .onTapGesture {
+                                if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+                                    openURL(safe, prefersInApp: true)
+                                }
+                                Task { await feedVM.openStory(story) }
+                            }
+                    
                     
                     
                     // Meta info
                     HStack {
                         Text(Date.getTimeInterval(with: story.time))
                         Text("|")
-                            .foregroundColor(Color("DateNameSeparator"))
+                            .foregroundColor(.secondary)
                         Text(story.by)
                         
                         Spacer()
                     }
-                    .foregroundColor(Color("PostDateName"))
+                    .foregroundColor(.secondary)
                     .padding(.bottom, 16)
                     .font(.subheadline)
+                    .opacity(isRead ? 0.55 : 1)
                 }
                 .padding([.horizontal, .top])
-                .onTapGesture {
-                    if story.url != nil {
-                        selectedStory = vm.story
-                    }
-                    
-                }
                 
                 if let imageUrl = vm.imageUrl {
-                    if let cachedImage = vm.imageCacheManager.getFromCache(withKey: String(story.id)) {
-                        cachedImage
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: UIScreen.main.bounds.width * 0.977)
-                            .frame(height: 220)
-                            .clipped()
-                    } else {
-                        AsyncImage(url: imageUrl) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: UIScreen.main.bounds.width * 0.977)
-                                .frame(height: 220)
-                                .clipped()
-                                .onAppear {
-                                    vm.imageCacheManager.saveToCache(image, withKey: String(story.id))
-                                }
-                        } placeholder: {
-                            Rectangle()
-                                .fill(.thickMaterial)
-                                .frame(width: UIScreen.main.bounds.width * 0.977)
-                                .frame(height: 220)
-                                .clipped()
-                                .blur(radius: 12)
+                    RemoteImageView(url: imageUrl, height: 200)
+                        .onTapGesture {
+                            if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+                                openURL(safe, prefersInApp: true)
+                            }
+                            Task { await feedVM.openStory(story) }
                         }
-                    }
                 }
                 
                 
@@ -224,10 +218,9 @@ extension PostView {
                 // Points and Actionable Buttons
                 VStack {
                     HStack {
-                        if let points = story.score {
-                            Text(points == 1 ? "\(points) point" : "\(points) points")
+                        Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
                                 .font(.headline)
-                        }
+                                .foregroundColor(.secondary)
                         
                         Spacer()
                         
@@ -237,36 +230,49 @@ extension PostView {
                             globalSettings.tempBookmarks.append(bookmark)
                         } label: {
                             Image(systemName: "bookmark")
-                                .foregroundColor(.primary)
                                 .fontWeight(.medium)
                         }
                         .buttonStyle(.bordered)
+                        .tint(.accentColor)
                         
                         // Share Button
-                        if let unsafeUrl = story.url,
-                           let url = vm.networkManager.getSecureUrlString(url: unsafeUrl) {
-                            ShareLink(item: url) {
+                        if let unsafeUrl = story.url
+                           {
+                            ShareLink(item: vm.networkManager.getSecureUrlString(url: unsafeUrl)) {
                                 Image(systemName: "square.and.arrow.up")
-                                    .foregroundColor(.primary)
                             }
                             .buttonStyle(.bordered)
+                            .tint(.accentColor)
                         }
                     
                         //Comments Button
-                        CommentsButtonView(vm: vm)
+                        CommentsButtonView(vm: vm) {
+                            path.append(.comments(story))
+                            Task { await feedVM.openComments(story) }
+                        }
                         
                     }
                     .padding()
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color("CardColor"))
             .cornerRadius(12)
-            .padding(.horizontal, 5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .task {
                 if let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
                     vm.loadImage(fromUrl: url)
                 }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                path.append(.comments(story))
+                Task { await feedVM.openComments(story) }
             }
         }
 
@@ -275,11 +281,44 @@ extension PostView {
 }
 
 extension PostView {
-    init(withStory story: Story, selectedStory: Binding<Story?>, index: Int, isLoadedFromCache: Bool) {
+    private struct RemoteImageView: View {
+        let url: URL
+        let height: CGFloat
+        
+        var body: some View {
+            GeometryReader { proxy in
+                ZStack {
+                    Rectangle()
+                        .fill(.thinMaterial)
+                    
+                    AsyncImage(url: url, transaction: Transaction(animation: .easeInOut(duration: 0.2))) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: proxy.size.width, height: height)
+                        case .failure:
+                            EmptyView()
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
+                .frame(width: proxy.size.width, height: height)
+                .clipped()
+            }
+            .frame(height: height)
+        }
+    }
+    
+    init(withStory story: Story, index: Int, isRead: Bool, path: Binding<[AppRoute]>) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
-        self._selectedStory = selectedStory
         self.index = index
-        self.isLoadedFromCache = isLoadedFromCache
+        self.isRead = isRead
+        self._path = path
     }
 }
 

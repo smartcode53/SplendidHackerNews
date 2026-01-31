@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-class BookmarksViewModel: ObservableObject {
+class BookmarksViewModel: ObservableObject, SafariViewLoader {
     
     enum SortType: String, CaseIterable {
         case lastSaved = "Last Saved"
@@ -36,6 +36,7 @@ class BookmarksViewModel: ObservableObject {
         }
     }
     
+    lazy var networkManager: NetworkManager = NetworkManager.instance
     let fileUrl = FileManager().documentsDirectory.appending(component: "bookmark.txt")
     
     init() {
@@ -57,6 +58,10 @@ class BookmarksViewModel: ObservableObject {
         } catch let error {
             print("There was an error encoding and saving the bookmarks array. Here's the error description: \(error)")
         }
+    }
+    
+    nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
+        return networkManager.safelyLoadUrl(url: url)
     }
     
 }

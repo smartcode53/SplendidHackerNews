@@ -17,7 +17,7 @@ struct SettingsView: View {
     
     var body: some View {
         ZStack {
-            Color("SettingsBackgroundColor")
+            Color("BackgroundColor")
                 .ignoresSafeArea()
                 .zIndex(1)
             
@@ -79,7 +79,7 @@ extension SettingsView {
             Spacer()
             
             Text(globalSettings.selectedCardStyle.rawValue)
-                .foregroundColor(.orange)
+                .foregroundColor(.accentColor)
                 .matchedGeometryEffect(id: "cardStyleText", in: namespace)
         }
         .padding()
@@ -107,7 +107,7 @@ extension SettingsView {
                 
                 if !vm.showCardStylingOptions {
                     Text(globalSettings.selectedCardStyle.rawValue)
-                        .foregroundColor(.orange)
+                        .foregroundColor(.accentColor)
                 }
                 
             }
@@ -125,7 +125,7 @@ extension SettingsView {
                         .foregroundColor(globalSettings.selectedCardStyle == style ? .white : .primary)
                         .padding()
                         .background(globalSettings.selectedCardStyle == style ?
-                                    RoundedRectangle(cornerRadius: 12).fill(.orange).matchedGeometryEffect(id: "cardStyleText", in: namespace)
+                                    RoundedRectangle(cornerRadius: 12).fill(Color.accentColor).matchedGeometryEffect(id: "cardStyleText", in: namespace)
                                     :
                                         nil
                         )
@@ -166,7 +166,7 @@ extension SettingsView {
                 Spacer()
                 
                 Text(globalSettings.selectedTheme.rawValue)
-                    .foregroundColor(.orange)
+                    .foregroundColor(.accentColor)
                     .matchedGeometryEffect(id: "themeSelectorText", in: namespace)
             }
             .padding()
@@ -194,7 +194,7 @@ extension SettingsView {
                 
                 if !vm.showThemeOptions {
                     Text(globalSettings.selectedTheme.rawValue)
-                        .foregroundColor(.orange)
+                        .foregroundColor(.accentColor)
                 }
             }
             .onTapGesture {
@@ -212,7 +212,7 @@ extension SettingsView {
                         case .automatic:
                             HStack(spacing: 2) {
                                 Rectangle()
-                                    .fill(.orange)
+                                    .fill(Color.accentColor)
                                 
                                 Rectangle()
                                     .fill(Color(red: 7 / 255, green: 15 / 255, blue: 28 / 255))
@@ -222,7 +222,7 @@ extension SettingsView {
                         case .light:
                             HStack(spacing: 2) {
                                 Rectangle()
-                                    .fill(.orange)
+                                    .fill(Color.accentColor)
                             }
                             .frame(height: 50)
                             .clipShape(Capsule())
@@ -248,7 +248,7 @@ extension SettingsView {
                         if globalSettings.selectedTheme == theme {
                             Image(systemName: "triangle.fill")
                                 .matchedGeometryEffect(id: "themeSelector", in: namespace)
-                                .foregroundColor(.green)
+                                .foregroundColor(.accentColor)
                                 .padding(.top, 20)
                         }
                     }

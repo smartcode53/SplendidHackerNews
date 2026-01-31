@@ -14,7 +14,7 @@ struct ActionButtonViewModifier: ViewModifier {
             .font(.title3.weight(.bold))
             .padding(.horizontal)
             .background(
-                Color.orange
+                Color.accentColor
                     .frame(height: 40)
                     .cornerRadius(10)
             )

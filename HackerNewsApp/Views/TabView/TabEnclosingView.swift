@@ -10,19 +10,19 @@ import SwiftUI
 struct TabEnclosingView: View {
     var body: some View {
         TabView {
-            ContentView()
+            ContentRootView()
                 .tabItem {
                     Image(systemName: "newspaper")
                     Text("Feed")
                 }
             
-            BookmarksView()
+            BookmarksRootView()
                 .tabItem {
                     Image(systemName: "bookmark")
                     Text("Saved Stories")
                 }
             
-            SettingsView()
+            SettingsRootView()
                 .tabItem {
                     Image(systemName: "gear")
                     Text("Settings")

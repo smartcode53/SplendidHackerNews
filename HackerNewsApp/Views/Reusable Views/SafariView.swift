@@ -9,21 +9,18 @@ import SwiftUI
 
 struct SafariView<T>: View where T: SafariViewLoader {
     
+    @Environment(\.dismiss) var dismiss
     @ObservedObject var vm: T
     
     let url: String?
     
     var body: some View {
-        VStack {
-            if let url {
-                SFSafariViewWrapper(url: vm.returnSafelyLoadedUrl(url: url))
-                    .ignoresSafeArea()
-                    .toolbar(.hidden)
+        if let url {
+            SFSafariViewWrapper(url: vm.returnSafelyLoadedUrl(url: url)) {
+                dismiss()
             }
+                .ignoresSafeArea()
         }
-        
-        
-            
     }
 }
 

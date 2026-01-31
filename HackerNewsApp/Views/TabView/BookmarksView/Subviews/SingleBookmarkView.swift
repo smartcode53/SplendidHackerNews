@@ -12,8 +12,9 @@ struct SingleBookmarkView: View {
     let bookmark: Bookmark
     
     @StateObject var vm: SingleBookmarkViewModel
-    @Binding var selectedStory: Story?
     @Binding var bookmarkToDelete: Bookmark?
+    @Binding var path: [AppRoute]
+    @Environment(\.openURL) var openURL
     
     
     var body: some View {
@@ -23,14 +24,23 @@ struct SingleBookmarkView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         if let urlDomain = story.url?.urlDomain {
                             Text(urlDomain)
-                                .foregroundColor(.orange)
-                                .font(.callout.weight(.semibold))
+                                .foregroundColor(.accentColor)
+                                .font(.caption.weight(.semibold))
                                 .padding(.bottom, 5)
                         }
                         
                         Text(story.title)
-                            .foregroundColor(Color("PostTitle"))
-                            .font(.title3.weight(.medium))
+                            .foregroundColor(.primary)
+                            .font(.title3.weight(.semibold))
+                            .onTapGesture {
+                                if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+                                    openURL(safe, prefersInApp: true)
+                                }
+                                Task {
+                                    await ReadStateStore.shared.markRead(storyID: story.id)
+                                    await HistoryStore.shared.addEntry(story: story, feed: .topstories)
+                                }
+                            }
                         
                     }
                     
@@ -46,6 +56,15 @@ struct SingleBookmarkView: View {
                         Rectangle()
                             .fill(.gray.opacity(0.4))
                             .frame(width: 100, height: 100)
+                    }
+                    .onTapGesture {
+                        if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+                            openURL(safe, prefersInApp: true)
+                        }
+                        Task {
+                            await ReadStateStore.shared.markRead(storyID: story.id)
+                            await HistoryStore.shared.addEntry(story: story, feed: .topstories)
+                        }
                     }
                     
                 }
@@ -65,20 +84,27 @@ struct SingleBookmarkView: View {
                             .fontWeight(.medium)
                     }
                     .buttonStyle(.bordered)
+                    .tint(.red)
                     
                     // Share button
                     
                     if let url = story.url {
                         ShareLink(item: url) {
                             Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.primary)
                                 .fontWeight(.medium)
                         }
                         .buttonStyle(.bordered)
+                        .tint(.accentColor)
                     }
                     
                     // Comment Button
-                    CommentsButtonView(vm: vm)
+                    CommentsButtonView(vm: vm) {
+                        path.append(.comments(story))
+                        Task {
+                            await ReadStateStore.shared.markRead(storyID: story.id)
+                            await HistoryStore.shared.addEntry(story: story, feed: .topstories)
+                        }
+                    }
                     
                     
                     
@@ -87,25 +113,31 @@ struct SingleBookmarkView: View {
             .padding(15)
             .background(Color("CardColor"))
             .cornerRadius(12)
-            .padding(.horizontal, 5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 16)
             .padding(.vertical, 2)
             .task {
                 vm.imageUrl = await vm.getImageUrl(fromUrl: story.url)
             }
+            .contentShape(Rectangle())
             .onTapGesture {
-                selectedStory = story
-            }
-            .fullScreenCover(item: $selectedStory) { story in
-                SafariView(vm: vm, url: story.url)
+                path.append(.comments(story))
+                Task {
+                    await ReadStateStore.shared.markRead(storyID: story.id)
+                    await HistoryStore.shared.addEntry(story: story, feed: .topstories)
+                }
             }
         }
     }
     
-    init(bookmark: Bookmark, selectedStory: Binding<Story?>, bookmarkToDelete: Binding<Bookmark?>) {
+    init(bookmark: Bookmark, bookmarkToDelete: Binding<Bookmark?>, path: Binding<[AppRoute]>) {
         self.bookmark = bookmark
         self._vm = StateObject(wrappedValue: SingleBookmarkViewModel(withStory: bookmark.story))
-        self._selectedStory = selectedStory
         self._bookmarkToDelete = bookmarkToDelete
+        self._path = path
     }
 }
-

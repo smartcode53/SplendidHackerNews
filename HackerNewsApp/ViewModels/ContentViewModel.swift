@@ -14,155 +14,192 @@ enum StoryType: String, CaseIterable {
     case beststories = "Best Stories"
     case askstories = "Ask HN"
     case showstories = "Show HN"
+    case jobstories = "Jobs"
+    
+    var endpoint: String {
+        switch self {
+        case .askstories:
+            return "askstories"
+        case .beststories:
+            return "beststories"
+        case .newstories:
+            return "newstories"
+        case .showstories:
+            return "showstories"
+        case .topstories:
+            return "topstories"
+        case .jobstories:
+            return "jobstories"
+        }
+    }
 }
 
 
 @MainActor
 class ContentViewModel: SafariViewLoader {
     
-    @Published var storiesToDisplay: [StoryWrapper] = []
-    @Published var fetchedStoryWrappers: [StoryWrapper] = []
+    @Published var stories: [Story] = []
+    @Published var storyType = StoryType.topstories {
+        didSet {
+            #if DEBUG
+            print("[Feed] Switching to \(storyType.rawValue). Resetting state.")
+            #endif
+            Task { await applyFeedChange() }
+        }
+    }
+    @Published var isLoading = false
+    @Published var isRefreshing = false
+    @Published var errorMessage: String?
+    @Published var hideRead = false {
+        didSet {
+            Task { await applyHideReadChange() }
+        }
+    }
+    
+    private let repository: StoryRepository
+    private let readStateStore: ReadStateStore
+    private let historyStore: HistoryStore
+    private var ids: [Int] = []
+    private var nextIndex = 0
+    private let pageSize = 30
+    private var loadedIDs = Set<Int>()
+    private var readIDs = Set<Int>()
     
     let networkManager: NetworkManager = NetworkManager.instance
     
-    @Published var storyType = StoryType.topstories {
-        didSet {
-            changeStoryType()
+    init(repository: StoryRepository = StoryRepository(),
+         readStateStore: ReadStateStore = ReadStateStore.shared,
+         historyStore: HistoryStore = HistoryStore.shared) {
+        self.repository = repository
+        self.readStateStore = readStateStore
+        self.historyStore = historyStore
+    }
+    
+    func loadInitial() async {
+        if stories.isEmpty {
+            await applyFeedChange()
         }
     }
-    @Published var selectedStory: Story? = nil
     
-    // MARK: Boolean Values
-    @Published var isLoading = false
-    @Published var isRefreshing = false
+    func applyFeedChange() async {
+        hideRead = await readStateStore.hideRead(for: storyType)
+        await refresh()
+    }
     
-    
-    func refreshStories() {
+    func refresh() async {
+        guard !isRefreshing else { return }
         isRefreshing = true
-//        cacheManager.clearCache()
-//        topStories.removeAll()
-//        initialIdsFetch()
-//        taskGroupStories()
+        errorMessage = nil
+        ids.removeAll()
+        nextIndex = 0
+        loadedIDs.removeAll()
+        readIDs = await readStateStore.readIDsSnapshot()
+        stories.removeAll()
+        
+        do {
+            ids = try await repository.fetchIDs(type: storyType)
+            #if DEBUG
+            let preview = ids.prefix(5).map(String.init).joined(separator: ", ")
+            print("[Feed] IDs fetched (\(storyType.rawValue)) first 5: \(preview)")
+            #endif
+            await loadNextPage()
+        } catch {
+            errorMessage = "Failed to load stories."
+        }
+        
         isRefreshing = false
+    }
+    
+    func loadMoreIfNeeded(currentID: Int) async {
+        guard let lastID = stories.last?.id, currentID == lastID else { return }
+        await loadNextPage()
+    }
+    
+    func openStory(_ story: Story) async {
+        await readStateStore.markRead(storyID: story.id)
+        readIDs.insert(story.id)
+        await historyStore.addEntry(story: story, feed: storyType)
+        
+        if hideRead {
+            stories.removeAll { $0.id == story.id }
+            loadedIDs.remove(story.id)
+            await loadNextPage()
+        }
+    }
+
+    func openComments(_ story: Story) async {
+        await historyStore.addEntry(story: story, feed: storyType)
+    }
+    
+    func isRead(_ storyID: Int) -> Bool {
+        readIDs.contains(storyID)
+    }
+    
+    private func loadNextPage() async {
+        guard !isLoading else { return }
+        guard nextIndex < ids.count else { return }
+        
+        isLoading = true
+        var appended: [Story] = []
+        
+        while appended.count < pageSize && nextIndex < ids.count {
+            let endIndex = min(nextIndex + pageSize, ids.count)
+            let pageIDs = Array(ids[nextIndex..<endIndex])
+            nextIndex = endIndex
+            
+            let newIDs = pageIDs.filter { id in
+                if loadedIDs.contains(id) {
+                    #if DEBUG
+                    print("[Feed] De-dupe skipped id \(id) (already loaded)")
+                    #endif
+                    return false
+                }
+                if hideRead && readIDs.contains(id) {
+                    #if DEBUG
+                    print("[Feed] De-dupe skipped id \(id) (read, hide enabled)")
+                    #endif
+                    return false
+                }
+                return true
+            }
+            
+            if newIDs.isEmpty { continue }
+            
+            do {
+                let fetched = try await repository.fetchStories(ids: newIDs)
+                let byId = Dictionary(uniqueKeysWithValues: fetched.map { ($0.id, $0) })
+                let ordered = newIDs.compactMap { byId[$0] }
+                for story in ordered {
+                    loadedIDs.insert(story.id)
+                }
+                appended.append(contentsOf: ordered)
+            } catch {
+                errorMessage = "Failed to load stories."
+                break
+            }
+        }
+        
+        if !appended.isEmpty {
+            stories.append(contentsOf: appended)
+            #if DEBUG
+            let preview = appended.prefix(5).map { String($0.id) }.joined(separator: ", ")
+            print("[Feed] Appended \(appended.count) stories. First 5 appended: \(preview)")
+            #endif
+        }
+        
+        isLoading = false
+    }
+    
+    private func applyHideReadChange() async {
+        await readStateStore.setHideRead(for: storyType, value: hideRead)
+        loadedIDs = Set(stories.map { $0.id })
+        if hideRead {
+            stories.removeAll { readIDs.contains($0.id) }
+            await loadNextPage()
+        }
     }
     
     nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
         return networkManager.safelyLoadUrl(url: url)
     }
-    
 }
-
-// MARK: Methods
-extension ContentViewModel {
-    
-    func altLoadStoriesTheFirstTime() async {
-        guard let wrappedStoriesArray = await networkManager.getStoryIds(ofType: storyType) else { return }
-        
-        await MainActor.run { [weak self] in
-            self?.fetchedStoryWrappers = wrappedStoriesArray
-        }
-        
-        await altDownloadStories()
-    }
-    
-    func altDownloadStories() async {
-        
-        let extractedStories = extractLimitedStories()
-        
-        guard let storiesArray = await networkManager.getStories(using: extractedStories) else { return }
-        
-        await MainActor.run { [weak self] in
-            for wrapper in storiesArray {
-                self?.storiesToDisplay.append(wrapper)
-            }
-        }
-    }
-    
-    func extractLimitedStories() -> [StoryWrapper] {
-        
-        if fetchedStoryWrappers.count > 19 {
-            let slice = Array(fetchedStoryWrappers.prefix(upTo: 20))
-            print("Slice Count: \(slice.count)")
-            fetchedStoryWrappers = fetchedStoryWrappers.filter({ wrapper in
-                !slice.contains(wrapper)
-            })
-            print("First Item now in FetchedStoryWrappers = \(String(describing: fetchedStoryWrappers.first?.index))")
-            return slice
-        } else {
-            return fetchedStoryWrappers
-        }
-    }
-    
-    func altLoadInfinitely() async {
-        await MainActor.run {
-            self.isLoading = true
-        }
-        await altDownloadStories()
-        await MainActor.run {
-            self.isLoading = false
-        }
-    }
-    
-    func changeStoryType() {
-        fetchedStoryWrappers.removeAll()
-        storiesToDisplay.removeAll()
-        Task {
-            await altLoadStoriesTheFirstTime()
-        }
-    }
-}
-
-
-// MARK: Stories Cache Manager
-extension ContentViewModel {
-    class StoriesCache {
-        
-        static let instance = StoriesCache()
-        
-        private let dateProvider: () -> Date = Date.init
-        private let entryLifetime: TimeInterval = 12 * 60 * 60
-        
-        private init() {}
-        
-        let cache = NSCache<NSString, StoriesCacheValueWrapper<Story>>()
-        
-        func getFromCache(withKey key: String) -> Story? {
-            guard let result = cache.object(forKey: key as NSString) else {
-                return nil
-            }
-            
-            guard dateProvider() < result.expirationDate else {
-                removeFromCache(key: key)
-                return nil
-            }
-            
-            return result.value
-        }
-        
-        func saveToCache(_ object: Story, withKey key: String) {
-            let date = dateProvider().addingTimeInterval(entryLifetime)
-            let wrapper = StoriesCacheValueWrapper(object, expirationDate: date)
-            cache.setObject(wrapper, forKey: key as NSString)
-        }
-        
-        func removeFromCache(key: String) {
-            cache.removeObject(forKey: key as NSString)
-        }
-        
-        func clearCache() {
-            cache.removeAllObjects()
-        }
-    }
-    
-    class StoriesCacheValueWrapper<T> {
-        let value: T
-        let expirationDate: Date
-        
-        init(_ value: T, expirationDate: Date) {
-            self.value = value
-            self.expirationDate = expirationDate
-        }
-    }
-}
-
-
