@@ -14,17 +14,37 @@ struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariVie
     
     var body: some View {
         if let commentCount =  vm.story?.descendants {
+            let displayCount = Self.formatCount(commentCount)
             if let action {
                 Button(action: action) {
-                    Label(String(commentCount), systemImage: "bubble.right")
+                    HStack(spacing: 4) {
+                        Image(systemName: "bubble.right")
+                        Text(displayCount)
+                    }
                 }
-                .buttonStyle(.bordered)
-                .tint(.accentColor)
+                .buttonStyle(.plain)
             } else {
-                Label(String(commentCount), systemImage: "bubble.right")
-                    .buttonStyle(.bordered)
-                    .tint(.accentColor)
+                HStack(spacing: 4) {
+                    Image(systemName: "bubble.right")
+                    Text(displayCount)
+                }
             }
+        }
+    }
+
+    private static func formatCount(_ count: Int) -> String {
+        switch count {
+        case 0..<1000:
+            return String(count)
+        case 1000..<1_000_000:
+            let value = Double(count) / 1000
+            return value >= 10 ? "\(Int(value))k" : String(format: "%.1fk", value)
+        case 1_000_000..<1_000_000_000:
+            let value = Double(count) / 1_000_000
+            return value >= 10 ? "\(Int(value))m" : String(format: "%.1fm", value)
+        default:
+            let value = Double(count) / 1_000_000_000
+            return value >= 10 ? "\(Int(value))b" : String(format: "%.1fb", value)
         }
     }
 }

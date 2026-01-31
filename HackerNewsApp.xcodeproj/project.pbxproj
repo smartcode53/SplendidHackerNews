@@ -376,6 +376,7 @@
 				B46356EB28C1055D00D97E84 /* OpenGraph */,
 				B4D2473128D0C0F800E6CDEB /* Atributika */,
 				B4F2BEFC28E2F2C000CA7811 /* HTML2Markdown */,
+				B4C0A1D728F1234500A1B2C3 /* Glur */,
 			);
 			productName = HackerNewsApp;
 			productReference = B478F9BD28AD77CA002B893C /* HackerNewsApp.app */;
@@ -410,6 +411,7 @@
 				B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */,
 				B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */,
 				B4F2BEFB28E2F2C000CA7811 /* XCRemoteSwiftPackageReference "HTML2Markdown" */,
+				B4C0A1D628F1234500A1B2C3 /* XCRemoteSwiftPackageReference "Glur" */,
 			);
 			productRefGroup = B478F9BE28AD77CA002B893C /* Products */;
 			projectDirPath = "";
@@ -721,6 +723,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		B4C0A1D628F1234500A1B2C3 /* XCRemoteSwiftPackageReference "Glur" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/joogps/Glur";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -743,6 +753,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B4F2BEFB28E2F2C000CA7811 /* XCRemoteSwiftPackageReference "HTML2Markdown" */;
 			productName = HTML2Markdown;
+		};
+		B4C0A1D728F1234500A1B2C3 /* Glur */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B4C0A1D628F1234500A1B2C3 /* XCRemoteSwiftPackageReference "Glur" */;
+			productName = Glur;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

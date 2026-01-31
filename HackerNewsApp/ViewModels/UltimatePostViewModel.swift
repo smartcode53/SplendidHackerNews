@@ -14,6 +14,7 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     @Published var comments: Item?
     
     @Published var imageUrl: URL?
+    @Published var cachedImage: Image?
     @Published var urlDomain: String?
     
     @Published var showStoryInComments = false
@@ -26,6 +27,7 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
     init(withStory story: Story) {
         self._story = Published(initialValue: story)
         self.urlDomain = story.url?.urlDomain
+        self.cachedImage = imageCacheManager.getFromCache(withKey: String(story.id))
     }
     
     func loadImage(fromUrl url: String) {
@@ -39,6 +41,12 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
 
     func saveImageToCache(_ image: Image, storyId: Int) {
         imageCacheManager.saveToCache(image, withKey: String(storyId))
+    }
+
+    func cacheImageIfNeeded(_ image: Image, storyId: Int) {
+        guard cachedImage == nil else { return }
+        cachedImage = image
+        saveImageToCache(image, storyId: storyId)
     }
 }
 
