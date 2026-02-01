@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-class CommentsCache {
+final class CommentsCache: @unchecked Sendable {
     
     static let instance = CommentsCache()
     
@@ -26,7 +26,7 @@ class CommentsCache {
     }
 }
 
-class CommentsCacheValueWrapper<T> {
+final class CommentsCacheValueWrapper<T> {
     let value: T
     
     init(_ value: T) {

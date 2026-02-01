@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class BookmarksViewModel: ObservableObject, SafariViewLoader {
     
     enum SortType: String, CaseIterable {
@@ -58,10 +59,6 @@ class BookmarksViewModel: ObservableObject, SafariViewLoader {
         } catch let error {
             print("There was an error encoding and saving the bookmarks array. Here's the error description: \(error)")
         }
-    }
-    
-    nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
-        return networkManager.safelyLoadUrl(url: url)
     }
     
 }

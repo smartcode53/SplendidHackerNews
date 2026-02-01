@@ -16,7 +16,9 @@ actor HistoryStore {
     private let fileUrl = FileManager.default.documentsDirectory.appending(component: "history.json")
     
     init() {
-        loadFromDisk()
+        if let decoded = Self.loadFromDisk(fileUrl: fileUrl) {
+            entries = decoded
+        }
     }
     
     func addEntry(story: Story, feed: StoryType) {
@@ -41,10 +43,9 @@ actor HistoryStore {
         saveToDisk()
     }
     
-    private func loadFromDisk() {
-        guard let data = try? Data(contentsOf: fileUrl) else { return }
-        guard let decoded = try? JSONDecoder().decode([HistoryEntry].self, from: data) else { return }
-        entries = decoded
+    nonisolated private static func loadFromDisk(fileUrl: URL) -> [HistoryEntry]? {
+        guard let data = try? Data(contentsOf: fileUrl) else { return nil }
+        return try? JSONDecoder().decode([HistoryEntry].self, from: data)
     }
     
     private func saveToDisk() {

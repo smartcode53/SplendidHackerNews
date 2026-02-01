@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class SettingsViewModel: ObservableObject {
     
     @Published var showCardStylingOptions = false

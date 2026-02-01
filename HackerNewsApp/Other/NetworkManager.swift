@@ -9,90 +9,11 @@ import Foundation
 import SwiftUI
 import OpenGraph
 
-class NetworkManager {
+final class NetworkManager: @unchecked Sendable {
     
     static let instance = NetworkManager()
     
-    // Function to get the array of post IDs and convert it into a dictionary.
-    func getStoryIds(ofType type: StoryType) async -> [StoryWrapper]? {
-        
-        let urlStoryType: String
-        
-        switch type {
-        case .askstories:
-            urlStoryType = "askstories"
-        case .beststories:
-            urlStoryType = "beststories"
-        case .newstories:
-            urlStoryType = "newstories"
-        case .showstories:
-            urlStoryType = "showstories"
-        case .topstories:
-            urlStoryType = "topstories"
-        case .jobstories:
-            urlStoryType = "jobstories"
-        }
-        
-        guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/\(urlStoryType).json") else { return nil }
-        
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let safeData = try? JSONDecoder().decode([Int].self, from: data) {
-                var wrapperArray: [StoryWrapper] = []
-                for (index, id) in safeData.enumerated() {
-                    let wrapper = StoryWrapper(index: index, id: id)
-                    wrapperArray.append(wrapper)
-                }
-                return wrapperArray
-            }
-        } catch let error {
-            print(error)
-        }
-        
-        return nil
-    }
-    
-    // Function to fetch stories from the dictionary of post IDs
-    func getStories(using wrapperArray: [StoryWrapper]) async -> [StoryWrapper]?  {
-        
-        do {
-            let stories = try await withThrowingTaskGroup(of: StoryWrapper?.self, body: { group in
-                
-                var storyArray: [StoryWrapper] = []
-                
-                for wrapper in wrapperArray {
-                    group.addTask {
-                        guard let story = await self.fetchSingleStory(withId: wrapper.id) else { return nil }
-                        let newWrapper = StoryWrapper(index: wrapper.index, id: wrapper.id, story: story)
-                        return newWrapper
-                    }
-                }
-                
-                for try await result in group {
-                    if let result {
-                        storyArray.append(result)
-                    }
-                }
-                
-                storyArray.sort { wrapper1, wrapper2 in
-                    wrapper1.index < wrapper2.index
-                }
-                
-                return storyArray
-                
-            })
-            
-            return stories
-            
-        } catch let error {
-            print("Error in task group: \(error)")
-            return nil
-        }
-        
-    }
-    
-    // Sub-function of the getStories function to help fetch a single story using its ID.
+    // Sub-function to help fetch a single story using its ID.
     func fetchSingleStory(withId id: Int) async -> Story? {
         guard let url = URL(string: "https://hacker-news.firebaseio.com/v0/item/\(id).json") else { return nil }
         

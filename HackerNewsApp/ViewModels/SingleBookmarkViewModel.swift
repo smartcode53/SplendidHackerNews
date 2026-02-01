@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class SingleBookmarkViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol {
     
     @Published var comments: Item?

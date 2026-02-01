@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 protocol SafariViewLoader: ObservableObject {
     
     var networkManager: NetworkManager { get }
@@ -21,6 +22,7 @@ extension SafariViewLoader {
 }
 
 
+@MainActor
 protocol CommentsButtonProtocol: ObservableObject {
     
     var story: Story? { get set }
@@ -31,7 +33,7 @@ protocol CommentsButtonProtocol: ObservableObject {
     var networkManager: NetworkManager { get }
     var commentsCacheManager: CommentsCache { get }
     
-    func loadComments(withId id: Int)
+    func loadComments(withId id: Int) async
     
     func getCommentAndPointCounts(forPostWithId id: Int) async -> (Int?, Int)? 
 }
@@ -39,23 +41,19 @@ protocol CommentsButtonProtocol: ObservableObject {
 
 extension CommentsButtonProtocol {
     
-    func loadComments(withId id: Int) {
+    func loadComments(withId id: Int) async {
         if let cachedItem = commentsCacheManager.getFromCache(withKey: id) {
             comments = cachedItem
             print("Item loaded from cache")
-        } else {
-            print("Item needed to be downloaded from the server")
-            Task {
-                let result = await networkManager.getComments(forId: id)
-                await MainActor.run { [weak self] in
-                    self?.comments = result
-                }
-                
-                if let safeResult = result {
-                    commentsCacheManager.saveToCache(safeResult, withKey: id)
-                    print("Comment cache save successful with id: \(id)")
-                }
-            }
+            return
+        }
+
+        print("Item needed to be downloaded from the server")
+        let result = await networkManager.getComments(forId: id)
+        comments = result
+        if let safeResult = result {
+            commentsCacheManager.saveToCache(safeResult, withKey: id)
+            print("Comment cache save successful with id: \(id)")
         }
     }
     

@@ -5,13 +5,17 @@
 //  Created by Taha Broachwala on 9/25/22.
 //
 
+import Combine
 import Foundation
 import SwiftUI
 
+@MainActor
 class GlobalSettingsViewModel: ObservableObject {
     
     @Published var settings: Settings
     @Published var tempBookmarks: [Bookmark]
+    private let persistence: SettingsPersistenceCoordinator
+    private var settingsCancellable: AnyCancellable?
     
     var selectedCardStyle: Settings.CardStyle {
         switch settings.cardStyleString {
@@ -35,12 +39,24 @@ class GlobalSettingsViewModel: ObservableObject {
             return .automatic
         }
     }
+
+    var isHNWriteEnabled: Bool {
+        #if DEBUG
+        return settings.enableHNWriteActionsDebug
+        #else
+        return false
+        #endif
+    }
     
-    let url = FileManager.default.documentsDirectory.appending(component: "settings.txt")
+    let url: URL
     
     init() {
+        let fileURL = FileManager.default.documentsDirectory.appending(component: "settings.txt")
+        self.url = fileURL
+        self.persistence = SettingsPersistenceCoordinator(fileURL: fileURL)
+
         do {
-            let data = try Data(contentsOf: url)
+            let data = try Data(contentsOf: fileURL)
             if let settings = try? JSONDecoder().decode(Settings.self, from: data) {
                 self.settings = settings
             } else {
@@ -52,14 +68,25 @@ class GlobalSettingsViewModel: ObservableObject {
         }
         
         self.tempBookmarks = []
+        startObservingSettings()
     }
     
     func saveSettings() {
-        do {
-            let data = try JSONEncoder().encode(settings)
-            try data.write(to: url)
-        } catch let error {
-            print(error)
+        let snapshot = settings
+        Task { [persistence = persistence] in
+            await persistence.saveNow(snapshot: snapshot)
         }
+    }
+
+    private func startObservingSettings() {
+        settingsCancellable = $settings
+            .dropFirst()
+            .sink { [weak self] updated in
+                guard let self else { return }
+                let persistence = self.persistence
+                Task { [persistence] in
+                    await persistence.scheduleSave(snapshot: updated)
+                }
+            }
     }
 }

@@ -32,6 +32,10 @@ struct SettingsView: View {
                     
                     // Section 3
                     thirdSection
+
+                    #if DEBUG
+                    debugSection
+                    #endif
                 }
             }
             .zIndex(2)
@@ -67,6 +71,8 @@ extension SettingsView {
             } else {
                 themeCollapsed
             }
+
+            readerSection
             
         }
     }
@@ -330,6 +336,42 @@ extension SettingsView {
         }
         .padding(.top, 30)
     }
+
+    private var readerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Reader", systemImage: "text.book.closed")
+                .font(.headline)
+
+            Toggle("Open articles in Reader", isOn: $globalSettings.settings.openInReader)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Font Size")
+                    Spacer()
+                    Text("\(globalSettings.settings.readerFontScale, specifier: "%.2f")")
+                        .foregroundColor(.secondary)
+                }
+                Slider(value: $globalSettings.settings.readerFontScale, in: 0.9...1.4, step: 0.05)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Line Spacing")
+                    Spacer()
+                    Text("\(globalSettings.settings.readerLineSpacing, specifier: "%.0f")")
+                        .foregroundColor(.secondary)
+                }
+                Slider(value: $globalSettings.settings.readerLineSpacing, in: 1...10, step: 1)
+            }
+        }
+        .padding()
+        .background(content: {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color("CardColor"))
+        })
+        .padding(.horizontal, 10)
+        .padding(.top, 10)
+    }
     
     private var thirdSection: some View {
         VStack() {
@@ -382,6 +424,65 @@ extension SettingsView {
         }
         .padding(.top, 30)
     }
+
+    #if DEBUG
+    private var debugSection: some View {
+        VStack() {
+            HStack {
+                Text("Debug")
+                    .font(.title3.weight(.semibold))
+                Spacer()
+            }
+            .padding(.horizontal)
+
+            NavigationLink(value: AppRoute.hnAccount) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
+
+                    HStack {
+                        Label("HN Account", systemImage: "person.badge.key")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .padding()
+                }
+                .padding(.horizontal, 10)
+            }
+
+            NavigationLink(value: AppRoute.hnDiagnostics) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
+
+                    HStack {
+                        Label("HN Diagnostics", systemImage: "stethoscope")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .padding()
+                }
+                .padding(.horizontal, 10)
+            }
+
+            NavigationLink(value: AppRoute.readerPreview) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
+
+                    HStack {
+                        Label("Reader Preview", systemImage: "text.book.closed")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .padding()
+                }
+                .padding(.horizontal, 10)
+            }
+        }
+        .padding(.top, 30)
+    }
+    #endif
     
 }
 

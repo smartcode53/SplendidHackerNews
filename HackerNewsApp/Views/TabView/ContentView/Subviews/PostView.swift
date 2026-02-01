@@ -12,11 +12,16 @@ struct PostView: View {
     
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @EnvironmentObject var feedVM: ContentViewModel
+    @EnvironmentObject var account: HNAccount
     @Environment(\.openURL) var openURL
     @StateObject var vm: UltimatePostViewModel
     let index: Int
     let isRead: Bool
     @Binding var path: [AppRoute]
+    @State private var showVoteAlert = false
+    @State private var voteAlertMessage = ""
+    @State private var didVote = false
+    @State private var isVoting = false
 
     
     
@@ -52,10 +57,7 @@ extension PostView {
                             .padding(.bottom, 10)
                             .opacity(isRead ? 0.55 : 1)
                             .onTapGesture {
-                                if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
-                                    openURL(safe, prefersInApp: true)
-                                }
-                                Task { await feedVM.openStory(story) }
+                                openStoryDestination(story)
                             }
                         
                         HStack {
@@ -85,10 +87,7 @@ extension PostView {
                         EmptyView()
                     }
                     .onTapGesture {
-                        if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
-                            openURL(safe, prefersInApp: true)
-                        }
-                        Task { await feedVM.openStory(story) }
+                        openStoryDestination(story)
                     }
                     
                 }
@@ -127,6 +126,18 @@ extension PostView {
                         path.append(.comments(story))
                         Task { await feedVM.openComments(story) }
                     }
+
+                    if globalSettings.isHNWriteEnabled && account.isLoggedIn {
+                        Button {
+                            Task { await handleStoryVote(storyId: story.id) }
+                        } label: {
+                            Image(systemName: "arrow.up")
+                                .fontWeight(.medium)
+                        }
+                        .buttonStyle(.bordered)
+                        .opacity(didVote ? 0.4 : 1)
+                        .disabled(didVote || isVoting)
+                    }
                     
                 }
             }
@@ -143,13 +154,18 @@ extension PostView {
             .task {
                 if let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-                    vm.loadImage(fromUrl: url)
+                    await vm.loadImage(fromUrl: url)
                 }
             }
             .contentShape(Rectangle())
             .onTapGesture {
                 path.append(.comments(story))
                 Task { await feedVM.openComments(story) }
+            }
+            .alert("Vote", isPresented: $showVoteAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(voteAlertMessage)
             }
         }
     }
@@ -253,10 +269,7 @@ extension PostView {
                             }
 
                             Button {
-                                if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
-                                    openURL(safe, prefersInApp: true)
-                                }
-                                Task { await feedVM.openStory(story) }
+                                openStoryDestination(story)
                             } label: {
                                 Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
                                     .font(.title3.weight(.semibold))
@@ -342,6 +355,26 @@ extension PostView {
                                     .stroke(Color.white.opacity(0.12), lineWidth: 1)
                             )
                             .contentShape(Rectangle())
+
+                            if globalSettings.isHNWriteEnabled && account.isLoggedIn {
+                                Button {
+                                    Task { await handleStoryVote(storyId: story.id) }
+                                } label: {
+                                    Image(systemName: "arrow.up")
+                                        .font(controlIconFont)
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundColor(.white.opacity(0.9))
+                                .frame(width: 40, height: 40)
+                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                )
+                                .contentShape(Rectangle())
+                                .opacity(didVote ? 0.4 : 1)
+                                .disabled(didVote || isVoting)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
@@ -377,13 +410,18 @@ extension PostView {
             .task {
                 if vm.imageUrl == nil && vm.cachedImage == nil, let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
-                    vm.loadImage(fromUrl: url)
+                    await vm.loadImage(fromUrl: url)
                 }
             }
             .contentShape(Rectangle())
             .onTapGesture {
                 path.append(.comments(story))
                 Task { await feedVM.openComments(story) }
+            }
+            .alert("Vote", isPresented: $showVoteAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(voteAlertMessage)
             }
         }
 
@@ -392,6 +430,44 @@ extension PostView {
 }
 
 extension PostView {
+    @MainActor
+    private func handleStoryVote(storyId: Int) async {
+        guard !isVoting else { return }
+        isVoting = true
+        didVote = true
+        do {
+            let result = try await account.upvoteStory(id: storyId)
+            switch result {
+            case .voted:
+                break
+            case .alreadyVoted:
+                voteAlertMessage = "Already voted."
+                showVoteAlert = true
+            case .verificationFailed:
+                didVote = false
+                voteAlertMessage = "Vote sent, but verification failed."
+                showVoteAlert = true
+            }
+        } catch {
+            didVote = false
+            voteAlertMessage = error.localizedDescription
+            showVoteAlert = true
+            HNDebugLog.error("Story upvote failed: \(error)")
+        }
+        isVoting = false
+    }
+}
+
+extension PostView {
+    private func openStoryDestination(_ story: Story) {
+        if globalSettings.settings.openInReader, story.url != nil {
+            path.append(.reader(story))
+        } else if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+            openURL(safe, prefersInApp: true)
+        }
+        Task { await feedVM.openStory(story) }
+    }
+
     @ViewBuilder
     private func cardImage(for story: Story) -> some View {
         if let cachedImage = vm.cachedImage {

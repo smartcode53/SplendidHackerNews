@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonProtocol {
     
     @Published var story: Story?
@@ -30,13 +31,9 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
         self.cachedImage = imageCacheManager.getFromCache(withKey: String(story.id))
     }
     
-    func loadImage(fromUrl url: String) {
-        Task {
-            let resultUrl = await networkManager.getImage(fromUrl: url)
-            await MainActor.run { [weak self] in
-                self?.imageUrl = resultUrl
-            }
-        }
+    func loadImage(fromUrl url: String) async {
+        let resultUrl = await networkManager.getImage(fromUrl: url)
+        imageUrl = resultUrl
     }
 
     func saveImageToCache(_ image: Image, storyId: Int) {
@@ -53,7 +50,7 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
 
 extension UltimatePostViewModel {
     
-    class ImageCache {
+    final class ImageCache: @unchecked Sendable {
         
         static let instance = ImageCache()
         
@@ -94,7 +91,7 @@ extension UltimatePostViewModel {
     }
     
     
-    class ImageCacheValueWrapper<T> {
+    final class ImageCacheValueWrapper<T> {
         let value: T
         let expirationDate: Date
         

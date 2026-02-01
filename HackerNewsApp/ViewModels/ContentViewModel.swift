@@ -134,8 +134,27 @@ class ContentViewModel: SafariViewLoader {
     func isRead(_ storyID: Int) -> Bool {
         readIDs.contains(storyID)
     }
+
+    func ensureStoryLoaded(targetID: Int, maxPages: Int) async -> Bool {
+        if stories.contains(where: { $0.id == targetID }) {
+            return true
+        }
+        var attempts = 0
+        while attempts < maxPages {
+            let beforeCount = stories.count
+            await loadNextPage()
+            if stories.contains(where: { $0.id == targetID }) {
+                return true
+            }
+            attempts += 1
+            if stories.count == beforeCount {
+                break
+            }
+        }
+        return false
+    }
     
-    private func loadNextPage() async {
+    func loadNextPage() async {
         guard !isLoading else { return }
         guard nextIndex < ids.count else { return }
         
@@ -199,7 +218,4 @@ class ContentViewModel: SafariViewLoader {
         }
     }
     
-    nonisolated func returnSafelyLoadedUrl(url: String) -> URL {
-        return networkManager.safelyLoadUrl(url: url)
-    }
 }

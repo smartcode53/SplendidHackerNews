@@ -10,6 +10,13 @@ struct SingleCommentView: View {
     let comment: Comment
     @ObservedObject var threadVM: CommentsThreadViewModel
     let indentLevel: Int
+    @EnvironmentObject var globalSettings: GlobalSettingsViewModel
+    @EnvironmentObject var account: HNAccount
+    @State private var showReplySheet = false
+    @State private var showVoteAlert = false
+    @State private var voteAlertMessage = ""
+    @State private var didVote = false
+    @State private var isVoting = false
     
     var body: some View {
         if threadVM.isVisible(comment.id) {
@@ -62,20 +69,76 @@ extension SingleCommentView {
             Text(Date.getTimeInterval(with: comment.createdAtI))
             
             Spacer()
-            
-            
-            Image(systemName: "chevron.up")
-                .rotationEffect(Angle(degrees: threadVM.isCollapsed(comment.id) ? 180 : 0))
+
+            if globalSettings.isHNWriteEnabled && account.isLoggedIn {
+                Button {
+                    Task { await handleCommentVote(commentId: comment.id) }
+                } label: {
+                    Image(systemName: "arrow.up")
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+                .opacity(didVote ? 0.4 : 1)
+                .disabled(didVote || isVoting)
+
+                Button("Reply") {
+                    showReplySheet = true
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+            }
+
+            Button {
+                withAnimation(.easeInOut) {
+                    threadVM.toggleCollapse(comment.id)
+                }
+            } label: {
+                Image(systemName: "chevron.up")
+                    .rotationEffect(Angle(degrees: threadVM.isCollapsed(comment.id) ? 180 : 0))
+            }
+            .buttonStyle(.plain)
         }
         .font(.callout)
         .background(Color("CardColor"))
         .padding(.bottom, 10)
         .foregroundColor(.secondary)
-        .onTapGesture {
-            withAnimation(.easeInOut) {
-                threadVM.toggleCollapse(comment.id)
-            }
-            
+        .sheet(isPresented: $showReplySheet) {
+            HNReplySheet(commentId: comment.id, storyId: comment.storyId)
+                .environmentObject(account)
         }
+        .alert("Vote", isPresented: $showVoteAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(voteAlertMessage)
+        }
+    }
+}
+
+extension SingleCommentView {
+    @MainActor
+    private func handleCommentVote(commentId: Int) async {
+        guard !isVoting else { return }
+        isVoting = true
+        didVote = true
+        do {
+            let result = try await account.upvoteComment(id: commentId)
+            switch result {
+            case .voted:
+                break
+            case .alreadyVoted:
+                voteAlertMessage = "Already voted."
+                showVoteAlert = true
+            case .verificationFailed:
+                didVote = false
+                voteAlertMessage = "Vote sent, but verification failed."
+                showVoteAlert = true
+            }
+        } catch {
+            didVote = false
+            voteAlertMessage = error.localizedDescription
+            showVoteAlert = true
+            HNDebugLog.error("Comment upvote failed: \(error)")
+        }
+        isVoting = false
     }
 }

@@ -14,7 +14,10 @@ actor ReadStateStore {
     private let fileUrl = FileManager.default.documentsDirectory.appending(component: "read_state.json")
     
     init() {
-        loadFromDisk()
+        if let decoded = Self.loadFromDisk(fileUrl: fileUrl) {
+            readIDs = Set(decoded.readIDs)
+            hideReadByFeed = decoded.hideReadByFeed
+        }
     }
     
     func markRead(storyID: Int) {
@@ -45,11 +48,9 @@ actor ReadStateStore {
         saveToDisk()
     }
     
-    private func loadFromDisk() {
-        guard let data = try? Data(contentsOf: fileUrl) else { return }
-        guard let decoded = try? JSONDecoder().decode(PersistedState.self, from: data) else { return }
-        readIDs = Set(decoded.readIDs)
-        hideReadByFeed = decoded.hideReadByFeed
+    nonisolated private static func loadFromDisk(fileUrl: URL) -> PersistedState? {
+        guard let data = try? Data(contentsOf: fileUrl) else { return nil }
+        return try? JSONDecoder().decode(PersistedState.self, from: data)
     }
     
     private func saveToDisk() {

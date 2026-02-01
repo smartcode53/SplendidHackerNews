@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B5A1C2D3E4F5060708090B0B /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A1C2D3E4F5060708090A0B /* ReaderView.swift */; };
+		B5A1C2D3E4F5060708090B0C /* ReaderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A1C2D3E4F5060708090A0C /* ReaderViewModel.swift */; };
+		B5A1C2D3E4F5060708090B0D /* ReaderExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A1C2D3E4F5060708090A0D /* ReaderExtractor.swift */; };
+		B7A1C2D3E4F5060708090B11 /* SettingsPersistenceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */; };
 		B4FF103028F0000000A1B2D4 /* ContentRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF102D28F0000000A1B2D4 /* ContentRootView.swift */; };
 		B4FF103128F0000000A1B2D5 /* BookmarksRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF102E28F0000000A1B2D5 /* BookmarksRootView.swift */; };
 		B4FF103228F0000000A1B2D6 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF102F28F0000000A1B2D6 /* SettingsRootView.swift */; };
@@ -18,6 +22,19 @@
 		B4FF101528F0000000A1B2C9 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF101228F0000000A1B2C9 /* HistoryView.swift */; };
 		B4FF101628F0000000A1B2D0 /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF101728F0000000A1B2D0 /* HistoryViewModel.swift */; };
 		B4FF100328F0000000A1B2C5 /* HNAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF100128F0000000A1B2C3 /* HNAPIClient.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B201 /* HNAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B202 /* HNKeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A102 /* HNKeychainStore.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B203 /* HNHTMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A103 /* HNHTMLParser.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B204 /* HNWriteClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A104 /* HNWriteClient.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B205 /* HNDebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A105 /* HNDebugLog.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B206 /* HNAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A106 /* HNAccountView.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B207 /* HNLoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A107 /* HNLoginWebView.swift */; };
+		B2B2B2B2B2B2B2B2B2B2B208 /* HNReplySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A108 /* HNReplySheet.swift */; };
+		C1C1C1C1C1C1C1C1C1C1C101 /* HNDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C001 /* HNDiagnosticsView.swift */; };
+		C1C1C1C1C1C1C1C1C1C1C102 /* HNDiagnosticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */; };
+		C1C1C1C1C1C1C1C1C1C1C103 /* HNDiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */; };
+		D1D1D1D1D1D1D1D1D1D1D101 /* FeedScrollStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */; };
+		D1D1D1D1D1D1D1D1D1D1D102 /* CommentsScrollStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D1D1D1D1D1D1D1D1D1D002 /* CommentsScrollStore.swift */; };
 		B4FF100428F0000000A1B2C6 /* StoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF100228F0000000A1B2C4 /* StoryRepository.swift */; };
 		B4191D3C28C329CA00B86618 /* ActionButtonsViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */; };
 		B41CD14028DEF0AA0091E865 /* TabEnclosingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */; };
@@ -77,6 +94,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B5A1C2D3E4F5060708090A0B /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
+		B5A1C2D3E4F5060708090A0C /* ReaderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderViewModel.swift; sourceTree = "<group>"; };
+		B5A1C2D3E4F5060708090A0D /* ReaderExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderExtractor.swift; sourceTree = "<group>"; };
+		B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPersistenceCoordinator.swift; sourceTree = "<group>"; };
 		B4FF102D28F0000000A1B2D4 /* ContentRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentRootView.swift; sourceTree = "<group>"; };
 		B4FF102E28F0000000A1B2D5 /* BookmarksRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksRootView.swift; sourceTree = "<group>"; };
 		B4FF102F28F0000000A1B2D6 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
@@ -88,6 +109,11 @@
 		B4FF101228F0000000A1B2C9 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		B4FF101728F0000000A1B2D0 /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		B4FF100128F0000000A1B2C3 /* HNAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAPIClient.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAccount.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A102 /* HNKeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNKeychainStore.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A103 /* HNHTMLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNHTMLParser.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A104 /* HNWriteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNWriteClient.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A105 /* HNDebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDebugLog.swift; sourceTree = "<group>"; };
 		B4FF100228F0000000A1B2C4 /* StoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryRepository.swift; sourceTree = "<group>"; };
 		B4191D3B28C329CA00B86618 /* ActionButtonsViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonsViewModifier.swift; sourceTree = "<group>"; };
 		B41CD13F28DEF0AA0091E865 /* TabEnclosingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabEnclosingView.swift; sourceTree = "<group>"; };
@@ -121,6 +147,8 @@
 		B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentViewModel.swift; sourceTree = "<group>"; };
 		B4E6C9EB28C63EA600A2982B /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		B4ECFDC228E16E550063FBF0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A106 /* HNAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAccountView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A107 /* HNLoginWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNLoginWebView.swift; sourceTree = "<group>"; };
 		B4ECFDC428E171860063FBF0 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		B4F0327228C07B4300E463BF /* Results.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Results.swift; sourceTree = "<group>"; };
 		B4F0327628C07C0B00E463BF /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
@@ -128,6 +156,12 @@
 		B4F0328C28C08FC500E463BF /* DateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
 		B4F2BEF928E2D0CF00CA7811 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleCommentView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A108 /* HNReplySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNReplySheet.swift; sourceTree = "<group>"; };
+		C1C1C1C1C1C1C1C1C1C1C001 /* HNDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsView.swift; sourceTree = "<group>"; };
+		C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsViewModel.swift; sourceTree = "<group>"; };
+		C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsReport.swift; sourceTree = "<group>"; };
+		D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedScrollStore.swift; sourceTree = "<group>"; };
+		D1D1D1D1D1D1D1D1D1D1D002 /* CommentsScrollStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsScrollStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,9 +191,11 @@
 			isa = PBXGroup;
 			children = (
 				B46F2CFC28C9E49C00DE0D19 /* PostView.swift */,
+				B5A1C2D3E4F5060708090A0B /* ReaderView.swift */,
 				B47628C028B8B47C00E491D3 /* CommentsView.swift */,
 				B44EB1D628DDF6BC00CC72EE /* CommentsButtonView.swift */,
 				B4FFC92D28BD4A80001D5AB3 /* SingleCommentView.swift */,
+				A1A1A1A1A1A1A1A1A1A1A108 /* HNReplySheet.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -272,6 +308,9 @@
 			children = (
 				B4FF102F28F0000000A1B2D6 /* SettingsRootView.swift */,
 				B4ECFDC228E16E550063FBF0 /* SettingsView.swift */,
+				A1A1A1A1A1A1A1A1A1A1A106 /* HNAccountView.swift */,
+				A1A1A1A1A1A1A1A1A1A1A107 /* HNLoginWebView.swift */,
+				C1C1C1C1C1C1C1C1C1C1C001 /* HNDiagnosticsView.swift */,
 			);
 			path = SettingsView;
 			sourceTree = "<group>";
@@ -307,12 +346,14 @@
 				B4FF102128F0000000A1B2D3 /* RouteViewModels.swift */,
 				B4FF101728F0000000A1B2D0 /* HistoryViewModel.swift */,
 				B478F9D028AD8020002B893C /* ContentViewModel.swift */,
+				B5A1C2D3E4F5060708090A0C /* ReaderViewModel.swift */,
 				B4E6C9E928C63E0000A2982B /* SingleCommentViewModel.swift */,
 				B489E3EA28DCAED60071B869 /* UltimatePostViewModel.swift */,
 				B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */,
 				B45131E828DF88770022CAA8 /* SingleBookmarkViewModel.swift */,
 				B4E6128928E04A8A003D8A0E /* GlobalSettingsViewModel.swift */,
 				B4ECFDC428E171860063FBF0 /* SettingsViewModel.swift */,
+				C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -343,8 +384,18 @@
 			children = (
 				B4FF101F28F0000000A1B2D2 /* AppRoute.swift */,
 				B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */,
+				B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */,
 				B4E6C9E728C639E300A2982B /* Protocols.swift */,
 				B4FF100128F0000000A1B2C3 /* HNAPIClient.swift */,
+				A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */,
+				A1A1A1A1A1A1A1A1A1A1A102 /* HNKeychainStore.swift */,
+				A1A1A1A1A1A1A1A1A1A1A103 /* HNHTMLParser.swift */,
+				B5A1C2D3E4F5060708090A0D /* ReaderExtractor.swift */,
+				A1A1A1A1A1A1A1A1A1A1A104 /* HNWriteClient.swift */,
+				A1A1A1A1A1A1A1A1A1A1A105 /* HNDebugLog.swift */,
+				C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */,
+				D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */,
+				D1D1D1D1D1D1D1D1D1D1D002 /* CommentsScrollStore.swift */,
 				B4FF100228F0000000A1B2C4 /* StoryRepository.swift */,
 				B4FF101028F0000000A1B2C7 /* ReadStateStore.swift */,
 				B4FF101128F0000000A1B2C8 /* HistoryStore.swift */,
@@ -439,6 +490,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B5A1C2D3E4F5060708090B0B /* ReaderView.swift in Sources */,
+				B5A1C2D3E4F5060708090B0C /* ReaderViewModel.swift in Sources */,
+				B5A1C2D3E4F5060708090B0D /* ReaderExtractor.swift in Sources */,
+				B7A1C2D3E4F5060708090B11 /* SettingsPersistenceCoordinator.swift in Sources */,
 				B4FF102028F0000000A1B2D2 /* AppRoute.swift in Sources */,
 				B4FF102228F0000000A1B2D3 /* RouteViewModels.swift in Sources */,
 				B4FF101928F0000000A1B2D1 /* CommentsThreadViewModel.swift in Sources */,
@@ -450,6 +505,19 @@
 				B4FF101528F0000000A1B2C9 /* HistoryView.swift in Sources */,
 				B4FF101628F0000000A1B2D0 /* HistoryViewModel.swift in Sources */,
 				B4FF100328F0000000A1B2C5 /* HNAPIClient.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B201 /* HNAccount.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B202 /* HNKeychainStore.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B203 /* HNHTMLParser.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B204 /* HNWriteClient.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B205 /* HNDebugLog.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B206 /* HNAccountView.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B207 /* HNLoginWebView.swift in Sources */,
+				B2B2B2B2B2B2B2B2B2B2B208 /* HNReplySheet.swift in Sources */,
+				C1C1C1C1C1C1C1C1C1C1C101 /* HNDiagnosticsView.swift in Sources */,
+				C1C1C1C1C1C1C1C1C1C1C102 /* HNDiagnosticsViewModel.swift in Sources */,
+				C1C1C1C1C1C1C1C1C1C1C103 /* HNDiagnosticsReport.swift in Sources */,
+				D1D1D1D1D1D1D1D1D1D1D101 /* FeedScrollStore.swift in Sources */,
+				D1D1D1D1D1D1D1D1D1D1D102 /* CommentsScrollStore.swift in Sources */,
 				B4FF100428F0000000A1B2C6 /* StoryRepository.swift in Sources */,
 				B4C1427028BFA14700585142 /* SafariView.swift in Sources */,
 				B44EB1D728DDF6BC00CC72EE /* CommentsButtonView.swift in Sources */,
