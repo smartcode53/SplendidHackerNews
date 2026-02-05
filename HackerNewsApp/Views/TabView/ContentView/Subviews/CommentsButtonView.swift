@@ -11,22 +11,43 @@ struct CommentsButtonView<T>: View where T: CommentsButtonProtocol, T: SafariVie
     
     @ObservedObject var vm: T
     var action: (() -> Void)? = nil
+    var accessibilityIdentifier: String? = nil
+    var showCount: Bool = true
     
     var body: some View {
         if let commentCount =  vm.story?.descendants {
             let displayCount = Self.formatCount(commentCount)
             if let action {
-                Button(action: action) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "bubble.right")
-                        Text(displayCount)
+                if let accessibilityIdentifier {
+                    Button(action: action) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bubble.right")
+                            if showCount {
+                                Text(displayCount)
+                            }
+                        }
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Comments \(displayCount)")
+                    .accessibilityIdentifier(accessibilityIdentifier)
+                } else {
+                    Button(action: action) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bubble.right")
+                            if showCount {
+                                Text(displayCount)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Comments \(displayCount)")
                 }
-                .buttonStyle(.plain)
             } else {
                 HStack(spacing: 4) {
                     Image(systemName: "bubble.right")
-                    Text(displayCount)
+                    if showCount {
+                        Text(displayCount)
+                    }
                 }
             }
         }

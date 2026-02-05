@@ -1,13 +1,20 @@
 import SwiftUI
+import UIKit
 
 struct ReaderView: View {
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @Environment(\.openURL) var openURL
     @StateObject private var vm: ReaderViewModel
     @State private var showTypography = false
+    @State private var linkAction: ReaderLinkActionData?
+    @State private var linkDestination: ReaderLinkDestination?
 
     init(story: Story) {
         _vm = StateObject(wrappedValue: ReaderViewModel(story: story))
+    }
+
+    init(url: URL, title: String) {
+        _vm = StateObject(wrappedValue: ReaderViewModel(url: url, title: title))
     }
 
     var body: some View {
@@ -17,6 +24,9 @@ struct ReaderView: View {
 
             content
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Reader View")
+        .accessibilityIdentifier("reader.view")
         .navigationTitle("Reader")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -27,6 +37,7 @@ struct ReaderView: View {
                     Image(systemName: "safari")
                 }
                 .disabled(vm.safeURL == nil)
+                .accessibilityIdentifier("reader.openSafari")
 
                 Button {
                     Task { await vm.reload() }
@@ -34,12 +45,14 @@ struct ReaderView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .disabled(isLoading)
+                .accessibilityIdentifier("reader.reload")
 
                 Button {
                     showTypography = true
                 } label: {
                     Image(systemName: "textformat.size")
                 }
+                .accessibilityIdentifier("reader.typography")
             }
         }
         .sheet(isPresented: $showTypography) {
@@ -51,26 +64,49 @@ struct ReaderView: View {
         .task {
             await vm.load()
         }
+        .background(linkNavigation)
+        .confirmationDialog("Open Link", isPresented: isLinkActionPresented, presenting: linkAction) { action in
+            if action.canOpenInReader {
+                Button("Open in Reader") {
+                    openLinkInReader(action.url)
+                }
+                .accessibilityIdentifier("reader.link.openReader")
+            }
+            Button("Open in Safari") {
+                openURL(action.url, prefersInApp: true)
+            }
+            .accessibilityIdentifier("reader.link.openSafari")
+            Button("Copy Link") {
+                UIPasteboard.general.url = action.url
+            }
+            .accessibilityIdentifier("reader.link.copy")
+            Button("Cancel", role: .cancel) {}
+        } message: { action in
+            Text(action.url.absoluteString)
+        }
     }
 
     @ViewBuilder
     private var content: some View {
-        switch vm.state {
+        switch vm.loadState {
         case .idle, .loading:
             ProgressView("Loading article...")
                 .foregroundColor(.secondary)
-        case .failed(let message):
-            fallbackView(message: message)
-        case .success(let content):
-            readerContentView(content: content)
+        case .error(let message, _):
+            fallbackView(title: "Couldn't load article.", message: message)
+        case .empty:
+            fallbackView(title: "Couldn't extract this article.", message: "We couldn't find readable text.")
+        case .loaded:
+            if let content = vm.content {
+                readerContentView(content: content)
+            } else {
+                fallbackView(title: "Couldn't load article.", message: "Please try again.")
+            }
         }
     }
 
     private var isLoading: Bool {
-        if case .loading = vm.state {
-            return true
-        }
-        return false
+        vm.loadState.isLoading
     }
 
     private func openInSafari() {
@@ -97,6 +133,23 @@ struct ReaderView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+
+                    Button {
+                        openInSafari()
+                    } label: {
+                        Label("Open Source", systemImage: "safari")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.accentColor)
+
+#if DEBUG
+                    if let lastUpdated = vm.lastUpdated {
+                        Text("Last updated \(lastUpdatedLabel(for: lastUpdated))")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+#endif
                 }
 
                 if content.isTruncated {
@@ -108,7 +161,8 @@ struct ReaderView: View {
                 ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
                     ReaderBlockView(
                         block: block,
-                        typography: typography
+                        typography: typography,
+                        onLinkTap: handleLinkTap
                     )
                 }
             }
@@ -117,13 +171,13 @@ struct ReaderView: View {
         }
     }
 
-    private func fallbackView(message: String) -> some View {
+    private func fallbackView(title: String, message: String) -> some View {
         VStack(spacing: 16) {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
 
-            Text("Couldn't extract this article.")
+            Text(title)
                 .font(.headline)
 
             Text(message)
@@ -131,12 +185,21 @@ struct ReaderView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
+#if DEBUG
+            if let lastUpdated = vm.lastUpdated {
+                Text("Last updated \(lastUpdatedLabel(for: lastUpdated))")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+#endif
+
             HStack(spacing: 12) {
                 Button("Open in Safari") {
                     openInSafari()
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(vm.safeURL == nil)
+                .accessibilityIdentifier("reader.openSafari")
 
                 Button("Try again") {
                     Task { await vm.reload() }
@@ -146,84 +209,68 @@ struct ReaderView: View {
         }
         .padding(24)
     }
-}
 
-private struct ReaderTypography {
-    let fontScale: Double
-    let lineSpacing: Double
-
-    var bodyFont: Font {
-        .system(size: 17 * fontScale)
-    }
-
-    var codeFont: Font {
-        .system(size: 15 * fontScale, design: .monospaced)
-    }
-
-    func headingFont(level: Int) -> Font {
-        .system(size: headingSize(for: level) * fontScale, weight: .semibold)
-    }
-
-    private func headingSize(for level: Int) -> CGFloat {
-        switch level {
-        case 1:
-            return 26
-        case 2:
-            return 22
-        case 3:
-            return 20
-        case 4:
-            return 18
-        default:
-            return 17
-        }
-    }
-}
-
-private struct ReaderBlockView: View {
-    let block: ReaderBlock
-    let typography: ReaderTypography
-
-    var body: some View {
-        switch block {
-        case .heading(let text, let level):
-            Text(text)
-                .font(typography.headingFont(level: level))
-                .foregroundColor(.primary)
-                .lineSpacing(typography.lineSpacing)
-                .padding(.top, level <= 2 ? 6 : 0)
-        case .paragraph(let text):
-            Text(text)
-                .font(typography.bodyFont)
-                .foregroundColor(.primary)
-                .lineSpacing(typography.lineSpacing)
-        case .code(let text):
-            ScrollView(.horizontal, showsIndicators: true) {
-                Text(text)
-                    .font(typography.codeFont)
-                    .foregroundColor(.primary)
-                    .lineSpacing(typography.lineSpacing)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color("CardColor").opacity(0.7))
-                    )
+    private var isLinkActionPresented: Binding<Bool> {
+        Binding(
+            get: { linkAction != nil },
+            set: { isPresented in
+                if !isPresented {
+                    linkAction = nil
+                }
             }
-        case .quote(let text):
-            Text(text)
-                .font(typography.bodyFont)
-                .foregroundColor(.secondary)
-                .lineSpacing(typography.lineSpacing)
-                .padding(.leading, 12)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.secondary.opacity(0.4))
-                        .frame(width: 3),
-                    alignment: .leading
-                )
+        )
+    }
+
+    private var linkNavigation: some View {
+        NavigationLink(
+            destination: Group {
+                if let destination = linkDestination {
+                    ReaderView(url: destination.url, title: destination.title)
+                }
+            },
+            isActive: Binding(
+                get: { linkDestination != nil },
+                set: { isActive in
+                    if !isActive {
+                        linkDestination = nil
+                    }
+                }
+            ),
+            label: { EmptyView() }
+        )
+        .hidden()
+    }
+
+    private func handleLinkTap(_ url: URL) {
+        switch ReaderLinkHandler.resolve(
+            url: url,
+            prefersReader: globalSettings.settings.openReaderLinksInReader,
+            fallbackTitle: "Linked Article"
+        ) {
+        case .openInReader(let url, let title):
+            linkDestination = ReaderLinkDestination(url: url, title: title)
+        case .showAction(let action):
+            linkAction = action
         }
     }
+
+    private func openLinkInReader(_ url: URL) {
+        guard ReaderLinkPolicy.canOpenInReader(url) else {
+            openURL(url, prefersInApp: true)
+            return
+        }
+        let title = url.host ?? "Linked Article"
+        linkDestination = ReaderLinkDestination(url: url, title: title)
+    }
+
+#if DEBUG
+    private func lastUpdatedLabel(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium
+        formatter.dateStyle = .none
+        return formatter.string(from: date)
+    }
+#endif
 }
 
 private struct ReaderTypographySheet: View {
@@ -236,12 +283,14 @@ private struct ReaderTypographySheet: View {
             Form {
                 Section("Font Size") {
                     Slider(value: $fontScale, in: 0.9...1.4, step: 0.05)
+                        .accessibilityIdentifier("reader.typography.fontScale")
                     Text("Scale: \(fontScale, specifier: "%.2f")")
                         .foregroundColor(.secondary)
                 }
 
                 Section("Line Spacing") {
                     Slider(value: $lineSpacing, in: 1...10, step: 1)
+                        .accessibilityIdentifier("reader.typography.lineSpacing")
                     Text("Spacing: \(lineSpacing, specifier: "%.0f")")
                         .foregroundColor(.secondary)
                 }
@@ -278,44 +327,7 @@ struct ReaderView_Previews: PreviewProvider {
     }
 }
 
-#if DEBUG
-struct ReaderPreviewView: View {
-    @EnvironmentObject var globalSettings: GlobalSettingsViewModel
-
-    private let blocks: [ReaderBlock] = [
-        .heading("Reader Typography Preview", level: 1),
-        .paragraph("This paragraph previews body text. Adjust font size and line spacing in Settings > Reader or the typography sheet to see it update here."),
-        .heading("Subheading Level 2", level: 2),
-        .paragraph("Line spacing should affect each paragraph block independently. This is a second paragraph to make spacing changes more obvious."),
-        .quote("Quoted text should remain legible and respect line spacing while staying visually distinct."),
-        .code("let greeting = \"Hello, Hacker News\"\nprint(greeting)\n// Monospaced text should remain readable and scroll horizontally if needed.")
-    ]
-
-    var body: some View {
-        let typography = ReaderTypography(fontScale: globalSettings.settings.readerFontScale,
-                                          lineSpacing: globalSettings.settings.readerLineSpacing)
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Reader Preview")
-                        .font(.title2.weight(.semibold))
-                    Text(String(format: "Scale %.2f, spacing %.0f",
-                                globalSettings.settings.readerFontScale,
-                                globalSettings.settings.readerLineSpacing))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
-                    ReaderBlockView(block: block, typography: typography)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 20)
-        }
-        .navigationTitle("Reader Preview")
-        .navigationBarTitleDisplayMode(.inline)
-        .background(Color("BackgroundColor"))
-    }
+private struct ReaderLinkDestination {
+    let url: URL
+    let title: String
 }
-#endif

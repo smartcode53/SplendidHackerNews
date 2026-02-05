@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 struct HNAccountView: View {
     @EnvironmentObject var account: HNAccount
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
@@ -10,8 +11,8 @@ struct HNAccountView: View {
         List {
             Section("Write Actions") {
                 Toggle("Enable HN Write Actions (Debug)", isOn: Binding(
-                    get: { globalSettings.settings.enableHNWriteActionsDebug },
-                    set: { globalSettings.settings.enableHNWriteActionsDebug = $0 }
+                    get: { globalSettings.debugSettings.enableHNWriteActions },
+                    set: { globalSettings.debugSettings.enableHNWriteActions = $0 }
                 ))
                 .toggleStyle(.switch)
             }
@@ -54,7 +55,7 @@ struct HNAccountView: View {
                 Button("Sign In") {
                     showLogin = true
                 }
-                .disabled(!globalSettings.settings.enableHNWriteActionsDebug)
+                .disabled(!globalSettings.debugSettings.enableHNWriteActions)
 
                 Button("Verify Session") {
                     isVerifying = true
@@ -89,3 +90,4 @@ struct HNAccountView: View {
         }
     }
 }
+#endif

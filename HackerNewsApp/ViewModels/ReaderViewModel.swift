@@ -9,13 +9,6 @@ struct ReaderContent: Hashable {
     let isTruncated: Bool
 }
 
-enum ReaderLoadState {
-    case idle
-    case loading
-    case success(ReaderContent)
-    case failed(String)
-}
-
 final class ReaderContentCache {
     static let shared = ReaderContentCache()
 
@@ -44,17 +37,25 @@ final class ReaderContentCache {
 
 @MainActor
 final class ReaderViewModel: ObservableObject {
-    @Published var state: ReaderLoadState = .idle
+    @Published var loadState: LoadState = .idle
+    @Published var content: ReaderContent?
+#if DEBUG
+    @Published var lastUpdated: Date?
+#endif
 
-    let story: Story
+    let sourceTitle: String
     let safeURL: URL?
 
     private let extractor: ReaderExtractor
     private let cache: ReaderContentCache
     private let networkManager = NetworkManager.instance
+#if DEBUG
+    private let debugForceBadURL = false
+    private let debugBadURL = URL(string: "https://example.invalid")!
+#endif
 
     init(story: Story, extractor: ReaderExtractor = ReaderExtractor(), cache: ReaderContentCache = .shared) {
-        self.story = story
+        self.sourceTitle = story.title
         self.extractor = extractor
         self.cache = cache
         if let urlString = story.url {
@@ -65,34 +66,92 @@ final class ReaderViewModel: ObservableObject {
         }
     }
 
+    init(url: URL, title: String, extractor: ReaderExtractor = ReaderExtractor(), cache: ReaderContentCache = .shared) {
+        self.sourceTitle = title
+        self.extractor = extractor
+        self.cache = cache
+        let secureString = networkManager.getSecureUrlString(url: url.absoluteString)
+        self.safeURL = URL(string: secureString)
+    }
+
     func load(force: Bool = false) async {
+        #if DEBUG
+        if DebugEnvironment.shared.fixtureMode {
+            let url = safeURL ?? DebugEnvironment.shared.fixtureURL
+            let content = DebugFixtures.readerContent(url: url, title: sourceTitle)
+            self.content = content
+            loadState = .loaded
+            lastUpdated = Date()
+            return
+        }
+        #endif
         guard let safeURL else {
-            state = .failed("This story doesn't have a URL.")
+            loadState = .error(message: "This story doesn't have a URL.", canRetry: false)
+#if DEBUG
+            lastUpdated = Date()
+#endif
             return
         }
 
         if !force, let cached = cache.content(for: cacheKey(for: safeURL)) {
-            state = .success(cached)
+            content = cached
+            loadState = .loaded
+#if DEBUG
+            lastUpdated = Date()
+#endif
             return
         }
 
-        state = .loading
+        content = nil
+        loadState = .loading
 
         do {
-            let result = try await extractor.extract(from: safeURL)
-            let domain = safeURL.host
+            let targetURL: URL
+#if DEBUG
+            targetURL = debugForceBadURL ? debugBadURL : safeURL
+#else
+            targetURL = safeURL
+#endif
+            let result = try await RetryPolicy.runWithTransientRetry { [self] in
+                try await extractor.extract(from: targetURL)
+            }
+            if result.blocks.isEmpty {
+                content = nil
+                loadState = .empty
+#if DEBUG
+                lastUpdated = Date()
+#endif
+                return
+            }
+            let domain = targetURL.host
             let content = ReaderContent(
-                title: story.title,
-                urlString: safeURL.absoluteString,
+                title: sourceTitle,
+                urlString: targetURL.absoluteString,
                 domain: domain,
                 blocks: result.blocks,
                 isTruncated: result.isTruncated
             )
             cache.store(content, for: cacheKey(for: safeURL))
-            state = .success(content)
+            self.content = content
+            loadState = .loaded
+#if DEBUG
+            lastUpdated = Date()
+#endif
         } catch {
-            let message = (error as? LocalizedError)?.errorDescription ?? "Couldn't extract this article."
-            state = .failed(message)
+            content = nil
+            if let extractorError = error as? ReaderExtractorError, extractorError == .emptyContent {
+                loadState = .empty
+            } else {
+                let message = ErrorPresenter.message(
+                    for: error,
+                    defaultMessage: "Check your connection and try again.",
+                    debugTag: "READER_FETCH"
+                )
+                loadState = .error(message: message, canRetry: true)
+            }
+#if DEBUG
+            lastUpdated = Date()
+#endif
         }
     }
 

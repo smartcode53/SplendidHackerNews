@@ -12,11 +12,19 @@ actor ReadStateStore {
     private var readIDs: Set<Int> = []
     private var hideReadByFeed: [String: Bool] = [:]
     private let fileUrl = FileManager.default.documentsDirectory.appending(component: "read_state.json")
+    private let defaults = UserDefaults.standard
+    private let hideReadDefaultsKey = "feed.hideRead.defaultsApplied"
     
     init() {
         if let decoded = Self.loadFromDisk(fileUrl: fileUrl) {
             readIDs = Set(decoded.readIDs)
             hideReadByFeed = decoded.hideReadByFeed
+        }
+
+        if !defaults.bool(forKey: hideReadDefaultsKey) {
+            hideReadByFeed = Dictionary(uniqueKeysWithValues: StoryType.allCases.map { ($0.rawValue, false) })
+            defaults.set(true, forKey: hideReadDefaultsKey)
+            saveToDisk()
         }
     }
     

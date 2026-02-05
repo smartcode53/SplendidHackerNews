@@ -3,7 +3,7 @@ import SwiftSoup
 
 enum ReaderBlock: Hashable {
     case heading(String, level: Int)
-    case paragraph(String)
+    case paragraph([ReaderSpan])
     case code(String)
     case quote(String)
 
@@ -11,8 +11,8 @@ enum ReaderBlock: Hashable {
         switch self {
         case .heading(let text, _):
             return text
-        case .paragraph(let text):
-            return text
+        case .paragraph(let spans):
+            return spans.map { $0.text }.joined()
         case .code(let text):
             return text
         case .quote(let text):
@@ -25,11 +25,78 @@ enum ReaderBlock: Hashable {
         case .heading(_, let level):
             return .heading(text, level: level)
         case .paragraph:
-            return .paragraph(text)
+            return .paragraph([.text(text)])
         case .code:
             return .code(text)
         case .quote:
             return .quote(text)
+        }
+    }
+
+    func truncated(to length: Int) -> ReaderBlock? {
+        guard length > 0 else { return nil }
+        switch self {
+        case .paragraph(let spans):
+            let truncatedSpans = ReaderBlock.truncatedSpans(spans, to: length)
+            return truncatedSpans.isEmpty ? nil : .paragraph(truncatedSpans)
+        default:
+            let clipped = String(text.prefix(length))
+            return clipped.isEmpty ? nil : withText(clipped)
+        }
+    }
+
+    private static func truncatedSpans(_ spans: [ReaderSpan], to length: Int) -> [ReaderSpan] {
+        var remaining = length
+        var result: [ReaderSpan] = []
+        for span in spans {
+            guard remaining > 0 else { break }
+            let spanText = span.text
+            if spanText.count <= remaining {
+                result.append(span)
+                remaining -= spanText.count
+            } else {
+                let prefix = String(spanText.prefix(remaining))
+                switch span {
+                case .text:
+                    result.append(.text(prefix))
+                case .link(_, let url):
+                    result.append(.link(text: prefix, url: url))
+                }
+                remaining = 0
+            }
+        }
+        return ReaderBlock.mergeAdjacentTextSpans(result)
+    }
+
+    private static func mergeAdjacentTextSpans(_ spans: [ReaderSpan]) -> [ReaderSpan] {
+        var merged: [ReaderSpan] = []
+        for span in spans {
+            switch span {
+            case .text(let text):
+                guard !text.isEmpty else { continue }
+                if case .text(let existing) = merged.last {
+                    merged[merged.count - 1] = .text(existing + text)
+                } else {
+                    merged.append(span)
+                }
+            case .link:
+                merged.append(span)
+            }
+        }
+        return merged
+    }
+}
+
+enum ReaderSpan: Hashable {
+    case text(String)
+    case link(text: String, url: URL)
+
+    var text: String {
+        switch self {
+        case .text(let value):
+            return value
+        case .link(let value, _):
+            return value
         }
     }
 }
@@ -79,7 +146,7 @@ final class ReaderExtractor {
         }
 
         var blocks: [ReaderBlock] = []
-        collectBlocks(from: contentElement, into: &blocks)
+        collectBlocks(from: contentElement, baseURL: url, into: &blocks)
 
         var totalCount = 0
         var truncated = false
@@ -90,9 +157,10 @@ final class ReaderExtractor {
             if text.isEmpty { continue }
             let remaining = maxCharacters - totalCount
             if text.count > remaining {
-                let clipped = String(text.prefix(remaining))
-                trimmedBlocks.append(block.withText(clipped))
-                totalCount += clipped.count
+                if let clipped = block.truncated(to: remaining) {
+                    trimmedBlocks.append(clipped)
+                    totalCount += clipped.text.count
+                }
                 truncated = true
                 break
             } else {
@@ -145,7 +213,7 @@ final class ReaderExtractor {
         return doc.body()
     }
 
-    private func collectBlocks(from node: Node, into blocks: inout [ReaderBlock]) {
+    private func collectBlocks(from node: Node, baseURL: URL, into blocks: inout [ReaderBlock]) {
         guard blocks.count < maxBlocks else { return }
 
         if let element = node as? Element {
@@ -160,9 +228,9 @@ final class ReaderExtractor {
                 }
                 return
             case "p":
-                let text = normalizedText(from: element)
-                if !text.isEmpty {
-                    blocks.append(.paragraph(text))
+                let spans = inlineSpans(from: element, baseURL: baseURL)
+                if !spans.isEmpty {
+                    blocks.append(.paragraph(spans))
                 }
                 return
             case "pre":
@@ -178,9 +246,10 @@ final class ReaderExtractor {
                 }
                 return
             case "li":
-                let text = normalizedText(from: element)
-                if !text.isEmpty {
-                    blocks.append(.paragraph("• \(text)"))
+                var spans = inlineSpans(from: element, baseURL: baseURL)
+                if !spans.isEmpty {
+                    spans.insert(.text("• "), at: 0)
+                    blocks.append(.paragraph(spans))
                 }
                 return
             case "code":
@@ -198,7 +267,7 @@ final class ReaderExtractor {
         }
 
         for child in node.getChildNodes() {
-            collectBlocks(from: child, into: &blocks)
+            collectBlocks(from: child, baseURL: baseURL, into: &blocks)
             if blocks.count >= maxBlocks {
                 break
             }
@@ -217,5 +286,111 @@ final class ReaderExtractor {
         let raw = (try? element.text()) ?? ""
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed
+    }
+
+    private func inlineSpans(from element: Element, baseURL: URL) -> [ReaderSpan] {
+        var spans: [ReaderSpan] = []
+        for child in element.getChildNodes() {
+            if let textNode = child as? TextNode {
+                let text = normalizedInlineText(textNode.text(), trim: false)
+                if !text.isEmpty {
+                    spans.append(.text(text))
+                }
+                continue
+            }
+
+            guard let childElement = child as? Element else { continue }
+            let tag = childElement.tagName().lowercased()
+            if tag == "a" {
+                let text = normalizedInlineText((try? childElement.text()) ?? "", trim: true)
+                let href = (try? childElement.attr("href"))?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if text.isEmpty {
+                    continue
+                }
+                if let url = resolvedLinkURL(href: href, baseURL: baseURL),
+                   isSupportedLink(url) {
+                    spans.append(.link(text: text, url: url))
+                } else {
+                    spans.append(.text(text))
+                }
+            } else {
+                spans.append(contentsOf: inlineSpans(from: childElement, baseURL: baseURL))
+            }
+        }
+        return normalizedSpans(spans)
+    }
+
+    private func resolvedLinkURL(href: String, baseURL: URL) -> URL? {
+        guard !href.isEmpty else { return nil }
+        if let url = URL(string: href, relativeTo: baseURL) {
+            return url.absoluteURL
+        }
+        return nil
+    }
+
+    private func isSupportedLink(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return scheme == "http" || scheme == "https"
+    }
+
+    private func normalizedInlineText(_ text: String, trim: Bool) -> String {
+        let normalized = text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        if trim {
+            return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return normalized
+    }
+
+    private func normalizedSpans(_ spans: [ReaderSpan]) -> [ReaderSpan] {
+        var cleaned: [ReaderSpan] = []
+        for span in spans {
+            switch span {
+            case .text(let text):
+                if text.isEmpty { continue }
+                if case .text(let existing) = cleaned.last {
+                    cleaned[cleaned.count - 1] = .text(existing + text)
+                } else {
+                    cleaned.append(span)
+                }
+            case .link:
+                cleaned.append(span)
+            }
+        }
+
+        guard !cleaned.isEmpty else { return [] }
+
+        if let first = trimmedSpan(cleaned.first, leading: true, trailing: false) {
+            cleaned[0] = first
+        } else {
+            cleaned.removeFirst()
+        }
+
+        if let lastIndex = cleaned.indices.last {
+            if let last = trimmedSpan(cleaned[lastIndex], leading: false, trailing: true) {
+                cleaned[lastIndex] = last
+            } else {
+                cleaned.removeLast()
+            }
+        }
+
+        return cleaned
+    }
+
+    private func trimmedSpan(_ span: ReaderSpan?, leading: Bool, trailing: Bool) -> ReaderSpan? {
+        guard let span else { return nil }
+        var text = span.text
+        if leading {
+            text = text.replacingOccurrences(of: "^\\s+", with: "", options: .regularExpression)
+        }
+        if trailing {
+            text = text.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
+        }
+        guard !text.isEmpty else { return nil }
+        switch span {
+        case .text:
+            return .text(text)
+        case .link(_, let url):
+            return .link(text: text, url: url)
+        }
     }
 }

@@ -1,0 +1,56 @@
+import SwiftUI
+import UIKit
+
+struct LinkTextView: UIViewRepresentable {
+    let attributedText: NSAttributedString
+    let onLinkTap: (URL) -> Void
+    let linkColor: UIColor
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.isScrollEnabled = false
+        textView.backgroundColor = .clear
+        textView.textContainer.lineFragmentPadding = 0
+        textView.textContainerInset = UIEdgeInsets(top: 2, left: 0, bottom: 2, right: 0)
+        textView.delegate = context.coordinator
+        textView.adjustsFontForContentSizeCategory = true
+        textView.linkTextAttributes = [
+            .foregroundColor: linkColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue
+        ]
+        return textView
+    }
+
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        uiView.attributedText = attributedText
+        uiView.linkTextAttributes = [
+            .foregroundColor: linkColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue
+        ]
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize {
+        let targetWidth = proposal.width ?? UIScreen.main.bounds.width
+        let size = uiView.sizeThatFits(CGSize(width: targetWidth, height: .greatestFiniteMagnitude))
+        return CGSize(width: targetWidth, height: size.height)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onLinkTap: onLinkTap)
+    }
+
+    final class Coordinator: NSObject, UITextViewDelegate {
+        private let onLinkTap: (URL) -> Void
+
+        init(onLinkTap: @escaping (URL) -> Void) {
+            self.onLinkTap = onLinkTap
+        }
+
+        func textView(_ textView: UITextView, shouldInteractWith url: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+            onLinkTap(url)
+            return false
+        }
+    }
+}

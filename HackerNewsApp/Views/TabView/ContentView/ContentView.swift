@@ -18,6 +18,9 @@ struct ContentView: View {
     @State private var showResume = false
     @State private var pendingLastSeenID: Int?
     @State private var lastSeenTask: Task<Void, Never>?
+#if DEBUG
+    @ObservedObject private var debug = DebugEnvironment.shared
+#endif
     
     
     // MARK: ContentView Body
@@ -33,6 +36,22 @@ struct ContentView: View {
         .task {
             await vm.loadInitial()
         }
+#if DEBUG
+        .onChange(of: debug.fixtureRefreshToken) { _ in
+            Task {
+                if debug.fixtureMode {
+                    await vm.applyFixtureIfNeeded()
+                } else {
+                    await vm.refresh()
+                }
+            }
+        }
+        .onAppear {
+            if debug.fixtureMode {
+                Task { await vm.applyFixtureIfNeeded() }
+            }
+        }
+#endif
         .onChange(of: vm.storyType) { _ in
             didAttemptRestore = false
             showResume = false
@@ -158,28 +177,60 @@ extension ContentView  {
 //        }
 //    }
     
+    @ViewBuilder
     var scrollView: some View {
-        ScrollViewReader { proxy in
-            List {
-                if showResume {
-                    HStack {
-                        Button("Resume") {
-                            didAttemptRestore = false
-                            Task { await attemptRestore(proxy: proxy) }
-                        }
-                        .buttonStyle(.bordered)
-                        Spacer()
-                    }
-                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
+        if vm.stories.isEmpty {
+            feedEmptyState
+        } else {
+            ScrollViewReader { proxy in
+                #if DEBUG
+                if debug.fixtureMode {
+                    fixtureScrollView(proxy: proxy)
+                } else {
+                    regularListView(proxy: proxy)
                 }
+                #else
+                regularListView(proxy: proxy)
+                #endif
+            }
+        }
+    }
+
+    private func regularListView(proxy: ScrollViewProxy) -> some View {
+        List {
+            if let refreshErrorMessage = vm.refreshErrorMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(refreshErrorMessage)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+
+            if showResume {
+                HStack {
+                    Button("Resume") {
+                        didAttemptRestore = false
+                        Task { await attemptRestore(proxy: proxy) }
+                    }
+                    .buttonStyle(.bordered)
+                    Spacer()
+                }
+                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
 
             if !vm.stories.isEmpty {
                 ForEach(Array(vm.stories.enumerated()), id: \.element.id) { index, story in
-                        PostView(withStory: story, index: index + 1, isRead: vm.isRead(story.id), path: $path)
-                            .environmentObject(vm)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                    PostView(withStory: story, index: index + 1, isRead: vm.isRead(story.id), isFeatured: false, path: $path)
+                        .environmentObject(vm)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .onAppear {
@@ -188,6 +239,13 @@ extension ContentView  {
                         .task {
                             await vm.loadMoreIfNeeded(currentID: story.id)
                         }
+
+                    if index == 2 {
+                        featuredRow
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 10, trailing: 0))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                    }
                 }
             } else if vm.isLoading || vm.isRefreshing {
                 HStack {
@@ -198,7 +256,7 @@ extension ContentView  {
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
             }
-            
+
             if vm.isLoading && !vm.stories.isEmpty {
                 HStack {
                     Spacer()
@@ -209,36 +267,94 @@ extension ContentView  {
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
             }
+
+            if case .error(let message, let canRetry) = vm.loadMoreState, canRetry {
+                LoadMoreRetryRow(message: message) {
+                    Task { await vm.loadNextPage() }
+                }
+                .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu("Switch Feed") {
-                        ForEach(StoryType.allCases, id: \.self) { type in
-                            Button(type.rawValue) {
-                                vm.storyType = type
-                            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .accessibilityIdentifier("feed.list")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    ForEach(StoryType.allCases, id: \.self) { type in
+                        Button(type.rawValue) {
+                            vm.storyType = type
                         }
-                        
-                        Divider()
-                        
-                        Toggle("Hide Read", isOn: $vm.hideRead)
                     }
-                    .tint(.accentColor)
+
+                    Divider()
+
+                    Toggle("Hide Read", isOn: $vm.hideRead)
+                        .accessibilityIdentifier("feed.hideRead")
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .accessibilityLabel("Switch Feed")
+                }
+                .tint(.accentColor)
+                .accessibilityIdentifier("feed.selector")
+            }
+        }
+        .refreshable {
+            await vm.refresh()
+        }
+        .onChange(of: vm.stories.count) { _ in
+            Task { await attemptRestore(proxy: proxy) }
+        }
+        .onAppear {
+            Task { await attemptRestore(proxy: proxy) }
+        }
+    }
+
+    #if DEBUG
+    private func fixtureScrollView(proxy: ScrollViewProxy) -> some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach(Array(vm.stories.enumerated()), id: \.element.id) { index, story in
+                    PostView(withStory: story, index: index + 1, isRead: vm.isRead(story.id), isFeatured: false, path: $path)
+                        .environmentObject(vm)
+                        .onAppear {
+                            scheduleLastSeenUpdate(storyID: story.id)
+                        }
+
+                    if index == 2 {
+                        featuredRow
+                    }
                 }
             }
-            .refreshable {
-                await vm.refresh()
-            }
-            .onChange(of: vm.stories.count) { _ in
-                Task { await attemptRestore(proxy: proxy) }
-            }
-            .onAppear {
-                Task { await attemptRestore(proxy: proxy) }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 20)
+        }
+        .accessibilityIdentifier("feed.list")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    ForEach(StoryType.allCases, id: \.self) { type in
+                        Button(type.rawValue) {
+                            vm.storyType = type
+                        }
+                    }
+
+                    Divider()
+
+                    Toggle("Hide Read", isOn: $vm.hideRead)
+                        .accessibilityIdentifier("feed.hideRead")
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .accessibilityLabel("Switch Feed")
+                }
+                .tint(.accentColor)
+                .accessibilityIdentifier("feed.selector")
             }
         }
     }
+    #endif
     
     var bookmarkConfirmationView: some View {
         VStack {
@@ -251,7 +367,70 @@ extension ContentView  {
         .background(Material.regularMaterial)
         .cornerRadius(12)
     }
-    
+
+    private var featuredRow: some View {
+        let rowStories = featuredStories
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Spotlight")
+                    .font(.headline)
+                Spacer()
+                Text("Show HN mix")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 4)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 12) {
+                    ForEach(rowStories, id: \.id) { story in
+                        PostView(withStory: story, index: 0, isRead: vm.isRead(story.id), isFeatured: true, path: $path)
+                            .environmentObject(vm)
+                            .frame(width: 280)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
+            }
+        }
+        .padding(.vertical, 10)
+    }
+
+    private var featuredStories: [Story] {
+        let showHN = vm.stories.filter { story in
+            story.title.localizedCaseInsensitiveContains("show hn")
+        }
+        if !showHN.isEmpty {
+            return Array(showHN.prefix(10))
+        }
+        return Array(vm.stories.prefix(10))
+    }
+
+    @ViewBuilder
+    private var feedEmptyState: some View {
+        switch vm.initialLoadState {
+        case .idle, .loading:
+            ProgressView("Loading stories...")
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .empty:
+            LoadStateView(
+                title: "No stories yet.",
+                message: "Pull to refresh or try again."
+            ) {
+                Task { await vm.refresh() }
+            }
+        case .error(let message, let canRetry):
+            LoadStateView(
+                title: "Couldn't load stories.",
+                message: message,
+                retryAction: canRetry ? { Task { await vm.refresh() } } : nil
+            )
+        case .loaded:
+            EmptyView()
+        }
+    }
 }
 
 
@@ -309,5 +488,69 @@ extension ContentView {
         } else {
             showResume = true
         }
+    }
+}
+
+struct LoadStateView: View {
+    let title: String
+    let message: String?
+    let retryTitle: String
+    let retryAction: (() -> Void)?
+
+    init(title: String, message: String? = nil, retryTitle: String = "Retry", retryAction: (() -> Void)? = nil) {
+        self.title = title
+        self.message = message
+        self.retryTitle = retryTitle
+        self.retryAction = retryAction
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 32))
+                .foregroundColor(.secondary)
+
+            Text(title)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+
+            if let message {
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            if let retryAction {
+                Button(retryTitle) {
+                    retryAction()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct LoadMoreRetryRow: View {
+    let message: String
+    let retryAction: () -> Void
+
+    var body: some View {
+        Button {
+            retryAction()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.clockwise")
+                    .foregroundColor(.accentColor)
+                Text(message)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("feed.loadMore.retry")
     }
 }

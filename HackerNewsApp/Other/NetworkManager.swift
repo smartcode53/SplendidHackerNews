@@ -54,7 +54,17 @@ final class NetworkManager: @unchecked Sendable {
     
     // Function to fetch comments associated with a single story
     func getComments(forId id: Int) async -> Item? {
-        guard let url = URL(string: "https://hn.algolia.com/api/v1/items/\(id)") else { return nil }
+#if DEBUG
+        let debugForceBadURL = false
+        let debugBadURL = URL(string: "https://example.invalid")
+#endif
+        let urlString = "https://hn.algolia.com/api/v1/items/\(id)"
+#if DEBUG
+        let resolvedURL = debugForceBadURL ? debugBadURL : URL(string: urlString)
+#else
+        let resolvedURL = URL(string: urlString)
+#endif
+        guard let url = resolvedURL else { return nil }
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)

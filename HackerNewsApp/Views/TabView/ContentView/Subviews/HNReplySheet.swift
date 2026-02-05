@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 struct HNReplySheet: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var account: HNAccount
@@ -90,3 +91,4 @@ private enum DebugNonce {
         return "\(text) \(nonce)"
     }
 }
+#endif

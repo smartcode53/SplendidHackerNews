@@ -12,11 +12,14 @@ struct PostView: View {
     
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @EnvironmentObject var feedVM: ContentViewModel
+#if DEBUG
     @EnvironmentObject var account: HNAccount
+#endif
     @Environment(\.openURL) var openURL
     @StateObject var vm: UltimatePostViewModel
     let index: Int
     let isRead: Bool
+    let isFeatured: Bool
     @Binding var path: [AppRoute]
     @State private var showVoteAlert = false
     @State private var voteAlertMessage = ""
@@ -26,7 +29,7 @@ struct PostView: View {
     
     
     var body: some View {
-        if globalSettings.selectedCardStyle == .normal {
+        if isFeatured {
             normalCard
         } else {
             compactCard
@@ -39,10 +42,13 @@ extension PostView {
     // MARK: Compact Card
     @ViewBuilder var compactCard: some View {
         if let story = vm.story {
-            VStack {
-                
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 0) {
+            VStack(spacing: 8) {
+                if let imageView = compactImage(for: story) {
+                    imageView
+                        .padding(.top, 4)
+                }
+
+                VStack(alignment: .leading, spacing: 0) {
                     if let unsafeUrl = story.url,
                         let urlDomain = vm.networkManager.getSecureUrlString(url: unsafeUrl).urlDomain {
                         Text(urlDomain)
@@ -51,14 +57,14 @@ extension PostView {
                             .padding(.bottom, 5)
                     }
                     
-                    Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                            .foregroundColor(.primary)
-                            .font(.title3.weight(.semibold))
+                    Button {
+                        openSourceDestination(story)
+                    } label: {
+                        titleLabel(for: story)
                             .padding(.bottom, 10)
-                            .opacity(isRead ? 0.55 : 1)
-                            .onTapGesture {
-                                openStoryDestination(story)
-                            }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("feed.row.\(story.id).open")
                         
                         HStack {
                             Text(Date.getTimeInterval(with: story.time))
@@ -71,25 +77,7 @@ extension PostView {
                         .foregroundColor(.secondary)
                         .padding(.bottom, 16)
                         .font(.subheadline)
-                        .opacity(isRead ? 0.55 : 1)
                         
-                    }
-                    
-                    Spacer()
-                    
-                    AsyncImage(url: vm.imageUrl) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 100, height: 100)
-                            .clipped()
-                    } placeholder: {
-                        EmptyView()
-                    }
-                    .onTapGesture {
-                        openStoryDestination(story)
-                    }
-                    
                 }
                 
                 HStack {
@@ -101,32 +89,43 @@ extension PostView {
                     
                     //Bookmark Delete Button
                     Button {
-                        
+
                     } label: {
                         Image(systemName: "trash")
-                            .foregroundColor(.red)
-                            .fontWeight(.medium)
+                            .symbolRenderingMode(.hierarchical)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(.red)
+                    .buttonStyle(.plain)
+                    .modifier(ControlPillModifier())
                     
                     // Share button
                     
                     if let unsafeUrl = story.url {
                         ShareLink(item: vm.networkManager.getSecureUrlString(url: unsafeUrl)) {
                             Image(systemName: "square.and.arrow.up")
-                                .fontWeight(.medium)
+                                .symbolRenderingMode(.hierarchical)
                         }
-                        .buttonStyle(.bordered)
-                        .tint(.accentColor)
+                        .buttonStyle(.plain)
+                        .modifier(ControlPillModifier())
                     }
                     
                     // Comment Button
-                    CommentsButtonView(vm: vm) {
+                    CommentsButtonView(vm: vm, action: {
                         path.append(.comments(story))
                         Task { await feedVM.openComments(story) }
-                    }
+                    }, accessibilityIdentifier: "feed.row.\(story.id).comments", showCount: false)
+                    .modifier(ControlPillModifier())
 
+                    Button {
+                        openReaderDestination(story)
+                    } label: {
+                        Image(systemName: "text.book.closed")
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                    .buttonStyle(.plain)
+                    .modifier(ControlPillModifier())
+                    .disabled(story.url == nil)
+
+#if DEBUG
                     if globalSettings.isHNWriteEnabled && account.isLoggedIn {
                         Button {
                             Task { await handleStoryVote(storyId: story.id) }
@@ -134,23 +133,19 @@ extension PostView {
                             Image(systemName: "arrow.up")
                                 .fontWeight(.medium)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.plain)
+                        .modifier(ControlPillModifier())
                         .opacity(didVote ? 0.4 : 1)
                         .disabled(didVote || isVoting)
                     }
+#endif
                     
                 }
+                Divider()
+                    .overlay(Color.primary.opacity(0.08))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(15)
-            .background(Color("CardColor"))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .padding(.vertical, 2)
+            .padding(.vertical, 8)
             .task {
                 if let unsafeUrl = story.url {
                     let url = vm.networkManager.getSecureUrlString(url: unsafeUrl)
@@ -161,6 +156,13 @@ extension PostView {
             .onTapGesture {
                 path.append(.comments(story))
                 Task { await feedVM.openComments(story) }
+            }
+            .overlay(alignment: .topLeading) {
+                Text("Feed Row")
+                    .font(.caption2)
+                    .opacity(0.01)
+                    .accessibilityLabel("Feed Row \(story.id)")
+                    .accessibilityIdentifier("feed.row.\(story.id)")
             }
             .alert("Vote", isPresented: $showVoteAlert) {
                 Button("OK", role: .cancel) { }
@@ -182,9 +184,10 @@ extension PostView {
             VStack(spacing: 0) {
                 ZStack(alignment: .bottomLeading) {
                     GeometryReader { proxy in
+                        let size = proxy.size
                         ZStack {
                             cardImage(for: story)
-                                .frame(width: proxy.size.width, height: proxy.size.height)
+                                .frame(width: size.width, height: size.height)
                                 .clipped()
 
                             cardImage(for: story)
@@ -204,7 +207,7 @@ extension PostView {
                                     .frame(height: topBlurHeight)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                                 )
-                                .frame(width: proxy.size.width, height: proxy.size.height)
+                                .frame(width: size.width, height: size.height)
 
                             cardImage(for: story)
                                 .glur(radius: 18.0, offset: 0.0, interpolation: 0.45, direction: .up, noise: 0.06, drawingGroup: true)
@@ -223,8 +226,12 @@ extension PostView {
                                     .frame(height: bottomBlurHeight)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                                 )
-                                .frame(width: proxy.size.width, height: proxy.size.height)
+                                .frame(width: size.width, height: size.height)
                         }
+                        .frame(width: size.width, height: size.height)
+                        .clipped()
+                        .saturation(isRead ? 0.2 : 1)
+                        .brightness(isRead ? -0.05 : 0)
                     }
 
                     Rectangle()
@@ -268,19 +275,19 @@ extension PostView {
                                     .foregroundColor(.white.opacity(0.85))
                             }
 
-                            Button {
-                                openStoryDestination(story)
-                            } label: {
-                                Text(story.url != nil ? "\(story.title) \(Image(systemName: "arrow.up.forward.app"))" : "\(story.title)")
-                                    .font(.title3.weight(.semibold))
-                                    .foregroundColor(.white)
-                                    .lineLimit(2)
-                                    .minimumScaleFactor(0.9)
-                                    .opacity(isRead ? 0.55 : 1)
-                                    .shadow(color: Color.black.opacity(0.6), radius: 10, x: 0, y: 4)
-                                    .multilineTextAlignment(.leading)
-                            }
-                            .buttonStyle(.plain)
+                    Button {
+                        openSourceDestination(story)
+                    } label: {
+                        Text(story.title)
+                            .font(.title3.weight(.semibold))
+                            .foregroundColor(.white)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.9)
+                            .shadow(color: Color.black.opacity(0.6), radius: 10, x: 0, y: 4)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("feed.row.\(story.id).open")
 
                             HStack(spacing: 6) {
                                 Text(Date.getTimeInterval(with: story.time))
@@ -290,7 +297,6 @@ extension PostView {
                             }
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.8))
-                            .opacity(isRead ? 0.55 : 1)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
@@ -300,33 +306,19 @@ extension PostView {
 
                         let controlIconFont: Font = .system(size: 17, weight: .semibold)
 
-                        HStack(spacing: 14) {
+                        VStack(alignment: .leading, spacing: 10) {
                             Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
                                 .font(.callout.weight(.semibold))
                                 .foregroundColor(.white.opacity(0.85))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
 
-                            Spacer()
-
-                            Button {
-                                let bookmark = Bookmark(story: story)
-                                globalSettings.tempBookmarks.append(bookmark)
-                            } label: {
-                                Image(systemName: "bookmark")
-                                    .font(controlIconFont)
-                            }
-                            .buttonStyle(.plain)
-                            .foregroundColor(.white.opacity(0.9))
-                            .frame(width: 40, height: 40)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                            )
-                            .contentShape(Rectangle())
-
-                            if let unsafeUrl = story.url {
-                                ShareLink(item: vm.networkManager.getSecureUrlString(url: unsafeUrl)) {
-                                    Image(systemName: "square.and.arrow.up")
+                            HStack(spacing: 14) {
+                                Button {
+                                    let bookmark = Bookmark(story: story)
+                                    globalSettings.tempBookmarks.append(bookmark)
+                                } label: {
+                                    Image(systemName: "bookmark")
                                         .font(controlIconFont)
                                 }
                                 .buttonStyle(.plain)
@@ -338,24 +330,42 @@ extension PostView {
                                         .stroke(Color.white.opacity(0.12), lineWidth: 1)
                                 )
                                 .contentShape(Rectangle())
+
+                                if let unsafeUrl = story.url {
+                                    ShareLink(item: vm.networkManager.getSecureUrlString(url: unsafeUrl)) {
+                                        Image(systemName: "square.and.arrow.up")
+                                            .font(controlIconFont)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .frame(width: 40, height: 40)
+                                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                    )
+                                    .contentShape(Rectangle())
+                                }
+
+                                CommentsButtonView(vm: vm, action: {
+                                    path.append(.comments(story))
+                                    Task { await feedVM.openComments(story) }
+                                }, accessibilityIdentifier: "feed.row.\(story.id).comments")
+                                .buttonStyle(.plain)
+                                .foregroundColor(.white.opacity(0.9))
+                                .font(controlIconFont)
+                                .frame(height: 40)
+                                .padding(.horizontal, 12)
+                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                )
+                                .contentShape(Rectangle())
+                                Spacer(minLength: 0)
                             }
 
-                            CommentsButtonView(vm: vm) {
-                                path.append(.comments(story))
-                                Task { await feedVM.openComments(story) }
-                            }
-                            .buttonStyle(.plain)
-                            .foregroundColor(.white.opacity(0.9))
-                            .font(controlIconFont)
-                            .frame(height: 40)
-                            .padding(.horizontal, 12)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                            )
-                            .contentShape(Rectangle())
-
+#if DEBUG
                             if globalSettings.isHNWriteEnabled && account.isLoggedIn {
                                 Button {
                                     Task { await handleStoryVote(storyId: story.id) }
@@ -375,6 +385,7 @@ extension PostView {
                                 .opacity(didVote ? 0.4 : 1)
                                 .disabled(didVote || isVoting)
                             }
+#endif
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
@@ -389,15 +400,19 @@ extension PostView {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                 )
-                .overlay(alignment: .topTrailing) {
+                .overlay(alignment: .topLeading) {
                     if isRead {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18, weight: .semibold))
+                        Text("Read")
+                            .font(.caption.weight(.semibold))
                             .foregroundColor(.white.opacity(0.9))
-                            .padding(8)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
-                            .padding(10)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(.ultraThinMaterial, in: Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                            .padding(12)
                     }
                 }
 
@@ -415,8 +430,14 @@ extension PostView {
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                path.append(.comments(story))
-                Task { await feedVM.openComments(story) }
+                openSourceDestination(story)
+            }
+            .overlay(alignment: .topLeading) {
+                Text("Feed Row")
+                    .font(.caption2)
+                    .opacity(0.01)
+                    .accessibilityLabel("Feed Row \(story.id)")
+                    .accessibilityIdentifier("feed.row.\(story.id)")
             }
             .alert("Vote", isPresented: $showVoteAlert) {
                 Button("OK", role: .cancel) { }
@@ -429,6 +450,7 @@ extension PostView {
     
 }
 
+#if DEBUG
 extension PostView {
     @MainActor
     private func handleStoryVote(storyId: Int) async {
@@ -457,48 +479,142 @@ extension PostView {
         isVoting = false
     }
 }
+#endif
 
 extension PostView {
-    private func openStoryDestination(_ story: Story) {
-        if globalSettings.settings.openInReader, story.url != nil {
-            path.append(.reader(story))
-        } else if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
+    private func openSourceDestination(_ story: Story) {
+        if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
             openURL(safe, prefersInApp: true)
         }
         Task { await feedVM.openStory(story) }
     }
 
+    private func openReaderDestination(_ story: Story) {
+        guard story.url != nil else { return }
+        path.append(.reader(story))
+        Task { await feedVM.openStory(story) }
+    }
+
     @ViewBuilder
     private func cardImage(for story: Story) -> some View {
-        if let cachedImage = vm.cachedImage {
-            cachedImage
-                .resizable()
-                .scaledToFill()
-        } else if let imageUrl = vm.imageUrl {
-            AsyncImage(url: imageUrl, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
-                switch phase {
-                case .empty:
-                    Rectangle()
-                        .fill(.thinMaterial)
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .onAppear {
-                            vm.cacheImageIfNeeded(image, storyId: story.id)
-                        }
-                case .failure:
-                    Rectangle()
-                        .fill(Color("CardColor"))
-                @unknown default:
-                    Rectangle()
-                        .fill(Color("CardColor"))
+        ZStack {
+            if let cachedImage = vm.cachedImage {
+                cachedImage
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else if let imageUrl = vm.imageUrl {
+                AsyncImage(url: imageUrl, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
+                    switch phase {
+                    case .empty:
+                        CardPlaceholderPattern()
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .onAppear {
+                                vm.cacheImageIfNeeded(image, storyId: story.id)
+                            }
+                    case .failure:
+                        CardPlaceholderPattern()
+                    @unknown default:
+                        CardPlaceholderPattern()
+                    }
                 }
+            } else {
+                CardPlaceholderPattern()
             }
-        } else {
-            Rectangle()
-                .fill(Color("CardColor"))
         }
+    }
+
+    private func compactImage(for story: Story) -> AnyView? {
+        let height: CGFloat = 180
+
+        if let cachedImage = vm.cachedImage {
+            return AnyView(
+                GeometryReader { proxy in
+                    cachedImage
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: proxy.size.width, height: height)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                        )
+                }
+                .frame(height: height)
+                .contentShape(Rectangle())
+            )
+        }
+
+        guard vm.imageAvailability == .available else {
+            return nil
+        }
+
+        if let imageUrl = vm.imageUrl {
+            return AnyView(
+                GeometryReader { proxy in
+                    AsyncImage(url: imageUrl, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
+                        switch phase {
+                        case .empty:
+                            CardPlaceholderPattern()
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .onAppear {
+                                    vm.cacheImageIfNeeded(image, storyId: story.id)
+                                }
+                        case .failure:
+                            CardPlaceholderPattern()
+                        @unknown default:
+                            CardPlaceholderPattern()
+                        }
+                    }
+                    .frame(width: proxy.size.width, height: height)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                    )
+                }
+                .frame(height: height)
+                .contentShape(Rectangle())
+            )
+        }
+
+        return AnyView(
+            GeometryReader { proxy in
+                CardPlaceholderPattern()
+                    .frame(width: proxy.size.width, height: height)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                    )
+            }
+            .frame(height: height)
+        )
+    }
+
+    private func titleLabel(for story: Story) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(story.title)
+                .foregroundColor(.primary)
+                .font(.title3.weight(.semibold))
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+
+            if story.url != nil {
+                Image(systemName: "arrow.up.right.square")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private struct RemoteImageView: View {
@@ -538,7 +654,85 @@ extension PostView {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self.index = index
         self.isRead = isRead
+        self.isFeatured = false
         self._path = path
+    }
+
+    init(withStory story: Story, index: Int, isRead: Bool, isFeatured: Bool, path: Binding<[AppRoute]>) {
+        self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
+        self.index = index
+        self.isRead = isRead
+        self.isFeatured = isFeatured
+        self._path = path
+    }
+}
+
+private struct ControlPillModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.callout.weight(.semibold))
+            .foregroundColor(.primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color("BackgroundColor"))
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+            .frame(minWidth: 44, minHeight: 36)
+    }
+}
+
+private struct CardPlaceholderPattern: View {
+    private let base = Color(red: 0.88, green: 0.95, blue: 0.92)
+    private let accent = Color(red: 0.55, green: 0.75, blue: 0.70)
+    private let accent2 = Color(red: 0.70, green: 0.82, blue: 0.78)
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                LinearGradient(
+                    colors: [base, base.opacity(0.9)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                Canvas { context, size in
+                    let cell: CGFloat = 80
+                    for x in stride(from: 0, through: size.width + cell, by: cell) {
+                        for y in stride(from: 0, through: size.height + cell, by: cell) {
+                            let origin = CGPoint(x: x, y: y)
+                            let phase = (x + y).truncatingRemainder(dividingBy: 160) / 160
+                            let color = phase < 0.5 ? accent.opacity(0.18) : accent2.opacity(0.18)
+
+                            var circle = Path()
+                            circle.addEllipse(in: CGRect(x: origin.x + 10, y: origin.y + 8, width: 18, height: 18))
+                            context.fill(circle, with: .color(color))
+
+                            var rounded = Path()
+                            rounded.addRoundedRect(in: CGRect(x: origin.x + 36, y: origin.y + 14, width: 26, height: 12), cornerSize: CGSize(width: 6, height: 6))
+                            context.fill(rounded, with: .color(color))
+
+                            var squiggle = Path()
+                            squiggle.move(to: CGPoint(x: origin.x + 12, y: origin.y + 46))
+                            squiggle.addCurve(
+                                to: CGPoint(x: origin.x + 56, y: origin.y + 46),
+                                control1: CGPoint(x: origin.x + 24, y: origin.y + 34),
+                                control2: CGPoint(x: origin.x + 44, y: origin.y + 58)
+                            )
+                            context.stroke(squiggle, with: .color(color), lineWidth: 2)
+
+                            var capsule = Path()
+                            capsule.addRoundedRect(in: CGRect(x: origin.x + 18, y: origin.y + 58, width: 40, height: 10), cornerSize: CGSize(width: 5, height: 5))
+                            context.fill(capsule, with: .color(color))
+                        }
+                    }
+                }
+                .blendMode(.overlay)
+            }
+        }
+        .clipped()
     }
 }
 

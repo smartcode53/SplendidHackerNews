@@ -11,7 +11,9 @@ struct SingleCommentView: View {
     @ObservedObject var threadVM: CommentsThreadViewModel
     let indentLevel: Int
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
+#if DEBUG
     @EnvironmentObject var account: HNAccount
+#endif
     @State private var showReplySheet = false
     @State private var showVoteAlert = false
     @State private var voteAlertMessage = ""
@@ -70,6 +72,7 @@ extension SingleCommentView {
             
             Spacer()
 
+#if DEBUG
             if globalSettings.isHNWriteEnabled && account.isLoggedIn {
                 Button {
                     Task { await handleCommentVote(commentId: comment.id) }
@@ -87,6 +90,7 @@ extension SingleCommentView {
                 .buttonStyle(.plain)
                 .foregroundColor(.secondary)
             }
+#endif
 
             Button {
                 withAnimation(.easeInOut) {
@@ -102,10 +106,12 @@ extension SingleCommentView {
         .background(Color("CardColor"))
         .padding(.bottom, 10)
         .foregroundColor(.secondary)
+#if DEBUG
         .sheet(isPresented: $showReplySheet) {
             HNReplySheet(commentId: comment.id, storyId: comment.storyId)
                 .environmentObject(account)
         }
+#endif
         .alert("Vote", isPresented: $showVoteAlert) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -114,6 +120,7 @@ extension SingleCommentView {
     }
 }
 
+#if DEBUG
 extension SingleCommentView {
     @MainActor
     private func handleCommentVote(commentId: Int) async {
@@ -142,3 +149,4 @@ extension SingleCommentView {
         isVoting = false
     }
 }
+#endif

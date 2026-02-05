@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
     @StateObject var vm = SettingsViewModel()
+    @Binding var path: [AppRoute]
     
     @Namespace var namespace
     
@@ -39,6 +41,7 @@ struct SettingsView: View {
                 }
             }
             .zIndex(2)
+            .accessibilityIdentifier("settings.list")
             
         }
     }
@@ -343,6 +346,8 @@ extension SettingsView {
                 .font(.headline)
 
             Toggle("Open articles in Reader", isOn: $globalSettings.settings.openInReader)
+                .accessibilityIdentifier("settings.reader.enabled")
+            Toggle("Open tapped links in Reader when possible", isOn: $globalSettings.settings.openReaderLinksInReader)
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
@@ -434,6 +439,38 @@ extension SettingsView {
                 Spacer()
             }
             .padding(.horizontal)
+            .accessibilityIdentifier("settings.debug.section")
+
+            NavigationLink(destination: AutomationPanelView(path: $path)) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
+
+                    HStack {
+                        Label("Automation Panel", systemImage: "wand.and.stars")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .padding()
+                }
+                .padding(.horizontal, 10)
+            }
+            .accessibilityIdentifier("settings.debug.automationPanel")
+
+            NavigationLink(destination: AutomationChecklistView()) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("CardColor"))
+
+                    HStack {
+                        Label("Automation Checklist", systemImage: "checklist")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .padding()
+                }
+                .padding(.horizontal, 10)
+            }
 
             NavigationLink(value: AppRoute.hnAccount) {
                 ZStack {
@@ -449,6 +486,7 @@ extension SettingsView {
                 }
                 .padding(.horizontal, 10)
             }
+            .accessibilityIdentifier("settings.debug.hnAccount")
 
             NavigationLink(value: AppRoute.hnDiagnostics) {
                 ZStack {
@@ -464,6 +502,7 @@ extension SettingsView {
                 }
                 .padding(.horizontal, 10)
             }
+            .accessibilityIdentifier("settings.debug.hnDiagnostics")
 
             NavigationLink(value: AppRoute.readerPreview) {
                 ZStack {
@@ -479,6 +518,7 @@ extension SettingsView {
                 }
                 .padding(.horizontal, 10)
             }
+            .accessibilityIdentifier("settings.debug.readerPreview")
         }
         .padding(.top, 30)
     }
@@ -488,6 +528,143 @@ extension SettingsView {
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView()
+        SettingsView(path: .constant([]))
     }
 }
+
+#if DEBUG
+private struct AutomationPanelView: View {
+    @EnvironmentObject var tabRouter: TabRouter
+    @Binding var path: [AppRoute]
+    @ObservedObject private var debug = DebugEnvironment.shared
+
+    var body: some View {
+        List {
+            Section("Navigate") {
+                Button("Go to Feed") {
+                    tabRouter.selectedTab = .feed
+                }
+                .accessibilityIdentifier("auto.nav.feed")
+
+                Button("Go to Saved") {
+                    tabRouter.selectedTab = .saved
+                }
+                .accessibilityIdentifier("auto.nav.saved")
+
+                Button("Go to Settings") {
+                    tabRouter.selectedTab = .settings
+                }
+                .accessibilityIdentifier("auto.nav.settings")
+            }
+
+            Section("Open") {
+                Button("Open Comments") {
+                    let story = DebugFixtures.story(for: debug.fixtureStoryID)
+                    path = [.comments(story)]
+                }
+                .accessibilityIdentifier("auto.open.comments")
+
+                Button("Open Reader") {
+                    let story = DebugFixtures.story(
+                        for: debug.fixtureStoryID,
+                        title: "Fixture Reader Story",
+                        url: debug.fixtureURL
+                    )
+                    path = [.reader(story)]
+                }
+                .accessibilityIdentifier("auto.open.reader")
+            }
+
+            Section("Fixtures") {
+                Button {
+                    debug.fixtureMode.toggle()
+                } label: {
+                    HStack {
+                        Text("Fixture Mode")
+                        Spacer()
+                        Toggle("", isOn: $debug.fixtureMode)
+                            .labelsHidden()
+                            .allowsHitTesting(false)
+                    }
+                }
+                .accessibilityIdentifier("auto.fixtureMode")
+
+                TextField("Fixture Story ID", text: $debug.fixtureStoryIDText)
+                    .keyboardType(.numberPad)
+                    .accessibilityIdentifier("auto.fixture.storyId")
+
+                TextField("Fixture URL", text: $debug.fixtureURLString)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("auto.fixture.url")
+
+                Button("Reload Fixture Content") {
+                    debug.triggerFixtureReload()
+                }
+                .accessibilityIdentifier("auto.fixture.reload")
+            }
+
+            Section("Debug Screens") {
+                Button("HN Account") {
+                    path = [.hnAccount]
+                }
+                .accessibilityIdentifier("auto.open.hnAccount")
+
+                Button("HN Diagnostics") {
+                    path = [.hnDiagnostics]
+                }
+                .accessibilityIdentifier("auto.open.hnDiagnostics")
+
+                Button("Reader Preview") {
+                    path = [.readerPreview]
+                }
+                .accessibilityIdentifier("auto.open.readerPreview")
+            }
+        }
+        .navigationTitle("Automation Panel")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct AutomationChecklistView: View {
+    private let entries: [String] = [
+        "Tab Bar: tab.feed, tab.saved, tab.settings",
+        "Feed: feed.selector, feed.hideRead, feed.list",
+        "Feed Row: feed.row.<storyId>, feed.row.<storyId>.open, feed.row.<storyId>.comments",
+        "Reader: reader.view, reader.openSafari, reader.reload, reader.typography",
+        "Reader Typography: reader.typography.fontScale, reader.typography.lineSpacing",
+        "Reader Links: reader.link.openReader, reader.link.openSafari, reader.link.copy",
+        "Comments: comments.view, comments.search, comments.collapseAll, comments.expandAll",
+        "Comments Nav: comments.prevTopLevel, comments.nextTopLevel, comments.topLevelIndex",
+        "Settings: settings.list, settings.reader.enabled",
+        "Debug Settings: settings.debug.section, settings.debug.automationPanel, settings.debug.hnAccount, settings.debug.hnDiagnostics, settings.debug.readerPreview"
+    ]
+
+    private var automationMap: String {
+        entries.joined(separator: "\n")
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Automation Checklist")
+                .font(.title2.weight(.semibold))
+
+            Text(automationMap)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .textSelection(.enabled)
+
+            Button("Copy Automation Map") {
+                UIPasteboard.general.string = automationMap
+                print(automationMap)
+            }
+            .buttonStyle(.borderedProminent)
+
+            Spacer()
+        }
+        .padding()
+        .navigationTitle("Automation")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+#endif

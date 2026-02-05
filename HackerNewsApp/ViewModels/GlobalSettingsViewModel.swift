@@ -14,8 +14,13 @@ class GlobalSettingsViewModel: ObservableObject {
     
     @Published var settings: Settings
     @Published var tempBookmarks: [Bookmark]
-    private let persistence: SettingsPersistenceCoordinator
+    private let persistence: SettingsPersistenceCoordinator<Settings>
     private var settingsCancellable: AnyCancellable?
+#if DEBUG
+    @Published var debugSettings: DebugSettings
+    private let debugPersistence: SettingsPersistenceCoordinator<DebugSettings>
+    private var debugSettingsCancellable: AnyCancellable?
+#endif
     
     var selectedCardStyle: Settings.CardStyle {
         switch settings.cardStyleString {
@@ -42,7 +47,7 @@ class GlobalSettingsViewModel: ObservableObject {
 
     var isHNWriteEnabled: Bool {
         #if DEBUG
-        return settings.enableHNWriteActionsDebug
+        return debugSettings.enableHNWriteActions
         #else
         return false
         #endif
@@ -55,20 +60,43 @@ class GlobalSettingsViewModel: ObservableObject {
         self.url = fileURL
         self.persistence = SettingsPersistenceCoordinator(fileURL: fileURL)
 
+        var loadedSettings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
         do {
             let data = try Data(contentsOf: fileURL)
             if let settings = try? JSONDecoder().decode(Settings.self, from: data) {
-                self.settings = settings
+                loadedSettings = settings
             } else {
-                self.settings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
+                loadedSettings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
             }
         } catch let error {
             print(error)
-            self.settings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
+            loadedSettings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
         }
-        
+        self.settings = loadedSettings
+
+#if DEBUG
+        let debugFileURL = FileManager.default.documentsDirectory.appending(component: "debug-settings.json")
+        self.debugPersistence = SettingsPersistenceCoordinator(fileURL: debugFileURL)
+        var loadedDebugSettings = DebugSettings()
+        do {
+            let data = try Data(contentsOf: debugFileURL)
+            if let debugSettings = try? JSONDecoder().decode(DebugSettings.self, from: data) {
+                loadedDebugSettings = debugSettings
+            } else {
+                loadedDebugSettings = DebugSettings()
+            }
+        } catch let error {
+            print(error)
+            loadedDebugSettings = DebugSettings()
+        }
+        self.debugSettings = loadedDebugSettings
+#endif
+
         self.tempBookmarks = []
         startObservingSettings()
+#if DEBUG
+        startObservingDebugSettings()
+#endif
     }
     
     func saveSettings() {
@@ -76,6 +104,12 @@ class GlobalSettingsViewModel: ObservableObject {
         Task { [persistence = persistence] in
             await persistence.saveNow(snapshot: snapshot)
         }
+#if DEBUG
+        let debugSnapshot = debugSettings
+        Task { [debugPersistence = debugPersistence] in
+            await debugPersistence.saveNow(snapshot: debugSnapshot)
+        }
+#endif
     }
 
     private func startObservingSettings() {
@@ -89,4 +123,18 @@ class GlobalSettingsViewModel: ObservableObject {
                 }
             }
     }
+
+#if DEBUG
+    private func startObservingDebugSettings() {
+        debugSettingsCancellable = $debugSettings
+            .dropFirst()
+            .sink { [weak self] updated in
+                guard let self else { return }
+                let persistence = self.debugPersistence
+                Task { [persistence] in
+                    await persistence.scheduleSave(snapshot: updated)
+                }
+            }
+    }
+#endif
 }

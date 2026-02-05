@@ -7,7 +7,7 @@
 
 import Foundation
 
-actor SettingsPersistenceCoordinator {
+actor SettingsPersistenceCoordinator<Snapshot: Codable> {
     private let fileURL: URL
     private let encoder: JSONEncoder
     private let defaultDebounceNanoseconds: UInt64
@@ -19,7 +19,7 @@ actor SettingsPersistenceCoordinator {
         self.defaultDebounceNanoseconds = debounceNanoseconds
     }
 
-    func scheduleSave(snapshot: Settings, debounceNanoseconds: UInt64? = nil) async {
+    func scheduleSave(snapshot: Snapshot, debounceNanoseconds: UInt64? = nil) async {
         pendingTask?.cancel()
         let delay = debounceNanoseconds ?? defaultDebounceNanoseconds
         pendingTask = Task { [weak self] in
@@ -33,13 +33,13 @@ actor SettingsPersistenceCoordinator {
         }
     }
 
-    func saveNow(snapshot: Settings) async {
+    func saveNow(snapshot: Snapshot) async {
         pendingTask?.cancel()
         pendingTask = nil
         await writeSnapshot(snapshot)
     }
 
-    private func writeSnapshot(_ snapshot: Settings) async {
+    private func writeSnapshot(_ snapshot: Snapshot) async {
         do {
             let data = try encoder.encode(snapshot)
             let tempURL = fileURL

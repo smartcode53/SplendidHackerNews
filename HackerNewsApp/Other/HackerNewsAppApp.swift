@@ -12,13 +12,17 @@ struct HackerNewsAppApp: App {
     
     @Environment(\.scenePhase) var scenePhase
     @StateObject var globalSettings = GlobalSettingsViewModel()
+#if DEBUG
     @StateObject var hnAccount = HNAccount()
+#endif
     
     var body: some Scene {
         WindowGroup {
             TabEnclosingView()
                 .environmentObject(globalSettings)
+#if DEBUG
                 .environmentObject(hnAccount)
+#endif
                 .preferredColorScheme(
                     globalSettings.selectedTheme == .automatic
                     ?
@@ -30,6 +34,13 @@ struct HackerNewsAppApp: App {
                     :
                             .light
                 )
+#if DEBUG
+                .task {
+                    if DebugEnvironment.shared.fixtureMode {
+                        DebugEnvironment.shared.fixtureMode = false
+                    }
+                }
+#endif
                 .onChange(of: scenePhase) { phase in
                     if phase == .inactive {
                         globalSettings.saveSettings()

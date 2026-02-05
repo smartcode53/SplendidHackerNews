@@ -6,8 +6,8 @@
 //
 
 import Foundation
+import UIKit
 import SwiftSoup
-import HTML2Markdown
 
 extension String {
     var parsedText: String {
@@ -36,16 +36,37 @@ extension String {
     var markdown: AttributedString {
         let html = self
 
-        do {
-            let dom = try HTMLParser().parse(html: html)
-            let markdown = dom.toMarkdown(options: .unorderedListBullets)
-            print(markdown.convertToString())
-            return try! AttributedString(markdown: markdown.convertToString())
-        } catch {
-            // parsing error
-            return "⚠️ Error parsing Comment"
+        if let data = html.data(using: .utf8) {
+            if let attributed = try? NSAttributedString(
+                data: data,
+                options: [
+                    .documentType: NSAttributedString.DocumentType.html,
+                    .characterEncoding: String.Encoding.utf8.rawValue
+                ],
+                documentAttributes: nil
+            ) {
+                let mutable = NSMutableAttributedString(attributedString: attributed)
+                let baseFont = UIFont.preferredFont(forTextStyle: .body)
+                let fullRange = NSRange(location: 0, length: mutable.length)
+                mutable.enumerateAttribute(.font, in: fullRange, options: []) { value, range, _ in
+                    let font = (value as? UIFont) ?? baseFont
+                    var descriptor = baseFont.fontDescriptor
+                    let traits = font.fontDescriptor.symbolicTraits
+                    if let adjusted = descriptor.withSymbolicTraits(traits) {
+                        descriptor = adjusted
+                    }
+                    let newFont = UIFont(descriptor: descriptor, size: baseFont.pointSize)
+                    mutable.addAttribute(.font, value: newFont, range: range)
+                }
+                return AttributedString(mutable)
+            }
         }
 
+        if let fallback = try? SwiftSoup.parseBodyFragment(html).text(trimAndNormaliseWhitespace: true) {
+            return AttributedString(fallback)
+        }
+
+        return AttributedString(html)
     }
     
     var urlDomain: String? {
@@ -66,11 +87,6 @@ extension String {
             .replacingOccurrences(of: "‘", with: "%91")
             .replacingOccurrences(of: ",", with: "%2C")
         //more symbols fixes here: https://mykindred.com/htmlspecialchars.php
-    }
-    
-    private func convertToString() -> String {
-        return self.replacingOccurrences(of: "&#x27;", with: "'")
-            .replacingOccurrences(of: "&#x2F;", with: "/")
     }
     
 }

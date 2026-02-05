@@ -1,9 +1,22 @@
 import Foundation
 
 struct HNAPIClient {
-    private let baseURL = URL(string: "https://hacker-news.firebaseio.com/v0")!
+    private let defaultBaseURL = URL(string: "https://hacker-news.firebaseio.com/v0")!
+#if DEBUG
+    private let debugForceBadBaseURL = false
+    private let debugBadBaseURL = URL(string: "https://example.invalid")!
+#endif
     private let session: URLSession
     private let decoder: JSONDecoder
+
+    private var baseURL: URL {
+#if DEBUG
+        if debugForceBadBaseURL {
+            return debugBadBaseURL
+        }
+#endif
+        return defaultBaseURL
+    }
     
     init(session: URLSession = .shared) {
         self.session = session

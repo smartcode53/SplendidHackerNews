@@ -2,7 +2,9 @@ import SwiftUI
 
 struct BookmarksRootView: View {
     @State private var path: [AppRoute] = []
+#if DEBUG
     @EnvironmentObject var account: HNAccount
+#endif
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -15,17 +17,14 @@ struct BookmarksRootView: View {
                         ReaderView(story: story)
                     case .history:
                         HistoryView(path: $path)
+#if DEBUG
                     case .hnAccount:
                         HNAccountView()
-                    #if DEBUG
                     case .hnDiagnostics:
                         HNDiagnosticsView(account: account)
                     case .readerPreview:
                         ReaderPreviewView()
-                    #else
-                    case .readerPreview:
-                        EmptyView()
-                    #endif
+#endif
                     }
                 }
         }

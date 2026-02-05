@@ -2,11 +2,13 @@ import SwiftUI
 
 struct SettingsRootView: View {
     @State private var path: [AppRoute] = []
+#if DEBUG
     @EnvironmentObject var account: HNAccount
+#endif
     
     var body: some View {
         NavigationStack(path: $path) {
-            SettingsView()
+            SettingsView(path: $path)
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
                     case .comments(let story):
@@ -15,17 +17,14 @@ struct SettingsRootView: View {
                         ReaderView(story: story)
                     case .history:
                         HistoryView(path: $path)
+#if DEBUG
                     case .hnAccount:
                         HNAccountView()
-                    #if DEBUG
                     case .hnDiagnostics:
                         HNDiagnosticsView(account: account)
                     case .readerPreview:
                         ReaderPreviewView()
-                    #else
-                    case .readerPreview:
-                        EmptyView()
-                    #endif
+#endif
                     }
                 }
         }

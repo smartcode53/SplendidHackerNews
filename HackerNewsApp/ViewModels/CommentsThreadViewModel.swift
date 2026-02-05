@@ -6,6 +6,7 @@ final class CommentsThreadViewModel: ObservableObject {
     @Published private(set) var visibleTopLevelIDs: [Int] = []
     @Published private(set) var matchCount: Int = 0
     @Published var collapsedIDs: Set<Int> = []
+    @Published var loadState: LoadState = .idle
     
     private var visibleIDs: Set<Int> = []
     private var currentQuery: String = ""
@@ -15,6 +16,29 @@ final class CommentsThreadViewModel: ObservableObject {
         self.comments = comments
         topLevelIDs = comments.map { $0.id }
         applySearch(query: currentQuery)
+    }
+
+    func loadComments(using loader: any CommentsButtonProtocol, storyID: Int) async {
+        loadState = .loading
+        await loader.loadComments(withId: storyID)
+
+        guard let children = loader.comments?.children else {
+            let message = ErrorPresenter.message(
+                for: nil,
+                defaultMessage: "Check your connection and try again.",
+                debugTag: "ALGOLIA_COMMENTS"
+            )
+            loadState = .error(message: message, canRetry: true)
+            return
+        }
+
+        setComments(children)
+
+        if children.isEmpty {
+            loadState = .empty
+        } else {
+            loadState = .loaded
+        }
     }
     
     func applySearch(query: String) {

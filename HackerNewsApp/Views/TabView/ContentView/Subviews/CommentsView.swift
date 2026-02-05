@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Glur
 
 struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoader {
     
@@ -13,11 +14,18 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
     @ObservedObject var vm: T
     @StateObject private var threadVM = CommentsThreadViewModel()
     @State private var searchText = ""
-    @State private var currentTopIndex = 0
     @State private var didAttemptRestore = false
     @State private var showResume = false
     @State private var pendingLastSeenID: Int?
     @State private var lastSeenTask: Task<Void, Never>?
+    @State private var restoreTask: Task<Void, Never>?
+    @State private var headerImageURL: URL?
+    @State private var headerImageAvailability: Bool?
+    @State private var showSearch = false
+    @FocusState private var isSearchFocused: Bool
+#if DEBUG
+    @ObservedObject private var debug = DebugEnvironment.shared
+#endif
     
     
     var body: some View {
@@ -26,67 +34,16 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                 
                 ScrollViewReader { proxy in
                     ScrollView {
-                        // Top section (Info Card with back navigation button)
-                        VStack {
-                            // Domain, Title, and meta info
-                            VStack(alignment: .leading, spacing: 0) {
-                                if let urlDomain = story.url?.urlDomain {
-                                    Text(urlDomain)
-                                        .foregroundColor(.accentColor)
-                                        .font(.caption.weight(.semibold))
-                                        .padding(.bottom, 5)
-                                }
-
-                                Text(story.url == nil ? "\(story.title)" : "\(story.title) \(Image(systemName: "arrow.up.forward.app"))")
-                                        .font(.title3.weight(.semibold))
-                                        .padding(.bottom, 12)
-                                        .foregroundColor(.primary)
-                                        .onTapGesture {
-                                            vm.showStoryInComments = true
-                                        }
-
-                                HStack {
-                                    Text(Date.getTimeInterval(with: story.time))
-
-                                    Text("|")
-                                        .foregroundColor(.secondary)
-
-                                    Text(story.by)
-
-                                    Spacer()
-                                }
-                                .foregroundColor(.secondary)
-                                .font(.subheadline)
-                            }
-                            .padding(.bottom, 35)
-                            .padding(.horizontal)
-                            .padding(.top)
-
-                            Divider()
-
-                            // Points and Action Button
-                            HStack {
-                                    Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
-                                        .foregroundColor(.secondary)
-                                        .font(.headline)
-
-                                Spacer()
-
-                                if let storyUrl = story.url {
-                                    ShareLink(item: storyUrl) {
-                                        Image(systemName: "square.and.arrow.up")
-                                    }
-                                    .createPressableButton()
-                                }
-                            }
-                            .padding()
-
-                            Divider()
+                        if showSearch {
+                            searchBar
+                                .padding(.horizontal, 20)
+                                .padding(.top, 12)
                         }
-                        .background(Color("CardColor"))
-                        .padding(.bottom, 8)
 
-                        commentControls(proxy: proxy)
+                        headerView(for: story)
+                            .padding(.bottom, 8)
+
+                        commentControls()
 
                         if showResume {
                             HStack {
@@ -113,26 +70,15 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                         }
 
                         VStack {
-                            if let comments = vm.comments?.children {
-                                LazyVStack {
-                                    ForEach(comments) { comment in
-                                        if threadVM.isVisible(comment.id) {
-                                            SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
-                                                .id(comment.id)
-                                                .onAppear {
-                                                    scheduleLastSeenUpdate(commentID: comment.id)
-                                                }
-                                        }
-                                    }
-                                }
-                            } else {
-                                ProgressView()
-                            }
+                            commentsContent
                         }
                     }
                     .background(Color("BackgroundColor"))
                     .onAppear {
-                        Task { await vm.loadComments(withId: story.id) }
+                        Task { await threadVM.loadComments(using: vm, storyID: story.id) }
+                    }
+                    .task {
+                        await loadHeaderImageIfNeeded(for: story)
                     }
                     .task {
                         if vm.comments != nil {
@@ -143,15 +89,39 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                         }
                     }
                     .onChange(of: vm.comments?.children?.count ?? 0) { _ in
-                        Task { await attemptRestore(proxy: proxy) }
+                        scheduleRestore(proxy: proxy)
                     }
                     .onAppear {
-                        Task { await attemptRestore(proxy: proxy) }
+                        scheduleRestore(proxy: proxy)
+                    }
+                    .onDisappear {
+                        restoreTask?.cancel()
+                        restoreTask = nil
                     }
                 }
             }
             .background(Color("BackgroundColor"))
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Comments View")
+            .accessibilityIdentifier("comments.view")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showSearch.toggle()
+                        if showSearch {
+                            isSearchFocused = true
+                        } else {
+                            searchText = ""
+                            isSearchFocused = false
+                        }
+                    } label: {
+                        Image(systemName: showSearch ? "xmark.circle.fill" : "magnifyingglass")
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                    .accessibilityIdentifier("comments.search.toggle")
+                }
+            }
             .background(
                 NavigationLink(destination: SafariView(vm: vm, url: story.url), isActive: $vm.showStoryInComments) {
                     EmptyView()
@@ -159,6 +129,206 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                 .hidden()
             )
         }
+    }
+}
+
+extension CommentsView {
+    private func loadHeaderImageIfNeeded(for story: Story) async {
+        guard headerImageAvailability == nil else { return }
+        guard let storyUrl = story.url else {
+            headerImageAvailability = false
+            return
+        }
+        let availabilityCache = UltimatePostViewModel.ImageAvailabilityCache.instance
+        let urlCache = UltimatePostViewModel.ImageURLCache.instance
+        let key = String(story.id)
+
+        if let cachedURL = urlCache.getFromCache(withKey: key) {
+            headerImageURL = cachedURL
+            headerImageAvailability = true
+            return
+        }
+
+        if let cachedAvailability = availabilityCache.getFromCache(withKey: key), cachedAvailability == false {
+            headerImageAvailability = false
+            return
+        }
+
+        let resultUrl = await vm.networkManager.getImage(fromUrl: storyUrl)
+        headerImageURL = resultUrl
+        headerImageAvailability = resultUrl != nil
+        if let resultUrl {
+            urlCache.saveToCache(resultUrl, withKey: key)
+            availabilityCache.saveToCache(true, withKey: key)
+        } else {
+            availabilityCache.saveToCache(false, withKey: key)
+        }
+    }
+
+    @ViewBuilder
+private func headerView(for story: Story) -> some View {
+    let heroHeight: CGFloat = 280
+    let overlayHeight: CGFloat = 140
+    let topBlurHeight: CGFloat = 190
+    let bottomBlurHeight: CGFloat = 170
+    let isHero = headerImageAvailability == true
+    let primaryColor: Color = isHero ? .white : .primary
+    let secondaryColor: Color = isHero ? .white.opacity(0.85) : .secondary
+
+    ZStack(alignment: .bottom) {
+        if isHero {
+            GeometryReader { proxy in
+                let size = proxy.size
+                ZStack {
+                    headerImageBackground
+                        .frame(width: size.width, height: size.height)
+                        .clipped()
+
+                    headerImageBackground
+                        .glur(radius: 28.0, offset: 0.0, interpolation: 0.55, direction: .up, noise: 0.06, drawingGroup: true)
+                        .mask(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .white, location: 0),
+                                    .init(color: .white, location: 0.45),
+                                    .init(color: .white.opacity(0.6), location: 0.7),
+                                    .init(color: .white.opacity(0.25), location: 0.85),
+                                    .init(color: .clear, location: 1)
+                                ],
+                                startPoint: .bottom,
+                                endPoint: .top
+                            )
+                            .frame(height: bottomBlurHeight)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        )
+                        .frame(width: size.width, height: size.height)
+                }
+                .frame(width: size.width, height: size.height)
+                .clipped()
+            }
+            .frame(maxWidth: .infinity, minHeight: heroHeight, maxHeight: heroHeight)
+            .ignoresSafeArea(edges: .top)
+        } else {
+            Color("BackgroundColor")
+                .frame(maxWidth: .infinity, minHeight: heroHeight, maxHeight: heroHeight)
+                .ignoresSafeArea(edges: .top)
+        }
+
+        Rectangle()
+            .fill(Color.black.opacity(0.35))
+            .mask(
+                LinearGradient(
+                    stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: 0.5),
+                        .init(color: .clear, location: 1)
+                    ],
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+            )
+            .frame(height: bottomBlurHeight)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+
+        VStack(alignment: .leading, spacing: 0) {
+            if let urlDomain = story.url?.urlDomain {
+                Text(urlDomain)
+                    .foregroundColor(isHero ? .white.opacity(0.9) : .accentColor)
+                    .font(.caption.weight(.semibold))
+                    .padding(.bottom, 5)
+            }
+
+            Text(story.title)
+                .font(.title3.weight(.semibold))
+                .padding(.bottom, 8)
+                .foregroundColor(primaryColor)
+                .shadow(color: isHero ? Color.black.opacity(0.35) : .clear, radius: 8, x: 0, y: 3)
+
+            HStack {
+                Text(Date.getTimeInterval(with: story.time))
+                Text("|")
+                    .foregroundColor(secondaryColor)
+                Text(story.by)
+                Spacer()
+            }
+            .foregroundColor(secondaryColor)
+            .font(.subheadline)
+
+            HStack {
+                Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
+                    .foregroundColor(secondaryColor)
+                    .font(.headline)
+                Spacer()
+                if let storyUrl = story.url {
+                    Button {
+                        vm.showStoryInComments = true
+                    } label: {
+                        Image(systemName: "safari")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.white.opacity(0.9))
+                    .frame(width: 40, height: 40)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+
+                    ShareLink(item: storyUrl) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.white.opacity(0.9))
+                    .frame(width: 40, height: 40)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+                }
+            }
+            .padding(.top, 8)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
+        .frame(maxWidth: .infinity, minHeight: overlayHeight, maxHeight: overlayHeight, alignment: .bottom)
+    }
+}
+
+    @ViewBuilder
+    private var headerImageBackground: some View {
+        if let headerImageURL {
+            AsyncImage(url: headerImageURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
+                switch phase {
+                case .empty:
+                    headerPlaceholder
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure:
+                    headerPlaceholder
+                @unknown default:
+                    headerPlaceholder
+                }
+            }
+            .clipped()
+        } else {
+            headerPlaceholder
+        }
+    }
+
+    private var headerPlaceholder: some View {
+        LinearGradient(
+            colors: [
+                Color("CardColor"),
+                Color("CardColor").opacity(0.6)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 }
 
@@ -176,6 +346,9 @@ extension CommentsView {
 
     @MainActor
     private func attemptRestore(proxy: ScrollViewProxy) async {
+        didAttemptRestore = true
+        showResume = false
+        return
         guard !didAttemptRestore else { return }
         guard let storyId = vm.story?.id else { return }
         guard let comments = vm.comments?.children, !comments.isEmpty else { return }
@@ -196,54 +369,28 @@ extension CommentsView {
         }
     }
     @ViewBuilder
-    private func commentControls(proxy: ScrollViewProxy) -> some View {
+    private func commentControls() -> some View {
         VStack(spacing: 10) {
             HStack(spacing: 12) {
-                Button("Prev") {
-                    let ids = currentTopIDs()
-                    guard !ids.isEmpty else { return }
-                    currentTopIndex = max(currentTopIndex - 1, 0)
-                    proxy.scrollTo(ids[currentTopIndex], anchor: .top)
-                }
-                .buttonStyle(.bordered)
-                
-                Text(topIndexLabel())
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                Button("Next") {
-                    let ids = currentTopIDs()
-                    guard !ids.isEmpty else { return }
-                    currentTopIndex = min(currentTopIndex + 1, ids.count - 1)
-                    proxy.scrollTo(ids[currentTopIndex], anchor: .top)
-                }
-                .buttonStyle(.bordered)
-                
-                Spacer()
-                
-                Button("Collapse All") {
+                Button {
                     threadVM.collapseTopLevel()
+                } label: {
+                    Label("Collapse All", systemImage: "rectangle.compress.vertical")
                 }
-                .buttonStyle(.bordered)
-                
-                Button("Expand All") {
+                .buttonStyle(.plain)
+                .modifier(CommentsControlPillModifier())
+                .accessibilityIdentifier("comments.collapseAll")
+
+                Button {
                     threadVM.expandTopLevel()
+                } label: {
+                    Label("Expand All", systemImage: "rectangle.expand.vertical")
                 }
-                .buttonStyle(.bordered)
-            }
-            
-            HStack {
-                TextField("Search comments", text: $searchText)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .textFieldStyle(.roundedBorder)
-                
-                if !searchText.isEmpty {
-                    Button("Clear") {
-                        searchText = ""
-                    }
-                    .buttonStyle(.bordered)
-                }
+                .buttonStyle(.plain)
+                .modifier(CommentsControlPillModifier())
+                .accessibilityIdentifier("comments.expandAll")
+
+                Spacer()
             }
             
             if !searchText.isEmpty {
@@ -262,26 +409,144 @@ extension CommentsView {
             if let comments = vm.comments?.children {
                 threadVM.setComments(comments)
                 threadVM.applySearch(query: searchText)
-                currentTopIndex = 0
             }
         }
         .onChange(of: vm.comments?.children?.count ?? 0) { _ in
             if let comments = vm.comments?.children {
                 threadVM.setComments(comments)
-                currentTopIndex = 0
             }
         }
     }
-    
-    private func currentTopIDs() -> [Int] {
-        let ids = threadVM.visibleTopLevelIDs
-        return ids.isEmpty ? threadVM.topLevelIDs : ids
+}
+
+extension CommentsView {
+    private func scheduleRestore(proxy: ScrollViewProxy) {
+        restoreTask?.cancel()
+        restoreTask = Task {
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            guard !Task.isCancelled else { return }
+            await attemptRestore(proxy: proxy)
+        }
     }
-    
-    private func topIndexLabel() -> String {
-        let ids = currentTopIDs()
-        guard !ids.isEmpty else { return "0/0" }
-        let index = min(currentTopIndex + 1, ids.count)
-        return "\(index)/\(ids.count)"
+}
+
+extension CommentsView {
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.secondary)
+
+            TextField("Search comments", text: $searchText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .focused($isSearchFocused)
+                .accessibilityIdentifier("comments.search")
+
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color("CardColor"), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+        )
+    }
+}
+
+private struct CommentsControlPillModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.subheadline.weight(.semibold))
+            .foregroundColor(.primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+            .frame(minHeight: 36)
+    }
+}
+
+extension CommentsView {
+    @ViewBuilder
+    private var commentsContent: some View {
+        switch threadVM.loadState {
+        case .idle, .loading:
+            ProgressView("Loading comments...")
+                .foregroundColor(.secondary)
+                .padding(.top, 12)
+        case .empty:
+            LoadStateView(
+                title: "No comments yet.",
+                message: "Be the first to comment.",
+                retryTitle: "Reload"
+            ) {
+                Task { await reloadComments() }
+            }
+        case .error(let message, let canRetry):
+            LoadStateView(
+                title: "Couldn't load comments.",
+                message: message,
+                retryAction: canRetry ? { Task { await reloadComments() } } : nil
+            )
+        case .loaded:
+            if let comments = vm.comments?.children {
+                #if DEBUG
+                if debug.fixtureMode {
+                    VStack {
+                        ForEach(comments) { comment in
+                            if threadVM.isVisible(comment.id) {
+                                SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
+                                    .id(comment.id)
+                                    .onAppear {
+                                        scheduleLastSeenUpdate(commentID: comment.id)
+                                    }
+                            }
+                        }
+                    }
+                } else {
+                    LazyVStack {
+                        ForEach(comments) { comment in
+                            if threadVM.isVisible(comment.id) {
+                                SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
+                                    .id(comment.id)
+                                    .onAppear {
+                                        scheduleLastSeenUpdate(commentID: comment.id)
+                                    }
+                            }
+                        }
+                    }
+                }
+                #else
+                LazyVStack {
+                    ForEach(comments) { comment in
+                        if threadVM.isVisible(comment.id) {
+                            SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
+                                .id(comment.id)
+                                .onAppear {
+                                    scheduleLastSeenUpdate(commentID: comment.id)
+                                }
+                        }
+                    }
+                }
+                #endif
+            }
+        }
+    }
+
+    private func reloadComments() async {
+        guard let story = vm.story else { return }
+        await threadVM.loadComments(using: vm, storyID: story.id)
     }
 }
