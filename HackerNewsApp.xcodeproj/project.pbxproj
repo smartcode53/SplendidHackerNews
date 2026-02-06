@@ -57,6 +57,7 @@
 		B4F0328D28C08FC500E463BF /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F0328C28C08FC500E463BF /* DateExtension.swift */; };
 		B4F2BEFA28E2D0CF00CA7811 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F2BEF928E2D0CF00CA7811 /* Settings.swift */; };
 		B4F2BEFD28E2F2C000CA7811 /* HTML2Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = B4F2BEFC28E2F2C000CA7811 /* HTML2Markdown */; };
+		B4F9640E2F361CBD00B94C88 /* Glur in Frameworks */ = {isa = PBXBuildFile; productRef = B4C0A1D728F1234500A1B2C3 /* Glur */; };
 		B4FF100328F0000000A1B2C5 /* HNAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF100128F0000000A1B2C3 /* HNAPIClient.swift */; };
 		B4FF100428F0000000A1B2C6 /* StoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF100228F0000000A1B2C4 /* StoryRepository.swift */; };
 		B4FF101328F0000000A1B2C7 /* ReadStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FF101028F0000000A1B2C7 /* ReadStateStore.swift */; };
@@ -185,6 +186,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4F9640E2F361CBD00B94C88 /* Glur in Frameworks */,
 				B4D8BB3228BFD4AD00B0AFAA /* SwiftSoup in Frameworks */,
 				B4D2473228D0C0F800E6CDEB /* Atributika in Frameworks */,
 				B46356EC28C1055D00D97E84 /* OpenGraph in Frameworks */,
@@ -482,9 +484,9 @@
 			);
 			mainGroup = B478F9B428AD77CA002B893C;
 			packageReferences = (
-				B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup.git" */,
+				B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				B46356EA28C1055D00D97E84 /* XCRemoteSwiftPackageReference "OpenGraph" */,
-				B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika.git" */,
+				B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */,
 				B4F2BEFB28E2F2C000CA7811 /* XCRemoteSwiftPackageReference "HTML2Markdown" */,
 				B4C0A1D628F1234500A1B2C3 /* XCRemoteSwiftPackageReference "Glur" */,
 			);
@@ -713,7 +715,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"HackerNewsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
@@ -728,7 +730,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -743,7 +745,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"HackerNewsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
@@ -758,7 +760,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -807,7 +809,7 @@
 				minimumVersion = 1.1.0;
 			};
 		};
-		B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika.git" */ = {
+		B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/psharanda/Atributika.git";
 			requirement = {
@@ -815,7 +817,7 @@
 				kind = branch;
 			};
 		};
-		B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup.git" */ = {
+		B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
 			requirement = {
@@ -846,12 +848,12 @@
 		};
 		B4D2473128D0C0F800E6CDEB /* Atributika */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika.git" */;
+			package = B4D2473028D0C0F800E6CDEB /* XCRemoteSwiftPackageReference "Atributika" */;
 			productName = Atributika;
 		};
 		B4D8BB3128BFD4AD00B0AFAA /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup.git" */;
+			package = B4D8BB3028BFD4AD00B0AFAA /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
 		};
 		B4F2BEFC28E2F2C000CA7811 /* HTML2Markdown */ = {
