@@ -117,57 +117,57 @@ struct ReaderView: View {
     private func readerContentView(content: ReaderContent) -> some View {
         let typography = ReaderTypography(fontScale: globalSettings.settings.readerFontScale,
                                           lineSpacing: globalSettings.settings.readerLineSpacing)
-        return ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(content.title)
-                        .font(.title2.weight(.semibold))
-                        .foregroundColor(.primary)
+        return GeometryReader { geo in
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(content.title)
+                            .font(.title2.weight(.semibold))
+                            .foregroundColor(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
 
-                    if let domain = content.domain {
-                        Text("\(domain) • \(content.urlString)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text(content.urlString)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                        if let domain = content.domain {
+                            Text(domain)
+                                .font(.caption.weight(.medium))
+                                .foregroundColor(.accentColor)
+                        }
 
-                    Button {
-                        openInSafari()
-                    } label: {
-                        Label("Open Source", systemImage: "safari")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.accentColor)
+                        Button {
+                            openInSafari()
+                        } label: {
+                            Label("Open Source", systemImage: "safari")
+                                .font(.caption.weight(.semibold))
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.accentColor)
 
 #if DEBUG
-                    if let lastUpdated = vm.lastUpdated {
-                        Text("Last updated \(lastUpdatedLabel(for: lastUpdated))")
-                            .font(.caption2)
+                        if let lastUpdated = vm.lastUpdated {
+                            Text("Last updated \(lastUpdatedLabel(for: lastUpdated))")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+#endif
+                    }
+
+                    if content.isTruncated {
+                        Text("Content truncated for performance.")
+                            .font(.caption)
                             .foregroundColor(.secondary)
                     }
-#endif
-                }
 
-                if content.isTruncated {
-                    Text("Content truncated for performance.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
+                        ReaderBlockView(
+                            block: block,
+                            typography: typography,
+                            onLinkTap: handleLinkTap
+                        )
+                    }
                 }
-
-                ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
-                    ReaderBlockView(
-                        block: block,
-                        typography: typography,
-                        onLinkTap: handleLinkTap
-                    )
-                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 20)
+                .frame(width: geo.size.width, alignment: .leading)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 20)
         }
     }
 

@@ -19,57 +19,138 @@ struct SingleCommentView: View {
     @State private var voteAlertMessage = ""
     @State private var didVote = false
     @State private var isVoting = false
-    
+
+    private let threadColors: [Color] = [
+        Color.blue.opacity(0.6),
+        Color.purple.opacity(0.6),
+        Color.green.opacity(0.6),
+        Color.orange.opacity(0.6),
+        Color.pink.opacity(0.6),
+        Color.cyan.opacity(0.6)
+    ]
+
+    private var threadColor: Color {
+        threadColors[indentLevel % threadColors.count]
+    }
+
     var body: some View {
         if threadVM.isVisible(comment.id) {
-            VStack(alignment: .leading) {
-                
-                commentMetaInfo
-                
-                if !threadVM.isCollapsed(comment.id) {
-                    
-                    if let text = comment.text {
-                        Text(text.markdown)
-                            .tint(.accentColor)
-                    }
-                    
-                    Spacer()
-                    
-                    if let replies = comment.commentChildren {
-                        LazyVStack {
-                            ForEach(replies) { child in
-                                if threadVM.isVisible(child.id) {
-                                    SingleCommentView(comment: child, threadVM: threadVM, indentLevel: indentLevel + 1)
-                                        .overlay(
-                                            Capsule()
-                                                .fill(Color.orange)
-                                                .frame(width: 1)
-                                            ,
-                                            alignment: .leading
-                                        )
-                                }
-                            }
+            HStack(alignment: .top, spacing: 0) {
+                // Tappable thread indicator line
+                if indentLevel > 0 {
+                    Button {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            threadVM.toggleCollapse(comment.id)
                         }
+                    } label: {
+                        Rectangle()
+                            .fill(threadColor)
+                            .frame(width: 3)
+                            .frame(maxHeight: .infinity)
+                            .cornerRadius(1.5)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(width: 16)
+                }
+
+                VStack(alignment: .leading, spacing: 0) {
+                    if threadVM.isCollapsed(comment.id) {
+                        // Collapsed summary
+                        collapsedSummary
+                    } else {
+                        // Expanded comment
+                        expandedComment
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color("CardColor"))
-            .padding(.leading, CGFloat(indentLevel) * 8)
+            .cornerRadius(12)
+            .padding(.leading, CGFloat(indentLevel) * 16)
+            .padding(.bottom, 8)
         }
     }
 }
 
 extension SingleCommentView {
-    
+
+    var collapsedSummary: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.2)) {
+                threadVM.toggleCollapse(comment.id)
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Text(comment.author ?? "Unknown")
+                    .font(.callout.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.primary.opacity(0.06), in: Capsule())
+
+                let replyCount = threadVM.countDescendants(comment)
+                if replyCount > 0 {
+                    Text("•")
+                        .foregroundColor(.secondary)
+                    Text("\(replyCount) \(replyCount == 1 ? "reply" : "replies")")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(.plain)
+    }
+
+    var expandedComment: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            commentMetaInfo
+
+            if let text = comment.text {
+                Text(text.markdown)
+                    .tint(.accentColor)
+                    .font(.subheadline)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+            }
+
+            if let replies = comment.commentChildren {
+                VStack(spacing: 0) {
+                    ForEach(replies) { child in
+                        if threadVM.isVisible(child.id) {
+                            SingleCommentView(comment: child, threadVM: threadVM, indentLevel: indentLevel + 1)
+                        }
+                    }
+                }
+                .padding(.top, 4)
+            }
+        }
+    }
+
     var commentMetaInfo: some View {
-        HStack {
+        HStack(spacing: 10) {
             Text(comment.author ?? "Unknown")
-                .padding(.trailing)
-            
+                .font(.callout.weight(.semibold))
+                .foregroundColor(.primary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.06), in: Capsule())
+
+            Text("•")
+                .foregroundColor(.secondary)
+                .font(.callout)
+
             Text(Date.getTimeInterval(with: comment.createdAtI))
-            
+                .font(.callout)
+                .foregroundColor(.secondary)
+
             Spacer()
 
 #if DEBUG
@@ -78,6 +159,7 @@ extension SingleCommentView {
                     Task { await handleCommentVote(commentId: comment.id) }
                 } label: {
                     Image(systemName: "arrow.up")
+                        .font(.caption.weight(.semibold))
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(.secondary)
@@ -88,24 +170,26 @@ extension SingleCommentView {
                     showReplySheet = true
                 }
                 .buttonStyle(.plain)
+                .font(.callout.weight(.medium))
                 .foregroundColor(.secondary)
             }
 #endif
 
             Button {
-                withAnimation(.easeInOut) {
+                withAnimation(.easeOut(duration: 0.2)) {
                     threadVM.toggleCollapse(comment.id)
                 }
             } label: {
                 Image(systemName: "chevron.up")
+                    .font(.caption.weight(.semibold))
                     .rotationEffect(Angle(degrees: threadVM.isCollapsed(comment.id) ? 180 : 0))
             }
             .buttonStyle(.plain)
+            .foregroundColor(.secondary)
         }
-        .font(.callout)
-        .background(Color("CardColor"))
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
         .padding(.bottom, 10)
-        .foregroundColor(.secondary)
 #if DEBUG
         .sheet(isPresented: $showReplySheet) {
             HNReplySheet(commentId: comment.id, storyId: comment.storyId)

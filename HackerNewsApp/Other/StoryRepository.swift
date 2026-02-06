@@ -25,21 +25,31 @@ actor StoryCache {
 struct StoryRepository {
     private let client: HNAPIClient
     private let cache: StoryCache
-    private let maxConcurrent = 8
-    
+
+    /// Maximum concurrent network requests for story fetching.
+    /// HNAPIClient now handles the sliding-window concurrency internally,
+    /// so we pass all missing IDs in a single call instead of chunking.
+    private let maxConcurrent = 20
+
     init(client: HNAPIClient = HNAPIClient(), cache: StoryCache = StoryCache()) {
         self.client = client
         self.cache = cache
     }
-    
+
     func fetchIDs(type: StoryType) async throws -> [Int] {
         try await client.fetchStoryIDs(type: type)
     }
-    
+
+    /// Fetches stories for the given IDs, using the actor-based TTL cache.
+    /// Cache hits are served immediately; cache misses are fetched in a
+    /// single concurrent pass (bounded by maxConcurrent in HNAPIClient).
+    /// Previously: 4 sequential round-trips for 30 stories (chunks of 8).
+    /// Now: 1-2 concurrent waves via sliding-window TaskGroup.
     func fetchStories(ids: [Int]) async throws -> [Story] {
         var results: [Int: Story] = [:]
+        results.reserveCapacity(ids.count)
         var missing: [Int] = []
-        
+
         for id in ids {
             if let cached = await cache.story(for: id) {
                 results[id] = cached
@@ -47,35 +57,20 @@ struct StoryRepository {
                 missing.append(id)
             }
         }
-        
+
         if !missing.isEmpty {
-            for chunk in missing.chunked(into: maxConcurrent) {
-                let fetched = try await client.fetchStories(ids: chunk)
-                for story in fetched {
-                    results[story.id] = story
-                    await cache.set(story)
-                }
+            // Single call: HNAPIClient.fetchStories handles concurrency limiting internally
+            let fetched = try await client.fetchStories(ids: missing, maxConcurrent: maxConcurrent)
+            for story in fetched {
+                results[story.id] = story
+                await cache.set(story)
             }
         }
-        
+
         return ids.compactMap { results[$0] }
     }
-    
+
     func clearCache() async {
         await cache.clear()
-    }
-}
-
-private extension Array {
-    func chunked(into size: Int) -> [[Element]] {
-        guard size > 0 else { return [self] }
-        var chunks: [[Element]] = []
-        var index = startIndex
-        while index < endIndex {
-            let end = self.index(index, offsetBy: size, limitedBy: endIndex) ?? endIndex
-            chunks.append(Array(self[index..<end]))
-            index = end
-        }
-        return chunks
     }
 }

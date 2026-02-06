@@ -33,40 +33,18 @@ extension String {
         return ""
     }
     
+    /// Parses HTML into an `AttributedString` using the lightweight
+    /// `CommentHTMLParser` (SwiftSoup-based, no WebKit overhead).
+    /// Results are cached in `AttributedStringCache` keyed by the HTML string.
+    /// First access: O(n) parse via SwiftSoup. Subsequent: O(1) cache hit.
     var markdown: AttributedString {
-        let html = self
-
-        if let data = html.data(using: .utf8) {
-            if let attributed = try? NSAttributedString(
-                data: data,
-                options: [
-                    .documentType: NSAttributedString.DocumentType.html,
-                    .characterEncoding: String.Encoding.utf8.rawValue
-                ],
-                documentAttributes: nil
-            ) {
-                let mutable = NSMutableAttributedString(attributedString: attributed)
-                let baseFont = UIFont.preferredFont(forTextStyle: .body)
-                let fullRange = NSRange(location: 0, length: mutable.length)
-                mutable.enumerateAttribute(.font, in: fullRange, options: []) { value, range, _ in
-                    let font = (value as? UIFont) ?? baseFont
-                    var descriptor = baseFont.fontDescriptor
-                    let traits = font.fontDescriptor.symbolicTraits
-                    if let adjusted = descriptor.withSymbolicTraits(traits) {
-                        descriptor = adjusted
-                    }
-                    let newFont = UIFont(descriptor: descriptor, size: baseFont.pointSize)
-                    mutable.addAttribute(.font, value: newFont, range: range)
-                }
-                return AttributedString(mutable)
-            }
+        let cache = AttributedStringCache.instance
+        if let cached = cache.get(forKey: self) {
+            return cached
         }
-
-        if let fallback = try? SwiftSoup.parseBodyFragment(html).text(trimAndNormaliseWhitespace: true) {
-            return AttributedString(fallback)
-        }
-
-        return AttributedString(html)
+        let parsed = CommentHTMLParser.parse(self)
+        cache.set(parsed, forKey: self)
+        return parsed
     }
     
     var urlDomain: String? {

@@ -44,18 +44,42 @@ class UltimatePostViewModel: ObservableObject, SafariViewLoader, CommentsButtonP
         }
     }
     
+    /// Loads the OpenGraph image URL for this story.
+    /// Before issuing a network request, re-checks the URL and availability
+    /// caches (the background prefetcher in ContentViewModel may have
+    /// populated them between VM init and PostView's .task firing).
+    /// If a fetch IS needed, NetworkManager's deduplicator ensures that
+    /// concurrent calls (from both prefetch and PostView) coalesce into
+    /// a single network request.
     func loadImage(fromUrl url: String) async {
         guard imageAvailability != .unavailable else { return }
         guard imageUrl == nil else { return }
+
+        let key = String(story?.id ?? 0)
+
+        // Re-check caches: the prefetcher may have resolved this while we waited
+        if let cachedURL = imageURLCache.getFromCache(withKey: key) {
+            imageUrl = cachedURL
+            imageAvailability = .available
+            return
+        }
+        if let cachedAvailability = imageAvailabilityCache.getFromCache(withKey: key), cachedAvailability == false {
+            imageAvailability = .unavailable
+            return
+        }
+
+        // NetworkManager.getImage now deduplicates in-flight requests:
+        // if the prefetcher is already fetching this URL, we await the
+        // same result instead of issuing a duplicate OG fetch.
         let resultUrl = await networkManager.getImage(fromUrl: url)
         imageUrl = resultUrl
         if resultUrl == nil {
             imageAvailability = .unavailable
-            imageAvailabilityCache.saveToCache(false, withKey: String(story?.id ?? 0))
+            imageAvailabilityCache.saveToCache(false, withKey: key)
         } else if let resultUrl {
             imageAvailability = .available
-            imageAvailabilityCache.saveToCache(true, withKey: String(story?.id ?? 0))
-            imageURLCache.saveToCache(resultUrl, withKey: String(story?.id ?? 0))
+            imageAvailabilityCache.saveToCache(true, withKey: key)
+            imageURLCache.saveToCache(resultUrl, withKey: key)
         }
     }
 

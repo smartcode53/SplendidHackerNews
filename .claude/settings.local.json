@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "mcp__XcodeBuildMCP__discover_projs",
+      "mcp__XcodeBuildMCP__session-set-defaults",
+      "mcp__XcodeBuildMCP__list_schemes",
+      "mcp__XcodeBuildMCP__build_sim",
+      "mcp__XcodeBuildMCP__list_sims",
+      "mcp__XcodeBuildMCP__session-show-defaults",
+      "mcp__XcodeBuildMCP__build_run_sim",
+      "mcp__XcodeBuildMCP__screenshot",
+      "Bash(xcodebuild:*)",
+      "Bash(xcrun simctl:*)",
+      "mcp__XcodeBuildMCP__snapshot_ui"
+    ]
+  }
+}

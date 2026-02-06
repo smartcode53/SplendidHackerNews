@@ -58,20 +58,36 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                             .padding(.bottom, 8)
                         }
 
+                        // Visual divider
+                        Rectangle()
+                            .fill(Color.primary.opacity(0.08))
+                            .frame(height: 1)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+
                         // Comment count
                         if let commentCount = story.descendants {
                             HStack {
-                                Text(commentCount == 1 ? "\(commentCount) comment" : "\(commentCount) comments")
-                                    .padding()
-                                    .font(.title3.weight(.semibold))
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(commentCount == 1 ? "\(commentCount) comment" : "\(commentCount) comments")
+                                        .font(.title3.weight(.semibold))
+                                        .foregroundColor(.primary)
+
+                                    Text("Tap thread lines to collapse")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
 
                                 Spacer()
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 12)
                         }
 
-                        VStack {
+                        VStack(spacing: 0) {
                             commentsContent
                         }
+                        .padding(.horizontal, 12)
                     }
                     .background(Color("BackgroundColor"))
                     .onAppear {
@@ -504,7 +520,7 @@ extension CommentsView {
             if let comments = vm.comments?.children {
                 #if DEBUG
                 if debug.fixtureMode {
-                    VStack {
+                    VStack(spacing: 0) {
                         ForEach(comments) { comment in
                             if threadVM.isVisible(comment.id) {
                                 SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
@@ -516,7 +532,7 @@ extension CommentsView {
                         }
                     }
                 } else {
-                    LazyVStack {
+                    LazyVStack(spacing: 0) {
                         ForEach(comments) { comment in
                             if threadVM.isVisible(comment.id) {
                                 SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
@@ -529,7 +545,7 @@ extension CommentsView {
                     }
                 }
                 #else
-                LazyVStack {
+                LazyVStack(spacing: 0) {
                     ForEach(comments) { comment in
                         if threadVM.isVisible(comment.id) {
                             SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)

@@ -26,6 +26,7 @@ struct ReaderBlockView: View {
                 .font(typography.headingFont(level: level))
                 .foregroundColor(.primary)
                 .lineSpacing(typography.lineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, level <= 2 ? 6 : 0)
         case .paragraph(let spans):
             ReaderParagraphView(
@@ -35,23 +36,23 @@ struct ReaderBlockView: View {
                 onLinkTap: onLinkTap
             )
         case .code(let text):
-            ScrollView(.horizontal, showsIndicators: true) {
-                Text(text)
-                    .font(typography.codeFont)
-                    .foregroundColor(.primary)
-                    .lineSpacing(typography.lineSpacing)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color("CardColor").opacity(0.7))
-                    )
-            }
+            Text(text)
+                .font(typography.codeFont)
+                .foregroundColor(.primary)
+                .lineSpacing(typography.lineSpacing)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color("CardColor").opacity(0.7))
+                )
         case .quote(let text):
             Text(text)
                 .font(typography.quoteFont)
                 .foregroundColor(.secondary)
                 .lineSpacing(typography.lineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, 12)
                 .overlay(
                     Rectangle()

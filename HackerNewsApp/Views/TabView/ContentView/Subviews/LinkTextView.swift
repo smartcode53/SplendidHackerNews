@@ -16,6 +16,8 @@ struct LinkTextView: UIViewRepresentable {
         textView.textContainerInset = UIEdgeInsets(top: 2, left: 0, bottom: 2, right: 0)
         textView.delegate = context.coordinator
         textView.adjustsFontForContentSizeCategory = true
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         textView.linkTextAttributes = [
             .foregroundColor: linkColor,
             .underlineStyle: NSUnderlineStyle.single.rawValue
@@ -32,9 +34,10 @@ struct LinkTextView: UIViewRepresentable {
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize {
-        let targetWidth = proposal.width ?? UIScreen.main.bounds.width
+        let maxWidth = UIScreen.main.bounds.width
+        let targetWidth = min(proposal.width ?? maxWidth, maxWidth)
         let size = uiView.sizeThatFits(CGSize(width: targetWidth, height: .greatestFiniteMagnitude))
-        return CGSize(width: targetWidth, height: size.height)
+        return CGSize(width: targetWidth, height: max(size.height, 1))
     }
 
     func makeCoordinator() -> Coordinator {

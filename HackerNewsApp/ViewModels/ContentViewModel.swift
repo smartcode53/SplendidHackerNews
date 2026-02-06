@@ -173,14 +173,22 @@ class ContentViewModel: SafariViewLoader {
                 hideRead: hideRead
             )
 
-            await prefetchImageURLs(for: page.appended)
-
+            // Display stories immediately, then prefetch images concurrently.
+            // Previously: awaited prefetchImageURLs BEFORE setting stories,
+            // delaying the entire feed display by the full OG fetch time.
+            // Now: stories appear instantly; images load in the background.
             ids = fetchedIDs
             nextIndex = page.nextIndex
             loadedIDs = page.loadedIDs
             stories = page.appended
             loadMoreState = .idle
             initialLoadState = page.appended.isEmpty ? .empty : .loaded
+
+            // Fire-and-forget: prefetch images in background without blocking UI
+            let storiesToPrefetch = page.appended
+            Task { [weak self] in
+                await self?.prefetchImageURLs(for: storiesToPrefetch)
+            }
         } catch {
             let message = ErrorPresenter.message(
                 for: error,
@@ -201,14 +209,27 @@ class ContentViewModel: SafariViewLoader {
         isRefreshing = false
     }
     
+    /// Triggers loading the next page when the user scrolls near the end.
+    /// Uses a ~70% threshold: triggers when the user reaches the story at
+    /// approximately `stories.count - prefetchThreshold` from the end.
+    /// Previously only triggered at the very last story, causing visible wait times.
     func loadMoreIfNeeded(currentID: Int) async {
         #if DEBUG
         if DebugEnvironment.shared.fixtureMode {
             return
         }
         #endif
-        guard let lastID = stories.last?.id, currentID == lastID else { return }
-        await loadNextPage()
+        let threshold = 10
+        let count = stories.count
+        guard count > 0 else { return }
+
+        // Find the index of the current story - O(n) but n is small (feed size)
+        guard let currentIndex = stories.firstIndex(where: { $0.id == currentID }) else { return }
+
+        // Trigger when user is within `threshold` items of the end
+        if currentIndex >= count - threshold {
+            await loadNextPage()
+        }
     }
     
     func openStory(_ story: Story) async {
@@ -271,8 +292,8 @@ class ContentViewModel: SafariViewLoader {
                 hideRead: hideRead
             )
 
-            await prefetchImageURLs(for: page.appended)
-
+            // Update state and append stories immediately before prefetching images.
+            // Image prefetch runs concurrently in the background.
             nextIndex = page.nextIndex
             loadedIDs = page.loadedIDs
 
@@ -282,6 +303,12 @@ class ContentViewModel: SafariViewLoader {
                 let preview = page.appended.prefix(5).map { String($0.id) }.joined(separator: ", ")
                 print("[Feed] Appended \(page.appended.count) stories. First 5 appended: \(preview)")
                 #endif
+
+                // Fire-and-forget: prefetch images in background without blocking pagination
+                let storiesToPrefetch = page.appended
+                Task { [weak self] in
+                    await self?.prefetchImageURLs(for: storiesToPrefetch)
+                }
             }
 
             loadMoreState = .idle
@@ -323,6 +350,14 @@ class ContentViewModel: SafariViewLoader {
     }
     #endif
 
+    /// Prefetches OpenGraph image URLs for the given stories.
+    /// Uses a single TaskGroup with all candidates launched concurrently.
+    /// Deduplication of in-flight requests is handled by NetworkManager's
+    /// OpenGraphDeduplicator, so even if PostView's .task fires concurrently,
+    /// only one OG fetch per URL occurs.
+    /// Previously: sequential batches of 6 = many round-trips.
+    /// Now: all candidates launch at once; HTTP connection limits in URLSession
+    /// naturally throttle actual network concurrency.
     private func prefetchImageURLs(for stories: [Story]) async {
         #if DEBUG
         if DebugEnvironment.shared.fixtureMode {
@@ -344,25 +379,21 @@ class ContentViewModel: SafariViewLoader {
 
         guard !candidates.isEmpty else { return }
 
-        let batchSize = 6
-        var index = 0
-        while index < candidates.count {
-            let end = min(index + batchSize, candidates.count)
-            let batch = candidates[index..<end]
-            await withTaskGroup(of: Void.self) { group in
-                for (storyId, urlString) in batch {
-                    group.addTask { [networkManager] in
-                        let resultUrl = await networkManager.getImage(fromUrl: urlString)
-                        if let resultUrl {
-                            urlCache.saveToCache(resultUrl, withKey: String(storyId))
-                            availabilityCache.saveToCache(true, withKey: String(storyId))
-                        } else {
-                            availabilityCache.saveToCache(false, withKey: String(storyId))
-                        }
+        // Launch all candidates concurrently in a single TaskGroup.
+        // NetworkManager's deduplicator prevents duplicate OG fetches,
+        // and URLSession's httpMaximumConnectionsPerHost throttles connections.
+        await withTaskGroup(of: Void.self) { group in
+            for (storyId, urlString) in candidates {
+                group.addTask { [networkManager] in
+                    let resultUrl = await networkManager.getImage(fromUrl: urlString)
+                    if let resultUrl {
+                        urlCache.saveToCache(resultUrl, withKey: String(storyId))
+                        availabilityCache.saveToCache(true, withKey: String(storyId))
+                    } else {
+                        availabilityCache.saveToCache(false, withKey: String(storyId))
                     }
                 }
             }
-            index = end
         }
     }
 

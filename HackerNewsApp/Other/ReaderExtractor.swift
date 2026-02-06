@@ -145,8 +145,10 @@ final class ReaderExtractor {
             throw ReaderExtractorError.emptyContent
         }
 
-        var blocks: [ReaderBlock] = []
-        collectBlocks(from: contentElement, baseURL: url, into: &blocks)
+        var rawBlocks: [ReaderBlock] = []
+        collectBlocks(from: contentElement, baseURL: url, into: &rawBlocks)
+
+        let blocks = rawBlocks.filter { !isMetadataBlock($0) }
 
         var totalCount = 0
         var truncated = false
@@ -184,7 +186,17 @@ final class ReaderExtractor {
         let selectors = [
             "script", "style", "nav", "header", "footer", "aside", "form",
             "noscript", "iframe", "svg", "canvas", "figure", "figcaption",
-            ".advertisement", ".promo", ".cookie", ".banner", ".subscribe", ".newsletter", ".share"
+            "table.infobox", "table.sidebar", "table.metadata", "table.navbox",
+            "table.wikitable.collapsible", ".infobox", ".sidebar", ".navbox",
+            ".metadata", ".reflist", ".references", ".mw-references-wrap",
+            ".advertisement", ".promo", ".cookie", ".banner", ".subscribe",
+            ".newsletter", ".share", ".social", ".related", ".recommended",
+            ".comment", ".comments", ".disqus", ".author-bio", ".byline-share",
+            ".site-footer", ".site-header", ".nav-wrapper", ".breadcrumb",
+            "[role=navigation]", "[role=banner]", "[role=complementary]",
+            "[aria-hidden=true]", ".visually-hidden", ".sr-only",
+            ".popup", ".modal", ".overlay", ".ad", ".ads", "[id*=ad-]",
+            "[class*=ad-wrap]", "[class*=sponsor]"
         ]
         try doc.select(selectors.joined(separator: ", ")).remove()
     }
@@ -272,6 +284,22 @@ final class ReaderExtractor {
                 break
             }
         }
+    }
+
+    private func isMetadataBlock(_ block: ReaderBlock) -> Bool {
+        let text = block.text
+        // Filter Wikipedia-style template/infobox metadata
+        // e.g. "last = Deck | first = Andrew | work = ..."
+        let pipeCount = text.filter { $0 == "|" }.count
+        let equalsCount = text.filter { $0 == "=" }.count
+        if pipeCount >= 3 && equalsCount >= 2 && text.count < 500 {
+            return true
+        }
+        // Filter lines that are mostly metadata keys
+        if text.hasPrefix("{") && text.hasSuffix("}") {
+            return true
+        }
+        return false
     }
 
     private func normalizedText(from element: Element) -> String {
