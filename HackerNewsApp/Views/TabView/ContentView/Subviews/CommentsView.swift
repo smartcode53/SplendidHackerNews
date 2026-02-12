@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Glur
 
 struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoader {
     
@@ -22,6 +21,8 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
     @State private var restoreTask: Task<Void, Never>?
     @State private var headerImageURL: URL?
     @State private var headerImageAvailability: Bool?
+    @State private var scrollOffsetY: CGFloat = 0
+    @State private var initialHeaderMinY: CGFloat?
     @State private var showSearch = false
     @FocusState private var isSearchFocused: Bool
 #if DEBUG
@@ -91,6 +92,17 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                         .padding(.horizontal, 12)
                     }
                     .background(Color("BackgroundColor"))
+                    .onPreferenceChange(CommentsHeaderMinYPreferenceKey.self) { minY in
+                        if initialHeaderMinY == nil {
+                            initialHeaderMinY = minY
+                        }
+                        if let initialHeaderMinY {
+                            scrollOffsetY = max(0, initialHeaderMinY - minY)
+                        }
+                    }
+                    .overlay(alignment: .top) {
+                        compactHeader(for: story)
+                    }
                     .task(id: story.id) {
                         await threadVM.loadComments(using: vm, storyID: story.id)
                     }
@@ -180,155 +192,154 @@ extension CommentsView {
     }
 
     @ViewBuilder
-private func headerView(for story: Story) -> some View {
-    let heroHeight: CGFloat = 280
-    let overlayHeight: CGFloat = 140
-    let bottomBlurHeight: CGFloat = 170
-    let isHero = headerImageAvailability == true
-    let primaryColor: Color = isHero ? .white : .primary
-    let secondaryColor: Color = isHero ? .white.opacity(0.85) : .secondary
-
-    ZStack(alignment: .bottom) {
-        if isHero {
-            GeometryReader { proxy in
-                let size = proxy.size
-                ZStack {
-                    headerImageBackground
-                        .frame(width: size.width, height: size.height)
-                        .clipped()
-
-                    headerImageBackground
-                        .glur(radius: 28.0, offset: 0.0, interpolation: 0.55, direction: .up, noise: 0.06, drawingGroup: true)
-                        .mask(
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .white, location: 0),
-                                    .init(color: .white, location: 0.45),
-                                    .init(color: .white.opacity(0.6), location: 0.7),
-                                    .init(color: .white.opacity(0.25), location: 0.85),
-                                    .init(color: .clear, location: 1)
-                                ],
-                                startPoint: .bottom,
-                                endPoint: .top
-                            )
-                            .frame(height: bottomBlurHeight)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                        )
-                        .frame(width: size.width, height: size.height)
-                }
-                .frame(width: size.width, height: size.height)
-                .clipped()
+    private func headerView(for story: Story) -> some View {
+        let progress = headerCollapseProgress
+        VStack(alignment: .leading, spacing: 12) {
+            ZStack {
+                headerImageBackground
+                    .scaleEffect(x: 1 - (0.12 * progress), y: 1 - (0.08 * progress), anchor: .center)
+                    .offset(y: -18 * progress)
+                    .opacity(1 - progress)
             }
-            .frame(maxWidth: .infinity, minHeight: heroHeight, maxHeight: heroHeight)
-            .ignoresSafeArea(edges: .top)
-        } else {
-            Color("BackgroundColor")
-                .frame(maxWidth: .infinity, minHeight: heroHeight, maxHeight: heroHeight)
-                .ignoresSafeArea(edges: .top)
-        }
-
-        Rectangle()
-            .fill(Color.black.opacity(0.35))
-            .mask(
-                LinearGradient(
-                    stops: [
-                        .init(color: .black, location: 0),
-                        .init(color: .black, location: 0.5),
-                        .init(color: .clear, location: 1)
-                    ],
-                    startPoint: .bottom,
-                    endPoint: .top
-                )
+            .frame(maxWidth: .infinity)
+            .frame(height: 220)
+            .clipped()
+            .clipShape(.rect(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
             )
-            .frame(height: bottomBlurHeight)
-            .frame(maxHeight: .infinity, alignment: .bottom)
 
-        VStack(alignment: .leading, spacing: 0) {
             if let urlDomain = story.url?.urlDomain {
                 Text(urlDomain)
-                    .foregroundColor(isHero ? .white.opacity(0.9) : .accentColor)
                     .font(.caption.weight(.semibold))
-                    .padding(.bottom, 5)
+                    .foregroundStyle(.secondary)
             }
 
-            Text(story.title)
-                .font(.title3.weight(.semibold))
-                .padding(.bottom, 8)
-                .foregroundColor(primaryColor)
-                .shadow(color: isHero ? Color.black.opacity(0.35) : .clear, radius: 8, x: 0, y: 3)
+            HStack(alignment: .top, spacing: 10) {
+                headerThumbnail(size: 44)
+                    .opacity(progress)
+                    .scaleEffect(0.85 + (0.15 * progress), anchor: .leading)
+                    .animation(.easeInOut(duration: 0.15), value: progress)
 
-            HStack {
+                Text(story.title)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)
+            }
+
+            HStack(spacing: 8) {
                 Text(Date.getTimeInterval(with: story.time))
                 Text("|")
-                    .foregroundColor(secondaryColor)
+                    .foregroundStyle(.tertiary)
                 Text(story.by)
                 Spacer()
             }
-            .foregroundColor(secondaryColor)
             .font(.subheadline)
+            .foregroundStyle(.secondary)
 
-            HStack {
+            HStack(spacing: 8) {
                 Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
-                    .foregroundColor(secondaryColor)
                     .font(.headline)
+                    .foregroundStyle(.primary)
                 Spacer()
                 if let storyUrl = story.url {
                     Button {
                         onOpenReader?(story)
                     } label: {
                         Image(systemName: "text.book.closed")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(width: 36, height: 36)
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.white.opacity(0.9))
-                    .frame(width: 40, height: 40)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                    )
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                     Button {
                         vm.showStoryInComments = true
                     } label: {
                         Image(systemName: "safari")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(width: 36, height: 36)
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.white.opacity(0.9))
-                    .frame(width: 40, height: 40)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                    )
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                     ShareLink(item: storyUrl) {
                         Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(width: 36, height: 36)
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.white.opacity(0.9))
-                    .frame(width: 40, height: 40)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                    )
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
             }
-            .padding(.top, 8)
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 16)
-        .frame(maxWidth: .infinity, minHeight: overlayHeight, maxHeight: overlayHeight, alignment: .bottom)
+        .padding(.top, 12)
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(
+                    key: CommentsHeaderMinYPreferenceKey.self,
+                    value: geo.frame(in: .global).minY
+                )
+            }
+        )
     }
-}
 
     @ViewBuilder
-    private var headerImageBackground: some View {
-        if let headerImageURL {
-            AsyncImage(url: headerImageURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
+    private func compactHeader(for story: Story) -> some View {
+        let progress = headerCollapseProgress
+        if progress > 0.001 {
+            HStack(spacing: 10) {
+                headerThumbnail(size: 44)
+
+                Text(story.title)
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .layoutPriority(1)
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .opacity(min(1, max(0, (progress - 0.45) / 0.55)))
+            .scaleEffect(0.92 + (0.08 * progress), anchor: .top)
+            .animation(.easeInOut(duration: 0.18), value: progress)
+            .allowsHitTesting(false)
+        }
+    }
+
+    @ViewBuilder
+    private func headerThumbnail(size: CGFloat) -> some View {
+        ZStack {
+            headerImage(for: headerImageURL)
+        }
+        .frame(width: size, height: size)
+        .clipped()
+        .clipShape(.rect(cornerRadius: 10))
+    }
+
+    private var headerCollapseProgress: CGFloat {
+        let collapseDistance: CGFloat = 200
+        return max(0, min(1, scrollOffsetY / collapseDistance))
+    }
+
+    @ViewBuilder
+    private func headerImage(for url: URL?) -> some View {
+        if let url {
+            AsyncImage(url: url, transaction: Transaction(animation: .easeInOut(duration: 0.2))) { phase in
                 switch phase {
                 case .empty:
                     headerPlaceholder
@@ -342,10 +353,17 @@ private func headerView(for story: Story) -> some View {
                     headerPlaceholder
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
         } else {
             headerPlaceholder
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
         }
+    }
+
+    private var headerImageBackground: some View {
+        headerImage(for: headerImageURL)
     }
 
     private var headerPlaceholder: some View {
@@ -357,6 +375,14 @@ private func headerView(for story: Story) -> some View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+    }
+}
+
+private struct CommentsHeaderMinYPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
