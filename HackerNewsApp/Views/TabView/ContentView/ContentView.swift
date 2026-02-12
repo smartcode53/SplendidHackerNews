@@ -60,6 +60,12 @@ struct ContentView: View {
 }
 
 extension ContentView  {
+    private var hideReadBinding: Binding<Bool> {
+        Binding(
+            get: { vm.hideRead },
+            set: { vm.setHideRead($0) }
+        )
+    }
     
     // MARK: Story array
 //    var newPosts: some View {
@@ -285,13 +291,13 @@ extension ContentView  {
                 Menu {
                     ForEach(StoryType.allCases, id: \.self) { type in
                         Button(type.rawValue) {
-                            vm.storyType = type
+                            vm.setStoryType(type)
                         }
                     }
 
                     Divider()
 
-                    Toggle("Hide Read", isOn: $vm.hideRead)
+                    Toggle("Hide Read", isOn: hideReadBinding)
                         .accessibilityIdentifier("feed.hideRead")
                 } label: {
                     Image(systemName: "line.3.horizontal.decrease.circle")
@@ -337,13 +343,13 @@ extension ContentView  {
                 Menu {
                     ForEach(StoryType.allCases, id: \.self) { type in
                         Button(type.rawValue) {
-                            vm.storyType = type
+                            vm.setStoryType(type)
                         }
                     }
 
                     Divider()
 
-                    Toggle("Hide Read", isOn: $vm.hideRead)
+                    Toggle("Hide Read", isOn: hideReadBinding)
                         .accessibilityIdentifier("feed.hideRead")
                 } label: {
                     Image(systemName: "line.3.horizontal.decrease.circle")

@@ -75,25 +75,14 @@ enum StoryType: String, CaseIterable {
 class ContentViewModel: SafariViewLoader {
     
     @Published var stories: [Story] = []
-    @Published var storyType = StoryType.topstories {
-        didSet {
-            #if DEBUG
-            print("[Feed] Switching to \(storyType.rawValue). Resetting state.")
-            #endif
-            Task { await applyFeedChange() }
-        }
-    }
+    @Published var storyType = StoryType.topstories
     @Published var isLoading = false
     @Published var isRefreshing = false
     @Published var initialLoadState: LoadState = .idle
     @Published var refreshErrorMessage: String?
     @Published var loadMoreState: LoadState = .idle
     @Published var errorMessage: String?
-    @Published var hideRead = false {
-        didSet {
-            Task { await applyHideReadChange() }
-        }
-    }
+    @Published var hideRead = false
     
     private let repository: StoryRepository
     private let readStateStore: ReadStateStore
@@ -103,6 +92,9 @@ class ContentViewModel: SafariViewLoader {
     private let pageSize = 30
     private var loadedIDs = Set<Int>()
     private var readIDs = Set<Int>()
+    private var activeFeedRequestID = UUID()
+    private var refreshingRequestID: UUID?
+    private var feedChangeTask: Task<Void, Never>?
     
     let networkManager: NetworkManager = NetworkManager.instance
     
@@ -122,29 +114,60 @@ class ContentViewModel: SafariViewLoader {
                 return
             }
             #endif
-            await applyFeedChange()
+            let requestID = UUID()
+            activeFeedRequestID = requestID
+            await applyFeedChange(for: storyType, requestID: requestID, preferredHideRead: nil)
         }
     }
-    
-    func applyFeedChange() async {
-        hideRead = await readStateStore.hideRead(for: storyType)
-        ids.removeAll()
-        nextIndex = 0
-        loadedIDs.removeAll()
-        stories.removeAll()
-        initialLoadState = .loading
-        await refresh()
+
+    func setStoryType(_ newType: StoryType) {
+        guard storyType != newType else { return }
+        #if DEBUG
+        print("[Feed] Switching to \(newType.rawValue). Resetting state.")
+        #endif
+        beginFeedChange(to: newType, preferredHideRead: nil, persistHideRead: false)
+    }
+
+    func setHideRead(_ newValue: Bool) {
+        guard hideRead != newValue else { return }
+        beginFeedChange(to: storyType, preferredHideRead: newValue, persistHideRead: true)
     }
     
     func refresh() async {
+        let requestID = activeFeedRequestID
+        let selectedStoryType = storyType
+        let selectedHideRead = hideRead
+        await refresh(
+            requestID: requestID,
+            force: false,
+            storyType: selectedStoryType,
+            hideRead: selectedHideRead
+        )
+    }
+
+    private func refresh(
+        requestID: UUID,
+        force: Bool,
+        storyType: StoryType,
+        hideRead: Bool
+    ) async {
         #if DEBUG
         if DebugEnvironment.shared.fixtureMode {
             await applyFixtureIfNeeded()
             return
         }
         #endif
-        guard !isRefreshing else { return }
+        guard force || !isRefreshing else { return }
+
+        refreshingRequestID = requestID
         isRefreshing = true
+        defer {
+            if refreshingRequestID == requestID {
+                isRefreshing = false
+                refreshingRequestID = nil
+            }
+        }
+
         refreshErrorMessage = nil
         errorMessage = nil
         loadMoreState = .idle
@@ -160,6 +183,7 @@ class ContentViewModel: SafariViewLoader {
             let fetchedIDs = try await RetryPolicy.runWithTransientRetry { [self] in
                 try await repository.fetchIDs(type: storyType)
             }
+            guard isActiveRequest(requestID), !Task.isCancelled else { return }
             #if DEBUG
             let preview = fetchedIDs.prefix(5).map(String.init).joined(separator: ", ")
             print("[Feed] IDs fetched (\(storyType.rawValue)) first 5: \(preview)")
@@ -172,6 +196,7 @@ class ContentViewModel: SafariViewLoader {
                 readIDs: readIDs,
                 hideRead: hideRead
             )
+            guard isActiveRequest(requestID), !Task.isCancelled else { return }
 
             // Display stories immediately, then prefetch images concurrently.
             // Previously: awaited prefetchImageURLs BEFORE setting stories,
@@ -189,7 +214,10 @@ class ContentViewModel: SafariViewLoader {
             Task { [weak self] in
                 await self?.prefetchImageURLs(for: storiesToPrefetch)
             }
+        } catch is CancellationError {
+            return
         } catch {
+            guard isActiveRequest(requestID), !Task.isCancelled else { return }
             let message = ErrorPresenter.message(
                 for: error,
                 defaultMessage: "Check your connection and try again.",
@@ -205,8 +233,6 @@ class ContentViewModel: SafariViewLoader {
                 initialLoadState = .error(message: message, canRetry: true)
             }
         }
-
-        isRefreshing = false
     }
     
     /// Triggers loading the next page when the user scrolls near the end.
@@ -323,14 +349,64 @@ class ContentViewModel: SafariViewLoader {
 
         isLoading = false
     }
-    
-    private func applyHideReadChange() async {
-        await readStateStore.setHideRead(for: storyType, value: hideRead)
-        loadedIDs = Set(stories.map { $0.id })
-        if hideRead {
-            stories.removeAll { readIDs.contains($0.id) }
-            await loadNextPage()
+
+    private func beginFeedChange(
+        to newType: StoryType,
+        preferredHideRead: Bool?,
+        persistHideRead: Bool
+    ) {
+        let requestID = UUID()
+        activeFeedRequestID = requestID
+        feedChangeTask?.cancel()
+        feedChangeTask = Task { [weak self] in
+            guard let self else { return }
+            await self.applyFeedChange(
+                for: newType,
+                requestID: requestID,
+                preferredHideRead: preferredHideRead,
+                persistHideRead: persistHideRead
+            )
         }
+    }
+
+    private func applyFeedChange(
+        for storyType: StoryType,
+        requestID: UUID,
+        preferredHideRead: Bool?,
+        persistHideRead: Bool = false
+    ) async {
+        self.storyType = storyType
+
+        let resolvedHideRead: Bool
+        if let preferredHideRead {
+            resolvedHideRead = preferredHideRead
+            hideRead = preferredHideRead
+            if persistHideRead {
+                await readStateStore.setHideRead(for: storyType, value: preferredHideRead)
+            }
+        } else {
+            resolvedHideRead = await readStateStore.hideRead(for: storyType)
+            guard isActiveRequest(requestID), !Task.isCancelled else { return }
+            hideRead = resolvedHideRead
+        }
+
+        guard isActiveRequest(requestID), !Task.isCancelled else { return }
+        ids.removeAll()
+        nextIndex = 0
+        loadedIDs.removeAll()
+        stories.removeAll()
+        initialLoadState = .loading
+
+        await refresh(
+            requestID: requestID,
+            force: true,
+            storyType: storyType,
+            hideRead: resolvedHideRead
+        )
+    }
+
+    private func isActiveRequest(_ requestID: UUID) -> Bool {
+        requestID == activeFeedRequestID
     }
     
     #if DEBUG
