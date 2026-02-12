@@ -1,43 +1,54 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The app is a single Xcode project: `HackerNewsApp.xcodeproj` with source under `HackerNewsApp/`.
+Single-app Xcode project: `HackerNewsApp.xcodeproj`.
 
-- `HackerNewsApp/Views/`: SwiftUI UI, organized by tab (`ContentView`, `BookmarksView`, `SettingsView`) plus reusable/UIKit wrappers.
-- `HackerNewsApp/ViewModels/`: `@MainActor` observable view models and route state.
-- `HackerNewsApp/Models/`: domain models (`Story`, `Comment`, `Settings`, etc.).
-- `HackerNewsApp/Other/`: services/infrastructure (API client, repository, parsers, persistence, keychain, routing).
-- `HackerNewsApp/Cache/`, `HackerNewsApp/Extensions/`, `HackerNewsApp/ViewModifiers/`: shared supporting code.
-- Assets live in `HackerNewsApp/Other/Assets.xcassets` and `HackerNewsApp/Preview Content/`.
+- `HackerNewsApp/Views/TabView/`: main tabs (`ContentView`, `BookmarksView`, `SettingsView`).
+- `HackerNewsApp/Views/TabView/ContentView/Subviews/PostView.swift`: primary feed card UI (compact + featured).
+- `HackerNewsApp/ViewModels/`: screen/state logic (`GlobalSettingsViewModel`, `ContentViewModel`, `BookmarksViewModel`).
+- `HackerNewsApp/Other/`: networking, persistence, routing, diagnostics.
+- `HackerNewsApp/Models/`: `Story`, `Bookmark`, `Comment`, `Settings`.
+- `HackerNewsApp/Other/Assets.xcassets`: app colors/icons.
+
+## Current Baseline (Important Context)
+- Feed smoothness has been optimized in recent work; preserve existing low-jank behavior when editing feed rows.
+- Story images in feed cards must stay clipped to card bounds (no vertical overflow), without introducing new `GeometryReader`-based layout for this fix path.
+- Feed card “trash” action was replaced with bookmark save.
+- Reader mode entry is now detail-first:
+  - feed cards no longer show a reader button
+  - comments/detail header now exposes reader + safari + share actions
+- Bookmark UX now supports:
+  - save-only-once behavior (`addBookmarkIfNeeded`)
+  - visual saved state (`bookmark.fill`, dimmed, disabled)
+  - success feedback (haptic + temporary “Saved” toast in `PostView`)
+- Comments thread rendering was refactored for stability/performance:
+  - comments are preprocessed and flattened into `visibleRows` in `CommentsThreadViewModel`
+  - UI uses row-based rendering in `CommentsView`/`SingleCommentView` (not recursive nested child views)
+  - indentation is visually capped to prevent deep-thread trailing overflow
+  - descendant reply counts are precomputed (avoid per-render recursive counting)
+- Reader typography was tightened for production readability:
+  - default `readerLineSpacing` is `2.0`
+  - line-spacing controls now use `0...6` with `0.5` step
+  - `LinkTextView` sizing now respects container width (no `UIScreen.main.bounds` dependence)
 
 ## Build, Test, and Development Commands
-Use Xcode or `xcodebuild` from repo root:
+Use from repo root:
 
 ```bash
 xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerNewsApp -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerNewsApp -configuration Release -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
-- `Debug` build: daily development and debug-only features.
-- `Release` build: verify debug-only UI/flows are excluded.
+Expected workflow for this repo: after every code change, run build + simulator launch to validate behavior end-to-end.
 
 ## Coding Style & Naming Conventions
-- Swift + SwiftUI with MVVM and async/await.
-- Use 4-space indentation and keep files organized with `// MARK:` sections.
-- Types/protocols: `UpperCamelCase`; variables/functions: `lowerCamelCase`.
-- One primary type per file; filename should match the main type (for example, `ContentViewModel.swift`).
-- Gate non-production functionality with `#if DEBUG`.
+- Swift/SwiftUI, 4-space indentation, `// MARK:` for structure.
+- `UpperCamelCase` for types, `lowerCamelCase` for members.
+- Keep view `body` lightweight; move action logic into helper methods.
+- Prefer modern SwiftUI APIs (`foregroundStyle`, `clipShape`) and avoid unnecessary view invalidations.
+- Gate debug-only features with `#if DEBUG`.
 
-## Testing Guidelines
-There is currently **no automated test target**. Validate changes with:
-1. Debug build + simulator smoke test for affected flows.
-2. Release build check to confirm debug-only features are not reachable (Settings debug section, HN account/diagnostics, vote/reply paths).
-3. Include manual test notes in PRs.
-
-## Commit & Pull Request Guidelines
-Recent history uses short, informal subjects (for example, `Update`, `Minor changes`). For new work, prefer clear imperative summaries:
-
-- Commit format: `Area: concise change` (example: `Feed: fix pagination retry state`).
-- Keep commits focused and logically grouped.
-- PRs should include: purpose, key changes, manual verification steps, and screenshots/videos for UI updates.
-- Link related issues when applicable.
+## Testing & PR Guidelines
+- No dedicated unit-test target currently; rely on targeted simulator smoke tests.
+- Verify feed scrolling, image clipping, bookmark state, and Saved Stories persistence on each related PR.
+- PRs should include: scope, user-visible impact, manual test steps, and screenshots/video for UI changes.

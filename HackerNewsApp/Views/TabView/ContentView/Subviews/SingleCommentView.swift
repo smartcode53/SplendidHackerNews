@@ -10,6 +10,7 @@ struct SingleCommentView: View {
     let comment: Comment
     @ObservedObject var threadVM: CommentsThreadViewModel
     let indentLevel: Int
+    let descendantCount: Int
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
 #if DEBUG
     @EnvironmentObject var account: HNAccount
@@ -33,42 +34,41 @@ struct SingleCommentView: View {
         threadColors[indentLevel % threadColors.count]
     }
 
-    var body: some View {
-        if threadVM.isVisible(comment.id) {
-            HStack(alignment: .top, spacing: 0) {
-                // Tappable thread indicator line
-                if indentLevel > 0 {
-                    Button {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            threadVM.toggleCollapse(comment.id)
-                        }
-                    } label: {
-                        Rectangle()
-                            .fill(threadColor)
-                            .frame(width: 3)
-                            .frame(maxHeight: .infinity)
-                            .cornerRadius(1.5)
-                    }
-                    .buttonStyle(.plain)
-                    .frame(width: 16)
-                }
+    private var visualIndentLevel: Int {
+        min(indentLevel, 6)
+    }
 
-                VStack(alignment: .leading, spacing: 0) {
-                    if threadVM.isCollapsed(comment.id) {
-                        // Collapsed summary
-                        collapsedSummary
-                    } else {
-                        // Expanded comment
-                        expandedComment
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            if visualIndentLevel > 0 {
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        threadVM.toggleCollapse(comment.id)
                     }
+                } label: {
+                    Rectangle()
+                        .fill(threadColor)
+                        .frame(width: 3)
+                        .frame(maxHeight: .infinity)
+                        .clipShape(.rect(cornerRadius: 1.5))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .buttonStyle(.plain)
+                .frame(width: 16)
             }
-            .background(Color("CardColor"))
-            .cornerRadius(12)
-            .padding(.leading, CGFloat(indentLevel) * 16)
-            .padding(.bottom, 8)
+
+            VStack(alignment: .leading, spacing: 0) {
+                if threadVM.isCollapsed(comment.id) {
+                    collapsedSummary
+                } else {
+                    expandedComment
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .background(Color("CardColor"))
+        .clipShape(.rect(cornerRadius: 12))
+        .padding(.leading, CGFloat(visualIndentLevel) * 12)
+        .padding(.bottom, 6)
     }
 }
 
@@ -83,25 +83,24 @@ extension SingleCommentView {
             HStack(spacing: 8) {
                 Text(comment.author ?? "Unknown")
                     .font(.callout.weight(.semibold))
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.primary.opacity(0.06), in: Capsule())
 
-                let replyCount = threadVM.countDescendants(comment)
-                if replyCount > 0 {
+                if descendantCount > 0 {
                     Text("•")
-                        .foregroundColor(.secondary)
-                    Text("\(replyCount) \(replyCount == 1 ? "reply" : "replies")")
+                        .foregroundStyle(.secondary)
+                    Text("\(descendantCount) \(descendantCount == 1 ? "reply" : "replies")")
                         .font(.callout)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.down")
                     .font(.caption.weight(.semibold))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -117,19 +116,9 @@ extension SingleCommentView {
                 Text(text.markdown)
                     .tint(.accentColor)
                     .font(.subheadline)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 12)
-            }
-
-            if let replies = comment.commentChildren {
-                VStack(spacing: 0) {
-                    ForEach(replies) { child in
-                        if threadVM.isVisible(child.id) {
-                            SingleCommentView(comment: child, threadVM: threadVM, indentLevel: indentLevel + 1)
-                        }
-                    }
-                }
-                .padding(.top, 4)
             }
         }
     }
@@ -138,18 +127,18 @@ extension SingleCommentView {
         HStack(spacing: 10) {
             Text(comment.author ?? "Unknown")
                 .font(.callout.weight(.semibold))
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color.primary.opacity(0.06), in: Capsule())
 
             Text("•")
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .font(.callout)
 
             Text(Date.getTimeInterval(with: comment.createdAtI))
                 .font(.callout)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Spacer()
 
@@ -162,7 +151,7 @@ extension SingleCommentView {
                         .font(.caption.weight(.semibold))
                 }
                 .buttonStyle(.plain)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .opacity(didVote ? 0.4 : 1)
                 .disabled(didVote || isVoting)
 
@@ -171,7 +160,7 @@ extension SingleCommentView {
                 }
                 .buttonStyle(.plain)
                 .font(.callout.weight(.medium))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             }
 #endif
 
@@ -185,7 +174,7 @@ extension SingleCommentView {
                     .rotationEffect(Angle(degrees: threadVM.isCollapsed(comment.id) ? 180 : 0))
             }
             .buttonStyle(.plain)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)

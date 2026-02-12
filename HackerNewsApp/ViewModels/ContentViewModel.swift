@@ -95,6 +95,7 @@ class ContentViewModel: SafariViewLoader {
     private var activeFeedRequestID = UUID()
     private var refreshingRequestID: UUID?
     private var feedChangeTask: Task<Void, Never>?
+    private var prefetchTask: Task<Void, Never>?
     
     let networkManager: NetworkManager = NetworkManager.instance
     
@@ -157,6 +158,7 @@ class ContentViewModel: SafariViewLoader {
             return
         }
         #endif
+        cancelPrefetch()
         guard force || !isRefreshing else { return }
 
         refreshingRequestID = requestID
@@ -211,9 +213,7 @@ class ContentViewModel: SafariViewLoader {
 
             // Fire-and-forget: prefetch images in background without blocking UI
             let storiesToPrefetch = page.appended
-            Task { [weak self] in
-                await self?.prefetchImageURLs(for: storiesToPrefetch)
-            }
+            schedulePrefetch(for: storiesToPrefetch, maxItems: 16)
         } catch is CancellationError {
             return
         } catch {
@@ -332,9 +332,7 @@ class ContentViewModel: SafariViewLoader {
 
                 // Fire-and-forget: prefetch images in background without blocking pagination
                 let storiesToPrefetch = page.appended
-                Task { [weak self] in
-                    await self?.prefetchImageURLs(for: storiesToPrefetch)
-                }
+                schedulePrefetch(for: storiesToPrefetch, maxItems: 12)
             }
 
             loadMoreState = .idle
@@ -391,6 +389,7 @@ class ContentViewModel: SafariViewLoader {
         }
 
         guard isActiveRequest(requestID), !Task.isCancelled else { return }
+        cancelPrefetch()
         ids.removeAll()
         nextIndex = 0
         loadedIDs.removeAll()
@@ -407,6 +406,18 @@ class ContentViewModel: SafariViewLoader {
 
     private func isActiveRequest(_ requestID: UUID) -> Bool {
         requestID == activeFeedRequestID
+    }
+
+    private func schedulePrefetch(for stories: [Story], maxItems: Int) {
+        prefetchTask?.cancel()
+        prefetchTask = Task { [weak self] in
+            await self?.prefetchImageURLs(for: stories, maxItems: maxItems)
+        }
+    }
+
+    private func cancelPrefetch() {
+        prefetchTask?.cancel()
+        prefetchTask = nil
     }
     
     #if DEBUG
@@ -434,7 +445,7 @@ class ContentViewModel: SafariViewLoader {
     /// Previously: sequential batches of 6 = many round-trips.
     /// Now: all candidates launch at once; HTTP connection limits in URLSession
     /// naturally throttle actual network concurrency.
-    private func prefetchImageURLs(for stories: [Story]) async {
+    private func prefetchImageURLs(for stories: [Story], maxItems: Int) async {
         #if DEBUG
         if DebugEnvironment.shared.fixtureMode {
             return
@@ -454,22 +465,33 @@ class ContentViewModel: SafariViewLoader {
         }
 
         guard !candidates.isEmpty else { return }
+        let boundedCandidates = Array(candidates.prefix(maxItems))
+        guard !boundedCandidates.isEmpty else { return }
 
-        // Launch all candidates concurrently in a single TaskGroup.
-        // NetworkManager's deduplicator prevents duplicate OG fetches,
-        // and URLSession's httpMaximumConnectionsPerHost throttles connections.
-        await withTaskGroup(of: Void.self) { group in
-            for (storyId, urlString) in candidates {
-                group.addTask { [networkManager] in
-                    let resultUrl = await networkManager.getImage(fromUrl: urlString)
-                    if let resultUrl {
-                        urlCache.saveToCache(resultUrl, withKey: String(storyId))
-                        availabilityCache.saveToCache(true, withKey: String(storyId))
-                    } else {
-                        availabilityCache.saveToCache(false, withKey: String(storyId))
+        // Bound prefetch work to avoid overloading networking + parsing while scrolling.
+        let maxConcurrent = 4
+        var start = 0
+        while start < boundedCandidates.count {
+            if Task.isCancelled { return }
+            let end = min(start + maxConcurrent, boundedCandidates.count)
+            let chunk = boundedCandidates[start..<end]
+
+            await withTaskGroup(of: Void.self) { group in
+                for (storyId, urlString) in chunk {
+                    group.addTask { [networkManager] in
+                        if Task.isCancelled { return }
+                        let resultUrl = await networkManager.getImage(fromUrl: urlString)
+                        if Task.isCancelled { return }
+                        if let resultUrl {
+                            urlCache.saveToCache(resultUrl, withKey: String(storyId))
+                            availabilityCache.saveToCache(true, withKey: String(storyId))
+                        } else {
+                            availabilityCache.saveToCache(false, withKey: String(storyId))
+                        }
                     }
                 }
             }
+            start = end
         }
     }
 

@@ -6,12 +6,11 @@
 //
 
 import SwiftUI
-import Glur
+import UIKit
 
 struct PostView: View {
     
     @EnvironmentObject var globalSettings: GlobalSettingsViewModel
-    @EnvironmentObject var feedVM: ContentViewModel
 #if DEBUG
     @EnvironmentObject var account: HNAccount
 #endif
@@ -20,11 +19,15 @@ struct PostView: View {
     let index: Int
     let isRead: Bool
     let isFeatured: Bool
+    let onOpenStory: (Story) -> Void
+    let onOpenComments: (Story) -> Void
     @Binding var path: [AppRoute]
     @State private var showVoteAlert = false
     @State private var voteAlertMessage = ""
     @State private var didVote = false
     @State private var isVoting = false
+    @State private var showSavedToast = false
+    @State private var savedToastDismissTask: Task<Void, Never>?
 
     
     
@@ -43,10 +46,8 @@ extension PostView {
     @ViewBuilder var compactCard: some View {
         if let story = vm.story {
             VStack(spacing: 8) {
-                if let imageView = compactImage(for: story) {
-                    imageView
-                        .padding(.top, 4)
-                }
+                compactImage(for: story)
+                    .padding(.top, 4)
 
                 VStack(alignment: .leading, spacing: 0) {
                     if let unsafeUrl = story.url,
@@ -84,18 +85,21 @@ extension PostView {
                     Text(story.score == 1 ? "\(story.score) point" : "\(story.score) points")
                         .font(.callout.weight(.medium))
                         .foregroundColor(.secondary)
+                    let isSaved = globalSettings.isStoryBookmarked(story.id)
                     
                     Spacer()
                     
-                    //Bookmark Delete Button
+                    // Save to bookmarks
                     Button {
-
+                        handleBookmarkTap(story)
                     } label: {
-                        Image(systemName: "trash")
+                        Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
                             .symbolRenderingMode(.hierarchical)
                     }
                     .buttonStyle(.plain)
                     .modifier(ControlPillModifier())
+                    .opacity(isSaved ? 0.55 : 1)
+                    .disabled(isSaved)
                     
                     // Share button
                     
@@ -111,19 +115,9 @@ extension PostView {
                     // Comment Button
                     CommentsButtonView(vm: vm, action: {
                         path.append(.comments(story))
-                        Task { await feedVM.openComments(story) }
+                        onOpenComments(story)
                     }, accessibilityIdentifier: "feed.row.\(story.id).comments", showCount: false)
                     .modifier(ControlPillModifier())
-
-                    Button {
-                        openReaderDestination(story)
-                    } label: {
-                        Image(systemName: "text.book.closed")
-                            .symbolRenderingMode(.hierarchical)
-                    }
-                    .buttonStyle(.plain)
-                    .modifier(ControlPillModifier())
-                    .disabled(story.url == nil)
 
 #if DEBUG
                     if globalSettings.isHNWriteEnabled && account.isLoggedIn {
@@ -155,7 +149,11 @@ extension PostView {
             .contentShape(Rectangle())
             .onTapGesture {
                 path.append(.comments(story))
-                Task { await feedVM.openComments(story) }
+                onOpenComments(story)
+            }
+            .onDisappear {
+                savedToastDismissTask?.cancel()
+                savedToastDismissTask = nil
             }
             .overlay(alignment: .topLeading) {
                 Text("Feed Row")
@@ -163,6 +161,14 @@ extension PostView {
                     .opacity(0.01)
                     .accessibilityLabel("Feed Row \(story.id)")
                     .accessibilityIdentifier("feed.row.\(story.id)")
+            }
+            .overlay(alignment: .topTrailing) {
+                if showSavedToast {
+                    savedToast
+                        .padding(.top, 10)
+                        .padding(.trailing, 8)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
             .alert("Vote", isPresented: $showVoteAlert) {
                 Button("OK", role: .cancel) { }
@@ -183,64 +189,19 @@ extension PostView {
 
             VStack(spacing: 0) {
                 ZStack(alignment: .bottomLeading) {
-                    GeometryReader { proxy in
-                        let size = proxy.size
-                        ZStack {
-                            cardImage(for: story)
-                                .frame(width: size.width, height: size.height)
-                                .clipped()
-
-                            cardImage(for: story)
-                                .glur(radius: 18.0, offset: 0.0, interpolation: 0.45, direction: .down, noise: 0.06, drawingGroup: true)
-                                .mask(
-                                    LinearGradient(
-                                        stops: [
-                                            .init(color: .white, location: 0),
-                                            .init(color: .white, location: 0.45),
-                                            .init(color: .white.opacity(0.6), location: 0.7),
-                                            .init(color: .white.opacity(0.25), location: 0.85),
-                                            .init(color: .clear, location: 1)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                    .frame(height: topBlurHeight)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                                )
-                                .frame(width: size.width, height: size.height)
-
-                            cardImage(for: story)
-                                .glur(radius: 18.0, offset: 0.0, interpolation: 0.45, direction: .up, noise: 0.06, drawingGroup: true)
-                                .mask(
-                                    LinearGradient(
-                                        stops: [
-                                            .init(color: .white, location: 0),
-                                            .init(color: .white, location: 0.45),
-                                            .init(color: .white.opacity(0.6), location: 0.7),
-                                            .init(color: .white.opacity(0.25), location: 0.85),
-                                            .init(color: .clear, location: 1)
-                                        ],
-                                        startPoint: .bottom,
-                                        endPoint: .top
-                                    )
-                                    .frame(height: bottomBlurHeight)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                                )
-                                .frame(width: size.width, height: size.height)
-                        }
-                        .frame(width: size.width, height: size.height)
+                    cardImage(for: story)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipped()
                         .saturation(isRead ? 0.2 : 1)
                         .brightness(isRead ? -0.05 : 0)
-                    }
 
                     Rectangle()
-                        .fill(Color.black.opacity(0.35))
+                        .fill(Color.black.opacity(0.30))
                         .mask(
                             LinearGradient(
                                 stops: [
                                     .init(color: .black, location: 0),
-                                    .init(color: .black, location: 0.5),
+                                    .init(color: .black, location: 0.55),
                                     .init(color: .clear, location: 1)
                                 ],
                                 startPoint: .top,
@@ -251,12 +212,12 @@ extension PostView {
                         .frame(maxHeight: .infinity, alignment: .top)
 
                     Rectangle()
-                        .fill(Color.black.opacity(0.35))
+                        .fill(Color.black.opacity(0.33))
                         .mask(
                             LinearGradient(
                                 stops: [
                                     .init(color: .black, location: 0),
-                                    .init(color: .black, location: 0.5),
+                                    .init(color: .black, location: 0.55),
                                     .init(color: .clear, location: 1)
                                 ],
                                 startPoint: .bottom,
@@ -312,13 +273,13 @@ extension PostView {
                                 .foregroundColor(.white.opacity(0.85))
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.85)
+                            let isSaved = globalSettings.isStoryBookmarked(story.id)
 
                             HStack(spacing: 14) {
                                 Button {
-                                    let bookmark = Bookmark(story: story)
-                                    globalSettings.tempBookmarks.append(bookmark)
+                                    handleBookmarkTap(story)
                                 } label: {
-                                    Image(systemName: "bookmark")
+                                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
                                         .font(controlIconFont)
                                 }
                                 .buttonStyle(.plain)
@@ -330,6 +291,8 @@ extension PostView {
                                         .stroke(Color.white.opacity(0.12), lineWidth: 1)
                                 )
                                 .contentShape(Rectangle())
+                                .opacity(isSaved ? 0.55 : 1)
+                                .disabled(isSaved)
 
                                 if let unsafeUrl = story.url {
                                     ShareLink(item: vm.networkManager.getSecureUrlString(url: unsafeUrl)) {
@@ -349,7 +312,7 @@ extension PostView {
 
                                 CommentsButtonView(vm: vm, action: {
                                     path.append(.comments(story))
-                                    Task { await feedVM.openComments(story) }
+                                    onOpenComments(story)
                                 }, accessibilityIdentifier: "feed.row.\(story.id).comments")
                                 .buttonStyle(.plain)
                                 .foregroundColor(.white.opacity(0.9))
@@ -432,12 +395,24 @@ extension PostView {
             .onTapGesture {
                 openSourceDestination(story)
             }
+            .onDisappear {
+                savedToastDismissTask?.cancel()
+                savedToastDismissTask = nil
+            }
             .overlay(alignment: .topLeading) {
                 Text("Feed Row")
                     .font(.caption2)
                     .opacity(0.01)
                     .accessibilityLabel("Feed Row \(story.id)")
                     .accessibilityIdentifier("feed.row.\(story.id)")
+            }
+            .overlay(alignment: .topTrailing) {
+                if showSavedToast {
+                    savedToast
+                        .padding(.top, 10)
+                        .padding(.trailing, 10)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
             .alert("Vote", isPresented: $showVoteAlert) {
                 Button("OK", role: .cancel) { }
@@ -482,17 +457,47 @@ extension PostView {
 #endif
 
 extension PostView {
+    private var savedToast: some View {
+        Label("Saved", systemImage: "bookmark.fill")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color.primary.opacity(0.12), lineWidth: 1)
+            )
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+
+    @MainActor
+    private func handleBookmarkTap(_ story: Story) {
+        let didSave = globalSettings.addBookmarkIfNeeded(story: story)
+        guard didSave else { return }
+
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+            showSavedToast = true
+        }
+
+        savedToastDismissTask?.cancel()
+        savedToastDismissTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.2))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.2)) {
+                showSavedToast = false
+            }
+        }
+    }
+
     private func openSourceDestination(_ story: Story) {
         if let url = story.url, let safe = URL(string: vm.networkManager.getSecureUrlString(url: url)) {
             openURL(safe, prefersInApp: true)
         }
-        Task { await feedVM.openStory(story) }
-    }
-
-    private func openReaderDestination(_ story: Story) {
-        guard story.url != nil else { return }
-        path.append(.reader(story))
-        Task { await feedVM.openStory(story) }
+        onOpenStory(story)
     }
 
     @ViewBuilder
@@ -526,78 +531,60 @@ extension PostView {
         }
     }
 
-    private func compactImage(for story: Story) -> AnyView? {
+    @ViewBuilder
+    private func compactImage(for story: Story) -> some View {
         let height: CGFloat = 180
 
         if let cachedImage = vm.cachedImage {
-            return AnyView(
-                GeometryReader { proxy in
-                    cachedImage
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: proxy.size.width, height: height)
-                        .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                        )
-                }
-                .frame(height: height)
-                .contentShape(Rectangle())
-            )
-        }
-
-        guard vm.imageAvailability == .available else {
-            return nil
-        }
-
-        if let imageUrl = vm.imageUrl {
-            return AnyView(
-                GeometryReader { proxy in
-                    AsyncImage(url: imageUrl, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
-                        switch phase {
-                        case .empty:
-                            CardPlaceholderPattern()
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .onAppear {
-                                    vm.cacheImageIfNeeded(image, storyId: story.id)
-                                }
-                        case .failure:
-                            CardPlaceholderPattern()
-                        @unknown default:
-                            CardPlaceholderPattern()
-                        }
-                    }
-                    .frame(width: proxy.size.width, height: height)
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                    )
-                }
-                .frame(height: height)
-                .contentShape(Rectangle())
-            )
-        }
-
-        return AnyView(
-            GeometryReader { proxy in
-                CardPlaceholderPattern()
-                    .frame(width: proxy.size.width, height: height)
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                    )
+            compactImageContainer(height: height) {
+                cachedImage
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
             }
+        } else if vm.imageAvailability != .available {
+            EmptyView()
+        } else if let imageUrl = vm.imageUrl {
+            compactImageContainer(height: height) {
+                AsyncImage(url: imageUrl, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
+                    switch phase {
+                    case .empty:
+                        CompactImagePlaceholder()
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .onAppear {
+                                vm.cacheImageIfNeeded(image, storyId: story.id)
+                            }
+                    case .failure:
+                        CompactImagePlaceholder()
+                    @unknown default:
+                        CompactImagePlaceholder()
+                    }
+                }
+            }
+        } else {
+            compactImageContainer(height: height) {
+                CompactImagePlaceholder()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func compactImageContainer<Content: View>(
+        height: CGFloat,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        content()
+            .frame(maxWidth: .infinity)
             .frame(height: height)
-        )
+            .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+            .contentShape(Rectangle())
     }
 
     private func titleLabel(for story: Story) -> some View {
@@ -650,19 +637,38 @@ extension PostView {
         }
     }
     
-    init(withStory story: Story, index: Int, isRead: Bool, path: Binding<[AppRoute]>) {
+    init(
+        withStory story: Story,
+        index: Int,
+        isRead: Bool,
+        path: Binding<[AppRoute]>,
+        onOpenStory: @escaping (Story) -> Void = { _ in },
+        onOpenComments: @escaping (Story) -> Void = { _ in }
+    ) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self.index = index
         self.isRead = isRead
         self.isFeatured = false
+        self.onOpenStory = onOpenStory
+        self.onOpenComments = onOpenComments
         self._path = path
     }
 
-    init(withStory story: Story, index: Int, isRead: Bool, isFeatured: Bool, path: Binding<[AppRoute]>) {
+    init(
+        withStory story: Story,
+        index: Int,
+        isRead: Bool,
+        isFeatured: Bool,
+        path: Binding<[AppRoute]>,
+        onOpenStory: @escaping (Story) -> Void = { _ in },
+        onOpenComments: @escaping (Story) -> Void = { _ in }
+    ) {
         self._vm = StateObject(wrappedValue: UltimatePostViewModel(withStory: story))
         self.index = index
         self.isRead = isRead
         self.isFeatured = isFeatured
+        self.onOpenStory = onOpenStory
+        self.onOpenComments = onOpenComments
         self._path = path
     }
 }
@@ -733,6 +739,24 @@ private struct CardPlaceholderPattern: View {
             }
         }
         .clipped()
+    }
+}
+
+private struct CompactImagePlaceholder: View {
+    var body: some View {
+        LinearGradient(
+            colors: [
+                Color("CardColor").opacity(0.65),
+                Color("CardColor").opacity(0.4)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                .padding(10)
+        }
     }
 }
 

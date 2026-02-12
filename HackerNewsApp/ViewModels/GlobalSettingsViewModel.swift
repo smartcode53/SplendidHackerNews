@@ -14,6 +14,7 @@ class GlobalSettingsViewModel: ObservableObject {
     
     @Published var settings: Settings
     @Published var tempBookmarks: [Bookmark]
+    @Published private(set) var bookmarkedStoryIDs: Set<Int>
     private let persistence: SettingsPersistenceCoordinator<Settings>
     private var settingsCancellable: AnyCancellable?
 #if DEBUG
@@ -54,10 +55,12 @@ class GlobalSettingsViewModel: ObservableObject {
     }
     
     let url: URL
+    private let bookmarkURL: URL
     
     init() {
         let fileURL = FileManager.default.documentsDirectory.appending(component: "settings.txt")
         self.url = fileURL
+        self.bookmarkURL = FileManager.default.documentsDirectory.appending(component: "bookmark.txt")
         self.persistence = SettingsPersistenceCoordinator(fileURL: fileURL)
 
         var loadedSettings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
@@ -93,6 +96,12 @@ class GlobalSettingsViewModel: ObservableObject {
 #endif
 
         self.tempBookmarks = []
+        if let data = try? Data(contentsOf: bookmarkURL),
+           let storedBookmarks = try? JSONDecoder().decode([Bookmark].self, from: data) {
+            self.bookmarkedStoryIDs = Set(storedBookmarks.map { $0.story.id })
+        } else {
+            self.bookmarkedStoryIDs = []
+        }
         startObservingSettings()
 #if DEBUG
         startObservingDebugSettings()
@@ -137,4 +146,20 @@ class GlobalSettingsViewModel: ObservableObject {
             }
     }
 #endif
+
+    func isStoryBookmarked(_ storyID: Int) -> Bool {
+        bookmarkedStoryIDs.contains(storyID) || tempBookmarks.contains(where: { $0.story.id == storyID })
+    }
+
+    @discardableResult
+    func addBookmarkIfNeeded(story: Story) -> Bool {
+        guard !isStoryBookmarked(story.id) else { return false }
+        tempBookmarks.append(Bookmark(story: story))
+        bookmarkedStoryIDs.insert(story.id)
+        return true
+    }
+
+    func syncBookmarkedStoryIDs(from bookmarks: [Bookmark]) {
+        bookmarkedStoryIDs = Set(bookmarks.map { $0.story.id })
+    }
 }

@@ -12,6 +12,7 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
     
     @Environment(\.dismiss) var dismiss
     @ObservedObject var vm: T
+    var onOpenReader: ((Story) -> Void)? = nil
     @StateObject private var threadVM = CommentsThreadViewModel()
     @State private var searchText = ""
     @State private var didAttemptRestore = false
@@ -90,8 +91,8 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                         .padding(.horizontal, 12)
                     }
                     .background(Color("BackgroundColor"))
-                    .onAppear {
-                        Task { await threadVM.loadComments(using: vm, storyID: story.id) }
+                    .task(id: story.id) {
+                        await threadVM.loadComments(using: vm, storyID: story.id)
                     }
                     .task {
                         await loadHeaderImageIfNeeded(for: story)
@@ -104,7 +105,7 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                             }
                         }
                     }
-                    .onChange(of: vm.comments?.children?.count ?? 0) { _ in
+                    .onChange(of: vm.comments?.children?.count ?? 0) { _, _ in
                         scheduleRestore(proxy: proxy)
                     }
                     .onAppear {
@@ -138,12 +139,9 @@ struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoade
                     .accessibilityIdentifier("comments.search.toggle")
                 }
             }
-            .background(
-                NavigationLink(destination: SafariView(vm: vm, url: story.url), isActive: $vm.showStoryInComments) {
-                    EmptyView()
-                }
-                .hidden()
-            )
+            .navigationDestination(isPresented: $vm.showStoryInComments) {
+                SafariView(vm: vm, url: story.url)
+            }
         }
     }
 }
@@ -185,7 +183,6 @@ extension CommentsView {
 private func headerView(for story: Story) -> some View {
     let heroHeight: CGFloat = 280
     let overlayHeight: CGFloat = 140
-    let topBlurHeight: CGFloat = 190
     let bottomBlurHeight: CGFloat = 170
     let isHero = headerImageAvailability == true
     let primaryColor: Color = isHero ? .white : .primary
@@ -277,6 +274,21 @@ private func headerView(for story: Story) -> some View {
                 Spacer()
                 if let storyUrl = story.url {
                     Button {
+                        onOpenReader?(story)
+                    } label: {
+                        Image(systemName: "text.book.closed")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.white.opacity(0.9))
+                    .frame(width: 40, height: 40)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+
+                    Button {
                         vm.showStoryInComments = true
                     } label: {
                         Image(systemName: "safari")
@@ -362,27 +374,9 @@ extension CommentsView {
 
     @MainActor
     private func attemptRestore(proxy: ScrollViewProxy) async {
+        _ = proxy
         didAttemptRestore = true
         showResume = false
-        return
-        guard !didAttemptRestore else { return }
-        guard let storyId = vm.story?.id else { return }
-        guard let comments = vm.comments?.children, !comments.isEmpty else { return }
-
-        didAttemptRestore = true
-        showResume = false
-
-        let lastSeen = await CommentsScrollStore.shared.getLastSeen(storyID: storyId)
-        guard let lastSeen else { return }
-
-        let topLevelIDs = comments.map { $0.id }
-        if topLevelIDs.contains(lastSeen) {
-            withAnimation(.easeInOut(duration: 0.25)) {
-                proxy.scrollTo(lastSeen, anchor: .top)
-            }
-        } else {
-            showResume = true
-        }
     }
     @ViewBuilder
     private func commentControls() -> some View {
@@ -422,14 +416,11 @@ extension CommentsView {
         .padding(.bottom, 8)
         .task(id: searchText) {
             try? await Task.sleep(nanoseconds: 200_000_000)
-            if let comments = vm.comments?.children {
-                threadVM.setComments(comments)
-                threadVM.applySearch(query: searchText)
-            }
+            threadVM.applySearch(query: searchText)
         }
-        .onChange(of: vm.comments?.children?.count ?? 0) { _ in
+        .onChange(of: vm.comments?.children?.count ?? 0) { _, _ in
             if let comments = vm.comments?.children {
-                threadVM.setComments(comments)
+                Task { await threadVM.setComments(comments) }
             }
         }
     }
@@ -517,42 +508,51 @@ extension CommentsView {
                 retryAction: canRetry ? { Task { await reloadComments() } } : nil
             )
         case .loaded:
-            if let comments = vm.comments?.children {
+            if !threadVM.visibleRows.isEmpty || vm.comments?.children?.isEmpty == false {
                 #if DEBUG
                 if debug.fixtureMode {
                     VStack(spacing: 0) {
-                        ForEach(comments) { comment in
-                            if threadVM.isVisible(comment.id) {
-                                SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
-                                    .id(comment.id)
-                                    .onAppear {
-                                        scheduleLastSeenUpdate(commentID: comment.id)
-                                    }
+                        ForEach(threadVM.visibleRows) { row in
+                            SingleCommentView(
+                                comment: row.comment,
+                                threadVM: threadVM,
+                                indentLevel: row.depth,
+                                descendantCount: row.descendantCount
+                            )
+                            .id(row.id)
+                            .onAppear {
+                                scheduleLastSeenUpdate(commentID: row.id)
                             }
                         }
                     }
                 } else {
                     LazyVStack(spacing: 0) {
-                        ForEach(comments) { comment in
-                            if threadVM.isVisible(comment.id) {
-                                SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
-                                    .id(comment.id)
-                                    .onAppear {
-                                        scheduleLastSeenUpdate(commentID: comment.id)
-                                    }
+                        ForEach(threadVM.visibleRows) { row in
+                            SingleCommentView(
+                                comment: row.comment,
+                                threadVM: threadVM,
+                                indentLevel: row.depth,
+                                descendantCount: row.descendantCount
+                            )
+                            .id(row.id)
+                            .onAppear {
+                                scheduleLastSeenUpdate(commentID: row.id)
                             }
                         }
                     }
                 }
                 #else
                 LazyVStack(spacing: 0) {
-                    ForEach(comments) { comment in
-                        if threadVM.isVisible(comment.id) {
-                            SingleCommentView(comment: comment, threadVM: threadVM, indentLevel: 0)
-                                .id(comment.id)
-                                .onAppear {
-                                    scheduleLastSeenUpdate(commentID: comment.id)
-                                }
+                    ForEach(threadVM.visibleRows) { row in
+                        SingleCommentView(
+                            comment: row.comment,
+                            threadVM: threadVM,
+                            indentLevel: row.depth,
+                            descendantCount: row.descendantCount
+                        )
+                        .id(row.id)
+                        .onAppear {
+                            scheduleLastSeenUpdate(commentID: row.id)
                         }
                     }
                 }

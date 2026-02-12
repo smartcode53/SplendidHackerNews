@@ -24,7 +24,12 @@ actor ReadStateStore {
         if !defaults.bool(forKey: hideReadDefaultsKey) {
             hideReadByFeed = Dictionary(uniqueKeysWithValues: StoryType.allCases.map { ($0.rawValue, false) })
             defaults.set(true, forKey: hideReadDefaultsKey)
-            saveToDisk()
+            let payload = PersistedState(
+                readIDs: Array(readIDs),
+                hideReadByFeed: hideReadByFeed,
+                lastUpdatedAt: Date()
+            )
+            Self.saveToDisk(payload, to: fileUrl)
         }
     }
     
@@ -67,6 +72,10 @@ actor ReadStateStore {
             hideReadByFeed: hideReadByFeed,
             lastUpdatedAt: Date()
         )
+        Self.saveToDisk(payload, to: fileUrl)
+    }
+
+    nonisolated private static func saveToDisk(_ payload: PersistedState, to fileUrl: URL) {
         guard let data = try? JSONEncoder().encode(payload) else { return }
         try? data.write(to: fileUrl, options: [.atomic])
     }

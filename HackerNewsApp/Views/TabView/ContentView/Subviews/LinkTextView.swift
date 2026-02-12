@@ -13,7 +13,9 @@ struct LinkTextView: UIViewRepresentable {
         textView.isScrollEnabled = false
         textView.backgroundColor = .clear
         textView.textContainer.lineFragmentPadding = 0
-        textView.textContainerInset = UIEdgeInsets(top: 2, left: 0, bottom: 2, right: 0)
+        textView.textContainerInset = .zero
+        textView.textContainer.lineBreakMode = .byWordWrapping
+        textView.textContainer.widthTracksTextView = true
         textView.delegate = context.coordinator
         textView.adjustsFontForContentSizeCategory = true
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
@@ -34,8 +36,8 @@ struct LinkTextView: UIViewRepresentable {
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize {
-        let maxWidth = UIScreen.main.bounds.width
-        let targetWidth = min(proposal.width ?? maxWidth, maxWidth)
+        let proposedWidth = proposal.width ?? uiView.bounds.width
+        let targetWidth = max(proposedWidth, 1)
         let size = uiView.sizeThatFits(CGSize(width: targetWidth, height: .greatestFiniteMagnitude))
         return CGSize(width: targetWidth, height: max(size.height, 1))
     }
@@ -51,7 +53,7 @@ struct LinkTextView: UIViewRepresentable {
             self.onLinkTap = onLinkTap
         }
 
-        func textView(_ textView: UITextView, shouldInteractWith url: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+        func textView(_ textView: UITextView, shouldInteractWith url: URL, in characterRange: NSRange) -> Bool {
             onLinkTap(url)
             return false
         }

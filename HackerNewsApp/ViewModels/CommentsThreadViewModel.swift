@@ -3,76 +3,46 @@ import Foundation
 @MainActor
 final class CommentsThreadViewModel: ObservableObject {
     @Published private(set) var topLevelIDs: [Int] = []
-    @Published private(set) var visibleTopLevelIDs: [Int] = []
     @Published private(set) var matchCount: Int = 0
     @Published var collapsedIDs: Set<Int> = []
     @Published var loadState: LoadState = .idle
+    @Published private(set) var visibleRows: [CommentRow] = []
 
-    private var visibleIDs: Set<Int> = []
     private var currentQuery: String = ""
-    private var comments: [Comment] = []
+    private var visibleIDs: Set<Int> = []
+    private var hasActiveSearch = false
+    private var indexedComments: [IndexedComment] = []
 
     /// Cancellable handle for the background pre-parse task.
     private var preParseTask: Task<Void, Never>?
 
-    // MARK: - Flat Search Index
-    // Pre-computed on setComments. Avoids re-lowercasing on every keystroke
-    // and allows O(1) lookup by comment ID instead of recursive tree traversal.
-
-    /// Pre-lowercased text and author for each comment, plus parent chain for
-    /// propagating visibility up the tree. Built once in O(n), reused per query.
-    private struct SearchEntry {
+    struct CommentRow: Identifiable {
         let id: Int
-        let lowercasedText: String   // comment.text?.lowercased() ?? ""
-        let lowercasedAuthor: String  // comment.author?.lowercased() ?? ""
-        let ancestorIDs: [Int]        // chain of parent IDs up to root (for visibility propagation)
-        let childIDs: [Int]           // direct child IDs
+        let comment: Comment
+        let depth: Int
+        let descendantCount: Int
     }
 
-    /// Flat array of all comments in DFS order with pre-computed search fields.
-    private var searchIndex: [SearchEntry] = []
-
-    /// Maps comment ID -> index in searchIndex for O(1) lookup.
-    private var searchIndexMap: [Int: Int] = [:]
-
-    func setComments(_ comments: [Comment]) {
-        self.comments = comments
-        topLevelIDs = comments.map { $0.id }
-        buildSearchIndex(from: comments)
-        applySearch(query: currentQuery)
+    private struct IndexedComment {
+        let id: Int
+        let comment: Comment
+        let depth: Int
+        let ancestorIDs: [Int]
+        let lowercasedText: String
+        let lowercasedAuthor: String
+        let descendantCount: Int
     }
 
-    /// Builds the flat search index from the comment tree. O(n) time and space.
-    /// Uses iterative DFS with explicit stack to avoid deep recursion.
-    private func buildSearchIndex(from roots: [Comment]) {
-        searchIndex.removeAll()
-        searchIndexMap.removeAll()
+    private struct PreparedComments {
+        let indexed: [IndexedComment]
+        let topLevelIDs: [Int]
+    }
 
-        // Each stack frame: (comment, ancestorIDs)
-        var stack: [(Comment, [Int])] = roots.reversed().map { ($0, []) }
-
-        while let (comment, ancestors) = stack.popLast() {
-            let idx = searchIndex.count
-            searchIndexMap[comment.id] = idx
-
-            let entry = SearchEntry(
-                id: comment.id,
-                lowercasedText: comment.text?.lowercased() ?? "",
-                lowercasedAuthor: comment.author?.lowercased() ?? "",
-                ancestorIDs: ancestors,
-                childIDs: comment.children.map { $0.id }
-            )
-            searchIndex.append(entry)
-
-            // Push children with updated ancestor chain
-            let childAncestors = ancestors + [comment.id]
-            for child in comment.children.reversed() {
-                stack.append((child, childAncestors))
-            }
-        }
-
-        // Reserve capacity for visibleIDs based on total comment count
-        visibleIDs.reserveCapacity(searchIndex.count)
+    func setComments(_ comments: [Comment]) async {
+        let prepared = await Task.detached(priority: .userInitiated) {
+            Self.prepareComments(comments)
+        }.value
+        applyPreparedComments(prepared)
     }
 
     func loadComments(using loader: any CommentsButtonProtocol, storyID: Int) async {
@@ -89,7 +59,7 @@ final class CommentsThreadViewModel: ObservableObject {
             return
         }
 
-        setComments(children)
+        await setComments(children)
 
         if children.isEmpty {
             loadState = .empty
@@ -137,10 +107,7 @@ final class CommentsThreadViewModel: ObservableObject {
             }
         }
     }
-    
-    /// Applies search filter using the pre-computed flat index.
-    /// O(n) scan over the flat array -- no recursion, no per-query allocations
-    /// for lowercased strings. Ancestor propagation uses the pre-built chain.
+
     func applySearch(query: String) {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         currentQuery = trimmed
@@ -148,64 +115,152 @@ final class CommentsThreadViewModel: ObservableObject {
         guard !trimmed.isEmpty else {
             visibleIDs.removeAll()
             matchCount = 0
-            visibleTopLevelIDs = topLevelIDs
+            hasActiveSearch = false
+            rebuildVisibleRows()
             return
         }
 
         visibleIDs.removeAll(keepingCapacity: true)
         matchCount = 0
+        hasActiveSearch = true
         let lowered = trimmed.lowercased()
 
-        // Single pass: for each matching comment, mark it and all its ancestors visible.
-        // O(n * d) worst case where d = average depth, but d is typically small (~10-20).
-        for entry in searchIndex {
-            let isMatch = entry.lowercasedText.contains(lowered) || entry.lowercasedAuthor.contains(lowered)
+        for entry in indexedComments {
+            let isMatch = entry.lowercasedText.localizedStandardContains(lowered)
+                || entry.lowercasedAuthor.localizedStandardContains(lowered)
             if isMatch {
                 matchCount += 1
                 visibleIDs.insert(entry.id)
-                // Propagate visibility up the ancestor chain
                 for ancestorID in entry.ancestorIDs {
                     visibleIDs.insert(ancestorID)
                 }
             }
         }
+        rebuildVisibleRows()
+    }
 
-        visibleTopLevelIDs = topLevelIDs.filter { visibleIDs.contains($0) }
-    }
-    
     func isVisible(_ id: Int) -> Bool {
-        visibleIDs.isEmpty || visibleIDs.contains(id)
+        if !hasActiveSearch {
+            return true
+        }
+        return visibleIDs.contains(id)
     }
-    
+
     func isCollapsed(_ id: Int) -> Bool {
         collapsedIDs.contains(id)
     }
-    
+
     func toggleCollapse(_ id: Int) {
         if collapsedIDs.contains(id) {
             collapsedIDs.remove(id)
         } else {
             collapsedIDs.insert(id)
         }
+        rebuildVisibleRows()
     }
-    
+
     func collapseTopLevel() {
         collapsedIDs.formUnion(topLevelIDs)
+        rebuildVisibleRows()
     }
-    
+
     func expandTopLevel() {
         collapsedIDs.subtract(topLevelIDs)
+        rebuildVisibleRows()
     }
 
-    func countDescendants(_ comment: Comment) -> Int {
-        var count = comment.children.count
-        for child in comment.children {
-            count += countDescendants(child)
+    private func applyPreparedComments(_ prepared: PreparedComments) {
+        indexedComments = prepared.indexed
+        topLevelIDs = prepared.topLevelIDs
+        collapsedIDs.removeAll()
+        visibleIDs.removeAll(keepingCapacity: true)
+        visibleIDs.reserveCapacity(indexedComments.count)
+        applySearch(query: currentQuery)
+    }
+
+    private func rebuildVisibleRows() {
+        guard !indexedComments.isEmpty else {
+            visibleRows = []
+            return
         }
-        return count
+
+        var rows: [CommentRow] = []
+        rows.reserveCapacity(indexedComments.count)
+
+        for entry in indexedComments {
+            if hasActiveSearch && !visibleIDs.contains(entry.id) {
+                continue
+            }
+
+            if entry.ancestorIDs.contains(where: { collapsedIDs.contains($0) }) {
+                continue
+            }
+
+            rows.append(
+                CommentRow(
+                    id: entry.id,
+                    comment: entry.comment,
+                    depth: entry.depth,
+                    descendantCount: entry.descendantCount
+                )
+            )
+        }
+
+        visibleRows = rows
     }
 
-    // Search matching is now handled by applySearch using the flat searchIndex.
-    // The old recursive collectVisible/matches methods have been replaced by a
-    // single O(n) pass over the pre-indexed array with pre-lowercased strings.
+    private nonisolated static func prepareComments(_ roots: [Comment]) -> PreparedComments {
+        struct FlatNode {
+            let comment: Comment
+            let depth: Int
+            let ancestorIDs: [Int]
+            let childIDs: [Int]
+        }
+
+        var flatNodes: [FlatNode] = []
+        flatNodes.reserveCapacity(roots.count * 2)
+
+        var stack: [(comment: Comment, depth: Int, ancestors: [Int])] =
+            roots.reversed().map { ($0, 0, []) }
+
+        while let frame = stack.popLast() {
+            let childIDs = frame.comment.children.map(\.id)
+            flatNodes.append(
+                FlatNode(
+                    comment: frame.comment,
+                    depth: frame.depth,
+                    ancestorIDs: frame.ancestors,
+                    childIDs: childIDs
+                )
+            )
+
+            let childAncestors = frame.ancestors + [frame.comment.id]
+            for child in frame.comment.children.reversed() {
+                stack.append((child, frame.depth + 1, childAncestors))
+            }
+        }
+
+        var descendantCountByID: [Int: Int] = [:]
+        descendantCountByID.reserveCapacity(flatNodes.count)
+        for node in flatNodes.reversed() {
+            let count = node.childIDs.reduce(into: 0) { partial, childID in
+                partial += 1 + (descendantCountByID[childID] ?? 0)
+            }
+            descendantCountByID[node.comment.id] = count
+        }
+
+        let indexed = flatNodes.map { node in
+            IndexedComment(
+                id: node.comment.id,
+                comment: node.comment,
+                depth: node.depth,
+                ancestorIDs: node.ancestorIDs,
+                lowercasedText: node.comment.text?.lowercased() ?? "",
+                lowercasedAuthor: node.comment.author?.lowercased() ?? "",
+                descendantCount: descendantCountByID[node.comment.id] ?? 0
+            )
+        }
+
+        return PreparedComments(indexed: indexed, topLevelIDs: roots.map(\.id))
+    }
 }

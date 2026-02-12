@@ -363,10 +363,10 @@ extension SettingsView {
                 HStack {
                     Text("Line Spacing")
                     Spacer()
-                    Text("\(globalSettings.settings.readerLineSpacing, specifier: "%.0f")")
-                        .foregroundColor(.secondary)
+                    Text("\(globalSettings.settings.readerLineSpacing, specifier: "%.1f")")
+                        .foregroundStyle(.secondary)
                 }
-                Slider(value: $globalSettings.settings.readerLineSpacing, in: 1...10, step: 1)
+                Slider(value: $globalSettings.settings.readerLineSpacing, in: 0...6, step: 0.5)
             }
         }
         .padding()

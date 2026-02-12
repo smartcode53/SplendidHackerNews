@@ -74,26 +74,26 @@ struct BookmarksView: View {
             .onAppear {
                 vm.bookmarks.append(contentsOf: globalSettings.tempBookmarks)
                 globalSettings.tempBookmarks.removeAll()
+                globalSettings.syncBookmarkedStoryIDs(from: vm.bookmarks)
             }
-            .onChange(of: scenePhase) { phase in
+            .onChange(of: scenePhase) { _, phase in
                 if phase == .inactive {
                     vm.saveToDisk()
+                    globalSettings.syncBookmarkedStoryIDs(from: vm.bookmarks)
                 }
             }
-            .onChange(of: bookmarkToDelete) { bookmark in
+            .onChange(of: bookmarkToDelete) { _, bookmark in
                 if let bookmark {
                     if let index = vm.bookmarks.firstIndex(of: bookmark) {
                         vm.bookmarks.remove(at: index)
                     }
+                    globalSettings.syncBookmarkedStoryIDs(from: vm.bookmarks)
                     bookmarkToDelete = nil
                 }
              }
-            .background(
-                NavigationLink(destination: HistoryView(path: $path), isActive: $showHistory) {
-                    EmptyView()
-                }
-                .hidden()
-            )
+            .navigationDestination(isPresented: $showHistory) {
+                HistoryView(path: $path)
+            }
         }
     }
 }

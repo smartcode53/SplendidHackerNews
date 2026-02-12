@@ -41,11 +41,9 @@ struct ReaderPreviewView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(title)
                         .font(.title2.weight(.semibold))
-                    Text(String(format: "Scale %.2f, spacing %.0f",
-                                globalSettings.settings.readerFontScale,
-                                globalSettings.settings.readerLineSpacing))
+                    Text("Scale \(globalSettings.settings.readerFontScale, specifier: "%.2f"), spacing \(globalSettings.settings.readerLineSpacing, specifier: "%.1f")")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 Toggle("Show link hitboxes", isOn: $showLinkHitboxes)
@@ -67,7 +65,9 @@ struct ReaderPreviewView: View {
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .background(Color("BackgroundColor"))
-        .background(linkNavigation)
+        .navigationDestination(item: $linkDestination) { destination in
+            ReaderPreviewView(title: destination.title)
+        }
         .confirmationDialog("Open Link", isPresented: isLinkActionPresented, presenting: linkAction) { action in
             if action.canOpenInReader {
                 Button("Open in Reader") {
@@ -97,26 +97,6 @@ struct ReaderPreviewView: View {
         )
     }
 
-    private var linkNavigation: some View {
-        NavigationLink(
-            destination: Group {
-                if let destination = linkDestination {
-                    ReaderPreviewView(title: destination.title)
-                }
-            },
-            isActive: Binding(
-                get: { linkDestination != nil },
-                set: { isActive in
-                    if !isActive {
-                        linkDestination = nil
-                    }
-                }
-            ),
-            label: { EmptyView() }
-        )
-        .hidden()
-    }
-
     private func handleLinkTap(_ url: URL) {
         switch ReaderLinkHandler.resolve(
             url: url,
@@ -140,7 +120,8 @@ struct ReaderPreviewView: View {
     }
 }
 
-private struct ReaderPreviewDestination {
+private struct ReaderPreviewDestination: Identifiable, Hashable {
+    var id: String { url.absoluteString + title }
     let url: URL
     let title: String
 }

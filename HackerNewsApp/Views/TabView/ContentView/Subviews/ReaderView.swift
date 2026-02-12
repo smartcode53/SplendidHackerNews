@@ -64,7 +64,9 @@ struct ReaderView: View {
         .task {
             await vm.load()
         }
-        .background(linkNavigation)
+        .navigationDestination(item: $linkDestination) { destination in
+            ReaderView(url: destination.url, title: destination.title)
+        }
         .confirmationDialog("Open Link", isPresented: isLinkActionPresented, presenting: linkAction) { action in
             if action.canOpenInReader {
                 Button("Open in Reader") {
@@ -117,57 +119,70 @@ struct ReaderView: View {
     private func readerContentView(content: ReaderContent) -> some View {
         let typography = ReaderTypography(fontScale: globalSettings.settings.readerFontScale,
                                           lineSpacing: globalSettings.settings.readerLineSpacing)
-        return GeometryReader { geo in
-            ScrollView(.vertical, showsIndicators: true) {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(content.title)
-                            .font(.title2.weight(.semibold))
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
+        return ScrollView(.vertical, showsIndicators: true) {
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(content.title)
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                        if let domain = content.domain {
-                            Text(domain)
-                                .font(.caption.weight(.medium))
-                                .foregroundColor(.accentColor)
-                        }
+                    if let domain = content.domain {
+                        Text(domain)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.accentColor)
+                    }
 
-                        Button {
-                            openInSafari()
-                        } label: {
-                            Label("Open Source", systemImage: "safari")
-                                .font(.caption.weight(.semibold))
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.accentColor)
+                    Button {
+                        openInSafari()
+                    } label: {
+                        Label("Open Source", systemImage: "safari")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.accentColor)
 
 #if DEBUG
-                        if let lastUpdated = vm.lastUpdated {
-                            Text("Last updated \(lastUpdatedLabel(for: lastUpdated))")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
+                    if let lastUpdated = vm.lastUpdated {
+                        Text("Last updated \(lastUpdatedLabel(for: lastUpdated))")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
 #endif
-                    }
-
-                    if content.isTruncated {
-                        Text("Content truncated for performance.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
-                        ReaderBlockView(
-                            block: block,
-                            typography: typography,
-                            onLinkTap: handleLinkTap
-                        )
-                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 20)
-                .frame(width: geo.size.width, alignment: .leading)
+
+                if content.isTruncated {
+                    Text("Content truncated for performance.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                ForEach(Array(content.blocks.enumerated()), id: \.offset) { index, block in
+                    ReaderBlockView(
+                        block: block,
+                        typography: typography,
+                        onLinkTap: handleLinkTap
+                    )
+                    .padding(.bottom, blockBottomSpacing(for: block, at: index, in: content.blocks))
+                }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func blockBottomSpacing(for block: ReaderBlock, at index: Int, in blocks: [ReaderBlock]) -> CGFloat {
+        guard index < blocks.count - 1 else { return 0 }
+        switch block {
+        case .heading(_, let level):
+            return level <= 2 ? 6 : 4
+        case .paragraph:
+            return 8
+        case .quote:
+            return 10
+        case .code:
+            return 10
         }
     }
 
@@ -221,26 +236,6 @@ struct ReaderView: View {
         )
     }
 
-    private var linkNavigation: some View {
-        NavigationLink(
-            destination: Group {
-                if let destination = linkDestination {
-                    ReaderView(url: destination.url, title: destination.title)
-                }
-            },
-            isActive: Binding(
-                get: { linkDestination != nil },
-                set: { isActive in
-                    if !isActive {
-                        linkDestination = nil
-                    }
-                }
-            ),
-            label: { EmptyView() }
-        )
-        .hidden()
-    }
-
     private func handleLinkTap(_ url: URL) {
         switch ReaderLinkHandler.resolve(
             url: url,
@@ -289,22 +284,22 @@ private struct ReaderTypographySheet: View {
                 }
 
                 Section("Line Spacing") {
-                    Slider(value: $lineSpacing, in: 1...10, step: 1)
+                    Slider(value: $lineSpacing, in: 0...6, step: 0.5)
                         .accessibilityIdentifier("reader.typography.lineSpacing")
-                    Text("Spacing: \(lineSpacing, specifier: "%.0f")")
-                        .foregroundColor(.secondary)
+                    Text("Spacing: \(lineSpacing, specifier: "%.1f")")
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("Current Typography") {
-                    Text("Scale \(fontScale, specifier: "%.2f"), spacing \(lineSpacing, specifier: "%.0f")")
+                    Text("Scale \(fontScale, specifier: "%.2f"), spacing \(lineSpacing, specifier: "%.1f")")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section {
                     Button("Reset to Default") {
                         fontScale = 1.0
-                        lineSpacing = 4.0
+                        lineSpacing = 2.0
                     }
                 }
             }
@@ -327,7 +322,8 @@ struct ReaderView_Previews: PreviewProvider {
     }
 }
 
-private struct ReaderLinkDestination {
+private struct ReaderLinkDestination: Identifiable, Hashable {
+    var id: String { url.absoluteString + title }
     let url: URL
     let title: String
 }

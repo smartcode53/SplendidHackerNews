@@ -12,7 +12,12 @@ struct ContentRootView: View {
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
                     case .comments(let story):
-                        CommentsView(vm: CommentsRouteViewModel(story: story))
+                        CommentsView(
+                            vm: CommentsRouteViewModel(story: story),
+                            onOpenReader: { selectedStory in
+                                path.append(.reader(selectedStory))
+                            }
+                        )
                     case .reader(let story):
                         ReaderView(story: story)
                     case .history:

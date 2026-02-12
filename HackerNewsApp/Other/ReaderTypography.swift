@@ -6,7 +6,11 @@ struct ReaderTypography {
     let lineSpacing: Double
 
     private var clampedScale: Double {
-        min(max(fontScale, 0.9), 1.2)
+        min(max(fontScale, 0.9), 1.3)
+    }
+
+    var clampedLineSpacing: CGFloat {
+        CGFloat(min(max(lineSpacing, 0), 6))
     }
 
     var bodyFont: Font {

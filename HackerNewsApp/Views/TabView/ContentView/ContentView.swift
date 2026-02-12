@@ -37,7 +37,7 @@ struct ContentView: View {
             await vm.loadInitial()
         }
 #if DEBUG
-        .onChange(of: debug.fixtureRefreshToken) { _ in
+        .onChange(of: debug.fixtureRefreshToken) { _, _ in
             Task {
                 if debug.fixtureMode {
                     await vm.applyFixtureIfNeeded()
@@ -52,7 +52,7 @@ struct ContentView: View {
             }
         }
 #endif
-        .onChange(of: vm.storyType) { _ in
+        .onChange(of: vm.storyType) { _, _ in
             didAttemptRestore = false
             showResume = false
         }
@@ -65,6 +65,14 @@ extension ContentView  {
             get: { vm.hideRead },
             set: { vm.setHideRead($0) }
         )
+    }
+
+    private func handleOpenStory(_ story: Story) {
+        Task { await vm.openStory(story) }
+    }
+
+    private func handleOpenComments(_ story: Story) {
+        Task { await vm.openComments(story) }
     }
     
     // MARK: Story array
@@ -234,16 +242,20 @@ extension ContentView  {
 
             if !vm.stories.isEmpty {
                 ForEach(Array(vm.stories.enumerated()), id: \.element.id) { index, story in
-                    PostView(withStory: story, index: index + 1, isRead: vm.isRead(story.id), isFeatured: false, path: $path)
-                        .environmentObject(vm)
+                    PostView(
+                        withStory: story,
+                        index: index + 1,
+                        isRead: vm.isRead(story.id),
+                        isFeatured: false,
+                        path: $path,
+                        onOpenStory: handleOpenStory,
+                        onOpenComments: handleOpenComments
+                    )
                         .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .onAppear {
                             scheduleLastSeenUpdate(storyID: story.id)
-                        }
-                        .task {
-                            await vm.loadMoreIfNeeded(currentID: story.id)
                         }
 
                     if index == 2 {
@@ -253,6 +265,15 @@ extension ContentView  {
                             .listRowBackground(Color.clear)
                     }
                 }
+
+                Color.clear
+                    .frame(height: 1)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .onAppear {
+                        Task { await vm.loadNextPage() }
+                    }
             } else if vm.isLoading || vm.isRefreshing {
                 HStack {
                     Spacer()
@@ -310,7 +331,7 @@ extension ContentView  {
         .refreshable {
             await vm.refresh()
         }
-        .onChange(of: vm.stories.count) { _ in
+        .onChange(of: vm.stories.count) { _, _ in
             Task { await attemptRestore(proxy: proxy) }
         }
         .onAppear {
@@ -323,8 +344,15 @@ extension ContentView  {
         ScrollView {
             VStack(spacing: 12) {
                 ForEach(Array(vm.stories.enumerated()), id: \.element.id) { index, story in
-                    PostView(withStory: story, index: index + 1, isRead: vm.isRead(story.id), isFeatured: false, path: $path)
-                        .environmentObject(vm)
+                    PostView(
+                        withStory: story,
+                        index: index + 1,
+                        isRead: vm.isRead(story.id),
+                        isFeatured: false,
+                        path: $path,
+                        onOpenStory: handleOpenStory,
+                        onOpenComments: handleOpenComments
+                    )
                         .onAppear {
                             scheduleLastSeenUpdate(storyID: story.id)
                         }
@@ -391,8 +419,15 @@ extension ContentView  {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
                     ForEach(rowStories, id: \.id) { story in
-                        PostView(withStory: story, index: 0, isRead: vm.isRead(story.id), isFeatured: true, path: $path)
-                            .environmentObject(vm)
+                        PostView(
+                            withStory: story,
+                            index: 0,
+                            isRead: vm.isRead(story.id),
+                            isFeatured: true,
+                            path: $path,
+                            onOpenStory: handleOpenStory,
+                            onOpenComments: handleOpenComments
+                        )
                             .frame(width: 280)
                     }
                 }

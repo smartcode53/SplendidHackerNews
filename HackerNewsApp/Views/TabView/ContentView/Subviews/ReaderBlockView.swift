@@ -24,8 +24,8 @@ struct ReaderBlockView: View {
         case .heading(let text, let level):
             Text(text)
                 .font(typography.headingFont(level: level))
-                .foregroundColor(.primary)
-                .lineSpacing(typography.lineSpacing)
+                .foregroundStyle(.primary)
+                .lineSpacing(typography.clampedLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, level <= 2 ? 6 : 0)
         case .paragraph(let spans):
@@ -38,8 +38,8 @@ struct ReaderBlockView: View {
         case .code(let text):
             Text(text)
                 .font(typography.codeFont)
-                .foregroundColor(.primary)
-                .lineSpacing(typography.lineSpacing)
+                .foregroundStyle(.primary)
+                .lineSpacing(typography.clampedLineSpacing)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -50,8 +50,8 @@ struct ReaderBlockView: View {
         case .quote(let text):
             Text(text)
                 .font(typography.quoteFont)
-                .foregroundColor(.secondary)
-                .lineSpacing(typography.lineSpacing)
+                .foregroundStyle(.secondary)
+                .lineSpacing(typography.clampedLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, 12)
                 .overlay(
@@ -81,7 +81,9 @@ private struct ReaderParagraphView: View {
     private var attributedText: NSAttributedString {
         let result = NSMutableAttributedString()
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = typography.lineSpacing
+        paragraphStyle.lineSpacing = typography.clampedLineSpacing
+        paragraphStyle.paragraphSpacing = 4
+        paragraphStyle.lineBreakMode = .byWordWrapping
 
         for span in spans {
             switch span {

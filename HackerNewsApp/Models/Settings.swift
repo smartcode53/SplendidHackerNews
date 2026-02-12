@@ -32,7 +32,7 @@ struct Settings: Codable {
          openInReader: Bool = false,
          openReaderLinksInReader: Bool = false,
          readerFontScale: Double = 1.0,
-         readerLineSpacing: Double = 4.0) {
+         readerLineSpacing: Double = 2.0) {
         self.cardStyleString = cardStyleString
         self.themeString = themeString
         self.openInReader = openInReader
@@ -57,7 +57,7 @@ struct Settings: Codable {
         self.openInReader = try container.decodeIfPresent(Bool.self, forKey: .openInReader) ?? false
         self.openReaderLinksInReader = try container.decodeIfPresent(Bool.self, forKey: .openReaderLinksInReader) ?? false
         self.readerFontScale = try container.decodeIfPresent(Double.self, forKey: .readerFontScale) ?? 1.0
-        self.readerLineSpacing = try container.decodeIfPresent(Double.self, forKey: .readerLineSpacing) ?? 4.0
+        self.readerLineSpacing = try container.decodeIfPresent(Double.self, forKey: .readerLineSpacing) ?? 2.0
     }
 }
 
