@@ -58,6 +58,9 @@
 		B5A1C2D3E4F5060708090B1F /* ReaderTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A1C2D3E4F5060708090A1F /* ReaderTypography.swift */; };
 		B5A1C2D3E4F5060708090B23 /* ReaderLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A1C2D3E4F5060708090A23 /* ReaderLinkHandler.swift */; };
 		B7A1C2D3E4F5060708090B11 /* SettingsPersistenceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */; };
+		C7A100000000000000000201 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000101 /* SubscriptionManager.swift */; };
+		C7A100000000000000000202 /* ProFeatureGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000102 /* ProFeatureGate.swift */; };
+		C7A100000000000000000203 /* PaywallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000103 /* PaywallViewController.swift */; };
 		C1C1C1C1C1C1C1C1C1C1C102 /* HNDiagnosticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */; };
 		C1C1C1C1C1C1C1C1C1C1C103 /* HNDiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */; };
 		D1D1D1D1D1D1D1D1D1D1D101 /* FeedScrollStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */; };
@@ -127,6 +130,9 @@
 		B5A1C2D3E4F5060708090A1F /* ReaderTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderTypography.swift; sourceTree = "<group>"; };
 		B5A1C2D3E4F5060708090A23 /* ReaderLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderLinkHandler.swift; sourceTree = "<group>"; };
 		B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPersistenceCoordinator.swift; sourceTree = "<group>"; };
+		C7A100000000000000000101 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		C7A100000000000000000102 /* ProFeatureGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProFeatureGate.swift; sourceTree = "<group>"; };
+		C7A100000000000000000103 /* PaywallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViewController.swift; sourceTree = "<group>"; };
 		C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsViewModel.swift; sourceTree = "<group>"; };
 		C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsReport.swift; sourceTree = "<group>"; };
 		D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedScrollStore.swift; sourceTree = "<group>"; };
@@ -332,6 +338,7 @@
 		B4F0328128C07F6D00E463BF /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				C7A100000000000000000301 /* Subscription */,
 				B4FF101F28F0000000A1B2D2 /* AppRoute.swift */,
 				B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */,
 				B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */,
@@ -357,6 +364,16 @@
 				9B7DFAC023516C5E18BE87B7 /* CommentHTMLParser.swift */,
 			);
 			path = Other;
+			sourceTree = "<group>";
+		};
+		C7A100000000000000000301 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				C7A100000000000000000101 /* SubscriptionManager.swift */,
+				C7A100000000000000000102 /* ProFeatureGate.swift */,
+				C7A100000000000000000103 /* PaywallViewController.swift */,
+			);
+			path = Subscription;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -444,6 +461,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7A100000000000000000201 /* SubscriptionManager.swift in Sources */,
+				C7A100000000000000000202 /* ProFeatureGate.swift in Sources */,
+				C7A100000000000000000203 /* PaywallViewController.swift in Sources */,
 				B5A1C2D3E4F5060708090B0C /* ReaderViewModel.swift in Sources */,
 				B5A1C2D3E4F5060708090B0D /* ReaderExtractor.swift in Sources */,
 				B5A1C2D3E4F5060708090B1E /* ReaderLinkPolicy.swift in Sources */,

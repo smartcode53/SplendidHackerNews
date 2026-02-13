@@ -162,4 +162,12 @@ class GlobalSettingsViewModel: ObservableObject {
     func syncBookmarkedStoryIDs(from bookmarks: [Bookmark]) {
         bookmarkedStoryIDs = Set(bookmarks.map { $0.story.id })
     }
+
+    var proEntitlementCachedAt: Date? {
+        settings.proEntitlementCachedAt
+    }
+
+    func updateProEntitlementCacheDate(_ date: Date?) {
+        settings.proEntitlementCachedAt = date
+    }
 }

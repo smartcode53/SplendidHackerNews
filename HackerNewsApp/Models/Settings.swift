@@ -15,6 +15,7 @@ struct Settings: Codable {
     var openReaderLinksInReader: Bool
     var readerFontScale: Double
     var readerLineSpacing: Double
+    var proEntitlementCachedAt: Date?
     
     enum CardStyle: String, CaseIterable {
         case compact = "Compact"
@@ -32,13 +33,15 @@ struct Settings: Codable {
          openInReader: Bool = false,
          openReaderLinksInReader: Bool = false,
          readerFontScale: Double = 1.0,
-         readerLineSpacing: Double = 2.0) {
+         readerLineSpacing: Double = 2.0,
+         proEntitlementCachedAt: Date? = nil) {
         self.cardStyleString = cardStyleString
         self.themeString = themeString
         self.openInReader = openInReader
         self.openReaderLinksInReader = openReaderLinksInReader
         self.readerFontScale = readerFontScale
         self.readerLineSpacing = readerLineSpacing
+        self.proEntitlementCachedAt = proEntitlementCachedAt
     }
 
     enum CodingKeys: String, CodingKey {
@@ -48,6 +51,7 @@ struct Settings: Codable {
         case openReaderLinksInReader
         case readerFontScale
         case readerLineSpacing
+        case proEntitlementCachedAt
     }
 
     init(from decoder: Decoder) throws {
@@ -58,6 +62,7 @@ struct Settings: Codable {
         self.openReaderLinksInReader = try container.decodeIfPresent(Bool.self, forKey: .openReaderLinksInReader) ?? false
         self.readerFontScale = try container.decodeIfPresent(Double.self, forKey: .readerFontScale) ?? 1.0
         self.readerLineSpacing = try container.decodeIfPresent(Double.self, forKey: .readerLineSpacing) ?? 2.0
+        self.proEntitlementCachedAt = try container.decodeIfPresent(Date.self, forKey: .proEntitlementCachedAt)
     }
 }
 

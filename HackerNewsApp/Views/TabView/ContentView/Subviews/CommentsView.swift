@@ -7,6 +7,7 @@
 
 import UIKit
 import Combine
+import SafariServices
 
 @MainActor
 final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate, UISearchResultsUpdating where VM: CommentsButtonProtocol, VM: SafariViewLoader {
@@ -92,6 +93,7 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         appearance.shadowColor = .clear
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
+        navigationItem.compactAppearance = appearance
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search comments"
@@ -288,7 +290,7 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
 
     private func bindThreadState() {
         threadVM.$visibleRows
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] rows in
                 self?.rows = rows
                 self?.tableView.reloadData()
@@ -296,7 +298,7 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
             .store(in: &cancellables)
 
         threadVM.$loadState
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.applyLoadState(state)
             }
@@ -351,17 +353,24 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         }
     }
 
+    private var lastHeaderSize: CGSize = .zero
+
     private func resizeHeaderToFit() {
         guard tableView.tableHeaderView != nil else { return }
-        headerWidthConstraint?.constant = tableView.bounds.width
-        let targetSize = CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height)
+        let width = tableView.bounds.width
+        guard width > 0 else { return }
+        headerWidthConstraint?.constant = width
+        let targetSize = CGSize(width: width, height: UIView.layoutFittingCompressedSize.height)
         let height = headerRoot.systemLayoutSizeFitting(
             targetSize,
             withHorizontalFittingPriority: .required,
             verticalFittingPriority: .fittingSizeLevel
         ).height
-        if headerRoot.frame.height != height || headerRoot.frame.width != tableView.bounds.width {
-            headerRoot.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: height)
+        let newSize = CGSize(width: width, height: height)
+        // Only reassign tableHeaderView when size actually changes (avoids layout loop)
+        if abs(newSize.width - lastHeaderSize.width) > 0.5 || abs(newSize.height - lastHeaderSize.height) > 0.5 {
+            lastHeaderSize = newSize
+            headerRoot.frame = CGRect(origin: .zero, size: newSize)
             tableView.tableHeaderView = headerRoot
         }
     }
@@ -473,7 +482,9 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
     }
 
     @objc private func openSafari() {
-        vm.showStoryInComments = true
+        guard let urlString = vm.story?.url,
+              let url = URL(string: NetworkManager.instance.getSecureUrlString(url: urlString)) else { return }
+        present(SFSafariViewController(url: url), animated: true)
     }
 
     @objc private func shareStory() {
@@ -514,10 +525,13 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard indexPath.row < rows.count else { return }
         let row = rows[indexPath.row]
         scheduleLastSeenUpdate(commentID: row.id)
         guard !animatedCommentIDs.contains(row.id) else { return }
         animatedCommentIDs.insert(row.id)
+        // Only animate first batch of comments to avoid animation overhead during fast scrolling
+        guard animatedCommentIDs.count <= 30 else { return }
         cell.alpha = 0
         cell.transform = CGAffineTransform(translationX: 0, y: 8)
         UIView.animate(
@@ -539,8 +553,11 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
 
     // MARK: - UIScrollViewDelegate
 
+    private var lastParallaxProgress: CGFloat = -1
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let progress = max(0, min(1, scrollView.contentOffset.y / 200))
+
         let shouldShowCompactBar = progress > 0.38
         if shouldShowCompactBar != compactBarVisible {
             compactBarVisible = shouldShowCompactBar
@@ -557,13 +574,18 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
                     : CGAffineTransform(scaleX: 0.96, y: 0.96).translatedBy(x: 0, y: -4)
             }
         }
-        let scaleX = 1 - (0.12 * progress)
-        let scaleY = 1 - (0.08 * progress)
-        let translateY = -18 * progress
-        heroImageView.transform = CGAffineTransform.identity
-            .translatedBy(x: 0, y: translateY)
-            .scaledBy(x: scaleX, y: scaleY)
-        heroClipView.alpha = 1 - progress
+
+        // Only update parallax transform when progress actually changes
+        if abs(progress - lastParallaxProgress) > 0.005 {
+            lastParallaxProgress = progress
+            let scaleX = 1 - (0.12 * progress)
+            let scaleY = 1 - (0.08 * progress)
+            let translateY = -18 * progress
+            heroImageView.transform = CGAffineTransform.identity
+                .translatedBy(x: 0, y: translateY)
+                .scaledBy(x: scaleX, y: scaleY)
+            heroClipView.alpha = 1 - progress
+        }
     }
 }
 

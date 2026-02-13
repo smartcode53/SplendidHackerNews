@@ -7,7 +7,10 @@ import ImageIO
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     private let globalSettings = GlobalSettingsViewModel()
+    private let proFeatureGate = ProFeatureGate.shared
+    private let subscriptionManager = SubscriptionManager.shared
     private var cancellables: Set<AnyCancellable> = []
+    private var launchTask: Task<Void, Never>?
 
     func application(
         _ application: UIApplication,
@@ -17,6 +20,21 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let root = HNTabBarController(globalSettings: globalSettings)
         window.rootViewController = root
         self.window = window
+        Task {
+            await subscriptionManager.startTransactionListener()
+        }
+        proFeatureGate.configure(
+            cachedDateProvider: { [weak self] in
+                self?.globalSettings.proEntitlementCachedAt
+            },
+            cacheDateUpdater: { [weak self] date in
+                self?.globalSettings.updateProEntitlementCacheDate(date)
+            }
+        )
+        launchTask = Task { [weak self] in
+            guard let self else { return }
+            await self.proFeatureGate.refreshEntitlement()
+        }
         applyTheme()
         observeSettings()
         window.makeKeyAndVisible()
@@ -29,7 +47,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func observeSettings() {
         globalSettings.$settings
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.applyTheme()
             }
@@ -332,9 +350,11 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
         scrolledAppearance.configureWithDefaultBackground()
         scrolledAppearance.shadowColor = .clear
 
-        navigationController?.navigationBar.scrollEdgeAppearance = transparentAppearance
-        navigationController?.navigationBar.standardAppearance = scrolledAppearance
-        navigationController?.navigationBar.compactAppearance = scrolledAppearance
+        // Set on navigationItem (not navigationController.navigationBar) so each VC
+        // owns its own appearance and transitions between VCs don't fight each other.
+        navigationItem.scrollEdgeAppearance = transparentAppearance
+        navigationItem.standardAppearance = scrolledAppearance
+        navigationItem.compactAppearance = scrolledAppearance
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
@@ -408,17 +428,17 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
 
     private func bind() {
         vm.$stories
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] stories in self?.applyStoriesChange(stories) }
             .store(in: &cancellables)
 
         vm.$isLoading
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.applyLoadingState() }
             .store(in: &cancellables)
 
         vm.$isRefreshing
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] isRefreshing in
                 guard let self else { return }
                 if !isRefreshing && self.refreshControl.isRefreshing {
@@ -428,7 +448,7 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
             .store(in: &cancellables)
 
         vm.$storyType
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] newType in
                 guard let self else { return }
                 self.title = newType.rawValue
@@ -587,9 +607,20 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard indexPath.row < vm.stories.count else { return }
+        // Pagination is handled in prefetchRowsAt — only trigger here
+        // when near the very end as a fallback, to avoid creating
+        // excessive Tasks for every visible row during scroll.
         let row = indexPath.row
+        let count = vm.stories.count
+        guard row >= count - 5, row < count else { return }
         Task { await vm.loadMoreIfNeeded(currentIndex: row) }
+    }
+
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        // Cancel in-flight image loads for cells that scrolled off-screen
+        if let feedCell = cell as? FeedStoryCell {
+            feedCell.cancelImageLoad()
+        }
     }
 
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
@@ -612,11 +643,18 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
 
     // MARK: - Scroll → Sun Gradient Fade
 
+    private var lastGradientAlpha: CGFloat = 1
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let offset = scrollView.contentOffset.y + scrollView.adjustedContentInset.top
         // Fade the gradient over the first 120 points of scroll
         let progress = min(max(offset / 120, 0), 1)
-        sunGradient.alpha = 1 - progress
+        let newAlpha = 1 - progress
+        // Only set alpha when it actually changes to avoid unnecessary layer updates
+        if abs(newAlpha - lastGradientAlpha) > 0.01 {
+            lastGradientAlpha = newAlpha
+            sunGradient.alpha = newAlpha
+        }
     }
 }
 
@@ -731,7 +769,14 @@ private final class FeedStoryCell: UITableViewCell {
         currentStoryID = nil
         heroImage.image = nil
         heroImage.alpha = 0
+        shimmerLayer.stopAnimating()
         setImageVisible(false, animated: false)
+    }
+
+    func cancelImageLoad() {
+        imageTask?.cancel()
+        imageTask = nil
+        shimmerLayer.stopAnimating()
     }
 
     override func layoutSubviews() {
@@ -764,6 +809,9 @@ private final class FeedStoryCell: UITableViewCell {
         card.layer.shadowOpacity = 0.06
         card.layer.shadowOffset = CGSize(width: 0, height: 2)
         card.layer.shadowRadius = 8
+        // Rasterize to avoid re-rendering shadow every frame during scroll
+        card.layer.shouldRasterize = true
+        card.layer.rasterizationScale = UIScreen.main.scale
     }
 
     private func setupImage() {
@@ -1080,13 +1128,9 @@ private final class FeedStoryCell: UITableViewCell {
         } else {
             shimmerLayer.stopAnimating()
         }
-
-        if animated {
-            UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseInOut) {
-                self.contentView.layoutIfNeeded()
-            }
-        }
     }
+
+    private static let availabilityCache = UltimatePostViewModel.ImageAvailabilityCache.instance
 
     private func loadThumbnail(for story: Story) {
         guard story.url?.isEmpty == false else {
@@ -1096,6 +1140,7 @@ private final class FeedStoryCell: UITableViewCell {
             return
         }
 
+        // 1. Check in-memory UIImage cache (instant)
         if let cached = FeedImagePipeline.cachedImage(for: story.id) {
             heroImage.image = cached
             heroImage.alpha = 1
@@ -1106,34 +1151,45 @@ private final class FeedStoryCell: UITableViewCell {
             return
         }
 
-        // Show shimmer placeholder
+        // 2. Check availability cache synchronously — if we already know there's
+        //    no image, collapse immediately to avoid height changes during scroll.
+        if let knownAvailable = Self.availabilityCache.getFromCache(withKey: String(story.id)),
+           knownAvailable == false {
+            heroImage.image = nil
+            heroImage.alpha = 0
+            setImageVisible(false, animated: false)
+            return
+        }
+
+        // 3. Show shimmer placeholder only if we think an image might exist
         heroImage.image = nil
         heroImage.alpha = 0
         setImageVisible(true, animated: false)
 
         imageTask?.cancel()
         imageTask = Task { [weak self] in
-            guard let self, let pipeline = self.imagePipeline else {
-                await MainActor.run { [weak self] in
-                    self?.setImageVisible(false, animated: false)
-                }
-                return
-            }
+            guard let self, let pipeline = self.imagePipeline else { return }
 
             let image = await pipeline.image(for: story)
             guard !Task.isCancelled else { return }
-            await MainActor.run { [weak self] in
-                guard let self, self.currentStoryID == story.id else { return }
-                if let image {
-                    self.heroImage.image = image
-                    self.shimmerLayer.stopAnimating()
-                    self.shimmerView.isHidden = true
-                    self.placeholderIcon.isHidden = true
-                    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
-                        self.heroImage.alpha = 1
+            guard self.currentStoryID == story.id else { return }
+            if let image {
+                self.heroImage.image = image
+                self.shimmerLayer.stopAnimating()
+                self.shimmerView.isHidden = true
+                self.placeholderIcon.isHidden = true
+                UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
+                    self.heroImage.alpha = 1
+                }
+            } else {
+                self.setImageVisible(false, animated: false)
+                // Notify tableView that this cell's height changed so it can
+                // adjust contentSize without a full reload (prevents scroll jumps)
+                if let tableView = self.superview as? UITableView {
+                    UIView.performWithoutAnimation {
+                        tableView.beginUpdates()
+                        tableView.endUpdates()
                     }
-                } else {
-                    self.setImageVisible(false, animated: false)
                 }
             }
         }
