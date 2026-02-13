@@ -239,7 +239,7 @@ class ContentViewModel: SafariViewLoader {
     /// Uses a ~70% threshold: triggers when the user reaches the story at
     /// approximately `stories.count - prefetchThreshold` from the end.
     /// Previously only triggered at the very last story, causing visible wait times.
-    func loadMoreIfNeeded(currentID: Int) async {
+    func loadMoreIfNeeded(currentIndex: Int) async {
         #if DEBUG
         if DebugEnvironment.shared.fixtureMode {
             return
@@ -248,14 +248,20 @@ class ContentViewModel: SafariViewLoader {
         let threshold = 10
         let count = stories.count
         guard count > 0 else { return }
-
-        // Find the index of the current story - O(n) but n is small (feed size)
-        guard let currentIndex = stories.firstIndex(where: { $0.id == currentID }) else { return }
-
-        // Trigger when user is within `threshold` items of the end
         if currentIndex >= count - threshold {
             await loadNextPage()
         }
+    }
+
+    /// Legacy ID-based trigger retained for compatibility.
+    func loadMoreIfNeeded(currentID: Int) async {
+        #if DEBUG
+        if DebugEnvironment.shared.fixtureMode {
+            return
+        }
+        #endif
+        guard let currentIndex = stories.firstIndex(where: { $0.id == currentID }) else { return }
+        await loadMoreIfNeeded(currentIndex: currentIndex)
     }
     
     func openStory(_ story: Story) async {

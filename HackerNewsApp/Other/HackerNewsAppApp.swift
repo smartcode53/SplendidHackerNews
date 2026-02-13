@@ -1,6 +1,7 @@
 import UIKit
 import Combine
 import SafariServices
+import ImageIO
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -100,16 +101,176 @@ final class HNTabBarController: UITabBarController {
     }
 }
 
+actor FeedImagePipeline {
+    static let shared = FeedImagePipeline()
+    nonisolated private static let imageCache = NSCache<NSString, UIImage>()
+
+    private var inFlightImages: [String: Task<UIImage?, Never>] = [:]
+    private var prefetchTasks: [Int: Task<Void, Never>] = [:]
+    private let urlCache = UltimatePostViewModel.ImageURLCache.instance
+    private let availabilityCache = UltimatePostViewModel.ImageAvailabilityCache.instance
+    private let networkManager = NetworkManager.instance
+
+    init() {
+        Self.imageCache.countLimit = 180
+    }
+
+    nonisolated static func cachedImage(for storyID: Int) -> UIImage? {
+        imageCache.object(forKey: String(storyID) as NSString)
+    }
+
+    func image(for story: Story) async -> UIImage? {
+        let storyKey = String(story.id)
+        if let cached = Self.imageCache.object(forKey: storyKey as NSString) {
+            return cached
+        }
+
+        guard let imageURL = await resolveImageURL(for: story) else { return nil }
+        let urlKey = imageURL.absoluteString
+        if let task = inFlightImages[urlKey] {
+            let image = await task.value
+            if let image {
+                Self.imageCache.setObject(image, forKey: storyKey as NSString)
+            }
+            return image
+        }
+
+        let task = Task<UIImage?, Never> {
+            guard let (data, _) = try? await URLSession.shared.data(from: imageURL) else {
+                return nil
+            }
+            return Self.decodeDownsampledImage(data: data, maxPixel: 900)
+        }
+        inFlightImages[urlKey] = task
+
+        let image = await task.value
+        inFlightImages[urlKey] = nil
+
+        if let image {
+            Self.imageCache.setObject(image, forKey: storyKey as NSString)
+        }
+        return image
+    }
+
+    func prefetch(stories: [Story], maxItems: Int = 10) {
+        let boundedCount = min(maxItems, 4)
+        let candidates = Array(stories.prefix(boundedCount))
+        for story in candidates where prefetchTasks[story.id] == nil {
+            prefetchTasks[story.id] = Task {
+                _ = await self.image(for: story)
+                await self.clearPrefetchTask(storyID: story.id)
+            }
+        }
+    }
+
+    func cancelPrefetch(storyIDs: [Int]) {
+        for storyID in storyIDs {
+            prefetchTasks[storyID]?.cancel()
+            prefetchTasks[storyID] = nil
+        }
+    }
+
+    private func clearPrefetchTask(storyID: Int) {
+        prefetchTasks[storyID] = nil
+    }
+
+    private func resolveImageURL(for story: Story) async -> URL? {
+        guard let rawURL = story.url, !rawURL.isEmpty else {
+            availabilityCache.saveToCache(false, withKey: String(story.id))
+            return nil
+        }
+
+        let key = String(story.id)
+        if let cachedURL = urlCache.getFromCache(withKey: key) {
+            return cachedURL
+        }
+        if let cachedAvailability = availabilityCache.getFromCache(withKey: key), cachedAvailability == false {
+            return nil
+        }
+
+        let result = await networkManager.getImage(fromUrl: rawURL)
+        if let result {
+            urlCache.saveToCache(result, withKey: key)
+            availabilityCache.saveToCache(true, withKey: key)
+            return result
+        } else {
+            availabilityCache.saveToCache(false, withKey: key)
+            return nil
+        }
+    }
+
+    private static func decodeDownsampledImage(data: Data, maxPixel: CGFloat) -> UIImage? {
+        let options: [CFString: Any] = [kCGImageSourceShouldCache: false]
+        guard let source = CGImageSourceCreateWithData(data as CFData, options as CFDictionary) else { return nil }
+        let downsampleOptions: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel
+        ]
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions as CFDictionary) else {
+            return UIImage(data: data)
+        }
+        return UIImage(cgImage: cgImage)
+    }
+}
+
+// MARK: - Radial Sun Gradient View
+
+private final class SunGradientView: UIView {
+    override class var layerClass: AnyClass { CAGradientLayer.self }
+
+    private var gradientLayer: CAGradientLayer { layer as! CAGradientLayer }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        setupGradient()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func setupGradient() {
+        gradientLayer.type = .radial
+        gradientLayer.startPoint = CGPoint(x: 1.0, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: -0.2, y: 1.2)
+        updateColors()
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateColors()
+        }
+    }
+
+    private func updateColors() {
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        let orange = UIColor.systemOrange
+        gradientLayer.colors = [
+            orange.withAlphaComponent(isDark ? 0.45 : 0.38).cgColor,
+            orange.withAlphaComponent(isDark ? 0.22 : 0.18).cgColor,
+            orange.withAlphaComponent(isDark ? 0.08 : 0.06).cgColor,
+            UIColor.clear.cgColor
+        ]
+        gradientLayer.locations = [0, 0.25, 0.55, 1.0]
+    }
+}
+
 @MainActor
 private final class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching {
     private let vm = ContentViewModel()
     private let globalSettings: GlobalSettingsViewModel
+    private let imagePipeline = FeedImagePipeline.shared
     private var cancellables: Set<AnyCancellable> = []
+    private var renderedStoryIDs: [Int] = []
 
-    private let tableView = UITableView(frame: .zero, style: .plain)
+    private let tableView = UITableView(frame: .zero, style: .grouped)
     private let refreshControl = UIRefreshControl()
     private let toastLabel = UILabel()
-    private let feedBackgroundColor = UIColor(named: "BackgroundColor") ?? .systemBackground
+    private let feedBackgroundColor = UIColor.systemGroupedBackground
+    private let sunGradient = SunGradientView()
 
     init(globalSettings: GlobalSettingsViewModel) {
         self.globalSettings = globalSettings
@@ -126,6 +287,7 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
         title = vm.storyType.rawValue
         view.backgroundColor = feedBackgroundColor
         configureTableView()
+        configureSunGradient()
         configureToast()
         configureNavigation()
         bind()
@@ -143,8 +305,37 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
         globalSettings.syncBookmarkedStoryIDs(from: globalSettings.tempBookmarks)
     }
 
+    private func configureSunGradient() {
+        sunGradient.translatesAutoresizingMaskIntoConstraints = false
+        // Add gradient ABOVE the table so it overlays the top area
+        // isUserInteractionEnabled is false so touches pass through
+        view.addSubview(sunGradient)
+        NSLayoutConstraint.activate([
+            sunGradient.topAnchor.constraint(equalTo: view.topAnchor),
+            sunGradient.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 40),
+            sunGradient.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 1.2),
+            sunGradient.heightAnchor.constraint(equalToConstant: 300)
+        ])
+    }
+
     private func configureNavigation() {
         navigationItem.largeTitleDisplayMode = .automatic
+
+        // Make navigation bar transparent so the sun gradient shows through
+        let transparentAppearance = UINavigationBarAppearance()
+        transparentAppearance.configureWithTransparentBackground()
+        transparentAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+        transparentAppearance.titleTextAttributes = [.foregroundColor: UIColor.label]
+
+        // Scrolled (compact) appearance keeps transparent to let gradient control the feel
+        let scrolledAppearance = UINavigationBarAppearance()
+        scrolledAppearance.configureWithDefaultBackground()
+        scrolledAppearance.shadowColor = .clear
+
+        navigationController?.navigationBar.scrollEdgeAppearance = transparentAppearance
+        navigationController?.navigationBar.standardAppearance = scrolledAppearance
+        navigationController?.navigationBar.compactAppearance = scrolledAppearance
+
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
             menu: makeMenu()
@@ -169,13 +360,11 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
     private func configureTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isOpaque = false
-        tableView.backgroundColor = feedBackgroundColor
-        let clearBackground = UIView()
-        clearBackground.backgroundColor = feedBackgroundColor
-        tableView.backgroundView = clearBackground
+        tableView.backgroundColor = .clear
+        tableView.backgroundView = nil
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 180
+        tableView.estimatedRowHeight = 320
         tableView.dataSource = self
         tableView.delegate = self
         tableView.prefetchDataSource = self
@@ -220,12 +409,12 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
     private func bind() {
         vm.$stories
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.reloadData() }
+            .sink { [weak self] stories in self?.applyStoriesChange(stories) }
             .store(in: &cancellables)
 
         vm.$isLoading
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.reloadData() }
+            .sink { [weak self] _ in self?.applyLoadingState() }
             .store(in: &cancellables)
 
         vm.$isRefreshing
@@ -251,13 +440,35 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
             .store(in: &cancellables)
     }
 
-    private func reloadData() {
-        tableView.reloadData()
+    private func applyLoadingState() {
         if vm.stories.isEmpty {
             applyEmptyState()
         } else {
             tableView.backgroundView = nil
         }
+    }
+
+    private func applyStoriesChange(_ stories: [Story]) {
+        let newIDs = stories.map(\.id)
+        let oldIDs = renderedStoryIDs
+        renderedStoryIDs = newIDs
+
+        if oldIDs.isEmpty || newIDs.isEmpty {
+            tableView.reloadData()
+            applyLoadingState()
+            return
+        }
+
+        if newIDs.count > oldIDs.count && Array(newIDs.prefix(oldIDs.count)) == oldIDs {
+            let inserted = (oldIDs.count..<newIDs.count).map { IndexPath(row: $0, section: 0) }
+            tableView.performBatchUpdates {
+                tableView.insertRows(at: inserted, with: .none)
+            }
+        } else {
+            tableView.reloadData()
+        }
+
+        applyLoadingState()
     }
 
     private func applyEmptyState() {
@@ -326,7 +537,9 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
     private func saveStory(_ story: Story) {
         guard globalSettings.addBookmarkIfNeeded(story: story) else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        tableView.reloadData()
+        if let row = vm.stories.firstIndex(where: { $0.id == story.id }) {
+            tableView.reloadRows(at: [IndexPath(row: row, section: 0)], with: .none)
+        }
 
         UIViewPropertyAnimator.runningPropertyAnimator(
             withDuration: 0.18,
@@ -354,20 +567,17 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: FeedStoryCell.reuseID, for: indexPath) as? FeedStoryCell else {
-            return UITableViewCell()
-        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: FeedStoryCell.reuseID, for: indexPath) as! FeedStoryCell
         let story = vm.stories[indexPath.row]
-        cell.configure(
-            story: story,
-            isRead: vm.isRead(story.id),
-            isSaved: globalSettings.isStoryBookmarked(story.id),
-            style: globalSettings.selectedCardStyle
-        )
+        let isRead = vm.isRead(story.id)
+        let isSaved = globalSettings.bookmarkedStoryIDs.contains(story.id)
+
+        cell.imagePipeline = imagePipeline
         cell.onOpenSource = { [weak self] in self?.openSourceWebsite(story) }
         cell.onOpenComments = { [weak self] in self?.openComments(story) }
-        cell.onShare = { [weak self, weak cell] in self?.shareStory(story, sourceView: cell) }
+        cell.onShare = { [weak self] in self?.shareStory(story, sourceView: cell) }
         cell.onBookmark = { [weak self] in self?.saveStory(story) }
+        cell.configure(story: story, isRead: isRead, isSaved: isSaved, style: globalSettings.selectedCardStyle)
         return cell
     }
 
@@ -378,17 +588,83 @@ private final class FeedViewController: UIViewController, UITableViewDataSource,
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard indexPath.row < vm.stories.count else { return }
-        let story = vm.stories[indexPath.row]
-        Task { await vm.loadMoreIfNeeded(currentID: story.id) }
+        let row = indexPath.row
+        Task { await vm.loadMoreIfNeeded(currentIndex: row) }
     }
 
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
-        for indexPath in indexPaths where indexPath.row < vm.stories.count {
-            let story = vm.stories[indexPath.row]
-            Task { await vm.loadMoreIfNeeded(currentID: story.id) }
+        let validRows = indexPaths.map(\.row).filter { $0 < vm.stories.count }
+        guard !validRows.isEmpty else { return }
+        if let maxRow = validRows.max() {
+            Task { await vm.loadMoreIfNeeded(currentIndex: maxRow) }
         }
+        let stories = validRows.map { vm.stories[$0] }
+        Task { await imagePipeline.prefetch(stories: stories, maxItems: stories.count) }
+    }
+
+    func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
+        let ids = indexPaths.map(\.row)
+            .filter { $0 < vm.stories.count }
+            .map { vm.stories[$0].id }
+        guard !ids.isEmpty else { return }
+        Task { await imagePipeline.cancelPrefetch(storyIDs: ids) }
+    }
+
+    // MARK: - Scroll → Sun Gradient Fade
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offset = scrollView.contentOffset.y + scrollView.adjustedContentInset.top
+        // Fade the gradient over the first 120 points of scroll
+        let progress = min(max(offset / 120, 0), 1)
+        sunGradient.alpha = 1 - progress
     }
 }
+
+// MARK: - Shimmer Layer
+
+private final class ShimmerLayer: CAGradientLayer {
+    private let animationKey = "shimmerSlide"
+
+    override init() {
+        super.init()
+        commonInit()
+    }
+
+    override init(layer: Any) {
+        super.init(layer: layer)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    private func commonInit() {
+        startPoint = CGPoint(x: 0, y: 0.5)
+        endPoint = CGPoint(x: 1, y: 0.5)
+        let base = UIColor.tertiarySystemFill.cgColor
+        let highlight = UIColor.quaternarySystemFill.cgColor
+        colors = [base, highlight, base]
+        locations = [0, 0.5, 1]
+    }
+
+    func startAnimating() {
+        guard animation(forKey: animationKey) == nil else { return }
+        let anim = CABasicAnimation(keyPath: "locations")
+        anim.fromValue = [-1.0, -0.5, 0.0]
+        anim.toValue = [1.0, 1.5, 2.0]
+        anim.duration = 1.2
+        anim.repeatCount = .infinity
+        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        add(anim, forKey: animationKey)
+    }
+
+    func stopAnimating() {
+        removeAnimation(forKey: animationKey)
+    }
+}
+
+// MARK: - FeedStoryCell
 
 private final class FeedStoryCell: UITableViewCell {
     static let reuseID = "FeedStoryCell"
@@ -397,22 +673,46 @@ private final class FeedStoryCell: UITableViewCell {
     var onOpenComments: (() -> Void)?
     var onShare: (() -> Void)?
     var onBookmark: (() -> Void)?
+    var imagePipeline: FeedImagePipeline?
 
+    // MARK: Card
     private let card = UIView()
-    private let divider = UIView()
-    private let urlLabel = UILabel()
-    private let titleButton = UIButton(type: .system)
-    private let timeUserLabel = UILabel()
-    private let pointsLabel = UILabel()
+
+    // MARK: Image
+    private let imageContainer = UIView()
+    private let heroImage = UIImageView()
+    private let shimmerView = UIView()
+    private let shimmerLayer = ShimmerLayer()
+    private let placeholderIcon = UIImageView()
+
+    // MARK: Content
+    private let domainPill = UIView()
+    private let domainLabel = UILabel()
+    private let titleRow = UIView()
     private let titleLabel = UILabel()
-    private let thumbnail = UIImageView()
-    private let footerRow = UIStackView()
-    private let actionsRow = UIStackView()
+    private let safariIndicator = UIImageView()
+    private let metaLabel = UILabel()
+
+    // MARK: Separator
+    private let divider = UIView()
+
+    // MARK: Actions
+    private let actionsBar = UIStackView()
     private let commentsButton = UIButton(type: .system)
     private let shareButton = UIButton(type: .system)
     private let bookmarkButton = UIButton(type: .system)
+    private let pointsBadge = UIView()
+    private let pointsIcon = UIImageView()
+    private let pointsLabel = UILabel()
 
     private var imageTask: Task<Void, Never>?
+    private var currentStoryID: Int?
+    private var imageHeightConstraint: NSLayoutConstraint?
+    private var imageContainerTopConstraint: NSLayoutConstraint?
+    private var domainTopToImageConstraint: NSLayoutConstraint?
+    private var domainTopToCardConstraint: NSLayoutConstraint?
+
+    private static let imageHeight: CGFloat = 200
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -428,233 +728,413 @@ private final class FeedStoryCell: UITableViewCell {
         super.prepareForReuse()
         imageTask?.cancel()
         imageTask = nil
-        thumbnail.image = nil
-        thumbnail.isHidden = true
+        currentStoryID = nil
+        heroImage.image = nil
+        heroImage.alpha = 0
+        setImageVisible(false, animated: false)
     }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        shimmerLayer.frame = shimmerView.bounds
+    }
+
+    // MARK: - Setup
 
     private func setup() {
         selectionStyle = .none
-        isOpaque = false
         backgroundColor = .clear
-        let clearBackground = UIBackgroundConfiguration.clear()
-        backgroundConfiguration = clearBackground
-        selectedBackgroundView = UIView()
-        selectedBackgroundView?.backgroundColor = .clear
-        multipleSelectionBackgroundView = UIView()
-        multipleSelectionBackgroundView?.backgroundColor = .clear
-
-        contentView.isOpaque = false
         contentView.backgroundColor = .clear
 
+        setupCard()
+        setupImage()
+        setupContent()
+        setupDivider()
+        setupActions()
+        buildHierarchy()
+        activateConstraints()
+    }
+
+    private func setupCard() {
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .clear
-        card.layer.cornerRadius = 0
-        card.layer.borderWidth = 0
+        card.backgroundColor = .secondarySystemGroupedBackground
+        card.layer.cornerRadius = 16
+        card.layer.cornerCurve = .continuous
+        card.layer.shadowColor = UIColor.black.cgColor
+        card.layer.shadowOpacity = 0.06
+        card.layer.shadowOffset = CGSize(width: 0, height: 2)
+        card.layer.shadowRadius = 8
+    }
 
-        divider.translatesAutoresizingMaskIntoConstraints = false
-        divider.backgroundColor = (UIColor(named: "NavigationSeparatorLine") ?? .separator).withAlphaComponent(0.45)
+    private func setupImage() {
+        imageContainer.translatesAutoresizingMaskIntoConstraints = false
+        imageContainer.clipsToBounds = true
+        imageContainer.layer.cornerRadius = 12
+        imageContainer.layer.cornerCurve = .continuous
 
-        thumbnail.translatesAutoresizingMaskIntoConstraints = false
-        thumbnail.contentMode = .scaleAspectFill
-        thumbnail.clipsToBounds = true
-        thumbnail.layer.cornerRadius = 16
-        thumbnail.layer.cornerCurve = .continuous
-        thumbnail.isHidden = true
+        heroImage.translatesAutoresizingMaskIntoConstraints = false
+        heroImage.contentMode = .scaleAspectFill
+        heroImage.clipsToBounds = true
+        heroImage.alpha = 0
 
-        urlLabel.translatesAutoresizingMaskIntoConstraints = false
-        urlLabel.numberOfLines = 1
-        urlLabel.font = .preferredFont(forTextStyle: .caption1)
-        urlLabel.adjustsFontForContentSizeCategory = true
-        urlLabel.textColor = .systemOrange
+        shimmerView.translatesAutoresizingMaskIntoConstraints = false
+        shimmerView.clipsToBounds = true
+        shimmerView.layer.addSublayer(shimmerLayer)
+        shimmerView.backgroundColor = .tertiarySystemFill
+
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 28, weight: .light)
+        placeholderIcon.translatesAutoresizingMaskIntoConstraints = false
+        placeholderIcon.image = UIImage(systemName: "photo", withConfiguration: iconConfig)
+        placeholderIcon.tintColor = .quaternaryLabel
+        placeholderIcon.contentMode = .scaleAspectFit
+    }
+
+    private func setupContent() {
+        // Domain pill
+        domainPill.translatesAutoresizingMaskIntoConstraints = false
+        domainPill.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.1)
+        domainPill.layer.cornerRadius = 10
+        domainPill.layer.cornerCurve = .continuous
+
+        domainLabel.translatesAutoresizingMaskIntoConstraints = false
+        domainLabel.font = UIFontMetrics(forTextStyle: .caption2).scaledFont(for: .systemFont(ofSize: 11, weight: .bold))
+        domainLabel.adjustsFontForContentSizeCategory = true
+        domainLabel.textColor = .systemOrange
+        domainLabel.numberOfLines = 1
+
+        // Title row
+        titleRow.translatesAutoresizingMaskIntoConstraints = false
+        let titleTap = UITapGestureRecognizer(target: self, action: #selector(titleTapped))
+        titleRow.addGestureRecognizer(titleTap)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.numberOfLines = 0
-        titleLabel.font = .preferredFont(forTextStyle: .headline)
+        titleLabel.numberOfLines = 3
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: .systemFont(ofSize: 17, weight: .semibold))
         titleLabel.adjustsFontForContentSizeCategory = true
 
-        titleButton.translatesAutoresizingMaskIntoConstraints = false
-        titleButton.configuration = .plain()
-        titleButton.configuration?.contentInsets = .zero
-        titleButton.contentHorizontalAlignment = .leading
-        titleButton.addAction(UIAction { [weak self] _ in self?.onOpenSource?() }, for: .touchUpInside)
+        let safariConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
+        safariIndicator.translatesAutoresizingMaskIntoConstraints = false
+        safariIndicator.image = UIImage(systemName: "arrow.up.right", withConfiguration: safariConfig)
+        safariIndicator.tintColor = .systemOrange
+        safariIndicator.contentMode = .scaleAspectFit
+        safariIndicator.setContentHuggingPriority(.required, for: .horizontal)
+        safariIndicator.setContentCompressionResistancePriority(.required, for: .horizontal)
 
-        timeUserLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeUserLabel.numberOfLines = 1
-        timeUserLabel.font = .preferredFont(forTextStyle: .caption1)
-        timeUserLabel.textColor = .secondaryLabel
-        timeUserLabel.adjustsFontForContentSizeCategory = true
+        // Meta
+        metaLabel.translatesAutoresizingMaskIntoConstraints = false
+        metaLabel.numberOfLines = 1
+        metaLabel.font = UIFontMetrics(forTextStyle: .caption1).scaledFont(for: .systemFont(ofSize: 12, weight: .regular))
+        metaLabel.adjustsFontForContentSizeCategory = true
+        metaLabel.textColor = .tertiaryLabel
+    }
+
+    private func setupDivider() {
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        divider.backgroundColor = .separator
+    }
+
+    private func setupActions() {
+        // Points badge
+        pointsBadge.translatesAutoresizingMaskIntoConstraints = false
+
+        let arrowConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
+        pointsIcon.translatesAutoresizingMaskIntoConstraints = false
+        pointsIcon.image = UIImage(systemName: "arrow.up", withConfiguration: arrowConfig)
+        pointsIcon.tintColor = .systemOrange
+        pointsIcon.contentMode = .scaleAspectFit
 
         pointsLabel.translatesAutoresizingMaskIntoConstraints = false
-        pointsLabel.numberOfLines = 1
-        pointsLabel.font = .preferredFont(forTextStyle: .subheadline)
+        pointsLabel.font = UIFontMetrics(forTextStyle: .caption1).scaledFont(for: .systemFont(ofSize: 12, weight: .bold))
         pointsLabel.adjustsFontForContentSizeCategory = true
+        pointsLabel.textColor = .systemOrange
 
-        commentsButton.configuration = .tinted()
-        commentsButton.configuration?.cornerStyle = .capsule
-        commentsButton.configuration?.buttonSize = .small
-        commentsButton.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10)
-        commentsButton.configuration?.baseForegroundColor = .secondaryLabel
-        commentsButton.configuration?.baseBackgroundColor = UIColor.secondarySystemFill
-        commentsButton.setImage(UIImage(systemName: "message", withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .medium)), for: .normal)
-        commentsButton.configuration?.imagePadding = 4
-        commentsButton.configuration?.title = "0"
+        // Action buttons
         commentsButton.addAction(UIAction { [weak self] _ in self?.onOpenComments?() }, for: .touchUpInside)
-        commentsButton.titleLabel?.lineBreakMode = .byClipping
-
-        shareButton.configuration = .tinted()
-        shareButton.configuration?.cornerStyle = .capsule
-        shareButton.configuration?.buttonSize = .small
-        shareButton.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10)
-        shareButton.configuration?.baseForegroundColor = .secondaryLabel
-        shareButton.configuration?.baseBackgroundColor = UIColor.secondarySystemFill
-        shareButton.setImage(UIImage(systemName: "square.and.arrow.up", withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .medium)), for: .normal)
         shareButton.addAction(UIAction { [weak self] _ in self?.onShare?() }, for: .touchUpInside)
-
-        bookmarkButton.configuration = .tinted()
-        bookmarkButton.configuration?.cornerStyle = .capsule
-        bookmarkButton.configuration?.buttonSize = .small
-        bookmarkButton.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10)
-        bookmarkButton.configuration?.baseForegroundColor = .secondaryLabel
-        bookmarkButton.configuration?.baseBackgroundColor = UIColor.secondarySystemFill
         bookmarkButton.addAction(UIAction { [weak self] _ in self?.onBookmark?() }, for: .touchUpInside)
 
-        footerRow.axis = .horizontal
-        footerRow.alignment = .center
-        footerRow.distribution = .fill
-        footerRow.translatesAutoresizingMaskIntoConstraints = false
+        actionsBar.axis = .horizontal
+        actionsBar.alignment = .center
+        actionsBar.spacing = 4
+        actionsBar.translatesAutoresizingMaskIntoConstraints = false
+    }
 
-        actionsRow.axis = .horizontal
-        actionsRow.alignment = .center
-        actionsRow.spacing = 8
-        actionsRow.translatesAutoresizingMaskIntoConstraints = false
-        actionsRow.addArrangedSubview(bookmarkButton)
-        actionsRow.addArrangedSubview(shareButton)
-        actionsRow.addArrangedSubview(commentsButton)
+    private func makeActionButton(systemName: String, title: String? = nil) -> UIButton.Configuration {
+        var config = UIButton.Configuration.filled()
+        config.cornerStyle = .capsule
+        config.baseForegroundColor = .secondaryLabel
+        config.baseBackgroundColor = .quaternarySystemFill
+        config.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 12, bottom: 7, trailing: 12)
+        config.image = UIImage(systemName: systemName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .medium))
+        if let title {
+            config.imagePadding = 5
+            var titleAttr = AttributeContainer()
+            titleAttr.font = UIFontMetrics(forTextStyle: .caption1).scaledFont(for: .systemFont(ofSize: 13, weight: .semibold))
+            config.attributedTitle = AttributedString(title, attributes: titleAttr)
+        }
+        return config
+    }
 
+    private func buildHierarchy() {
         contentView.addSubview(card)
-        card.addSubview(thumbnail)
-        card.addSubview(urlLabel)
-        card.addSubview(titleButton)
-        card.addSubview(timeUserLabel)
-        card.addSubview(footerRow)
+
+        // Image
+        card.addSubview(imageContainer)
+        imageContainer.addSubview(shimmerView)
+        imageContainer.addSubview(heroImage)
+        shimmerView.addSubview(placeholderIcon)
+
+        // Content
+        card.addSubview(domainPill)
+        domainPill.addSubview(domainLabel)
+        card.addSubview(titleRow)
+        titleRow.addSubview(titleLabel)
+        titleRow.addSubview(safariIndicator)
+        card.addSubview(metaLabel)
+
+        // Divider
         card.addSubview(divider)
 
-        footerRow.addArrangedSubview(pointsLabel)
-        footerRow.addArrangedSubview(UIView())
-        footerRow.addArrangedSubview(actionsRow)
+        // Actions
+        card.addSubview(actionsBar)
+
+        pointsBadge.addSubview(pointsIcon)
+        pointsBadge.addSubview(pointsLabel)
+
+        actionsBar.addArrangedSubview(pointsBadge)
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        actionsBar.addArrangedSubview(spacer)
+        actionsBar.addArrangedSubview(commentsButton)
+        actionsBar.addArrangedSubview(shareButton)
+        actionsBar.addArrangedSubview(bookmarkButton)
+    }
+
+    private func activateConstraints() {
+        imageHeightConstraint = imageContainer.heightAnchor.constraint(equalToConstant: 0)
+        imageHeightConstraint?.isActive = true
+
+        imageContainerTopConstraint = imageContainer.topAnchor.constraint(equalTo: card.topAnchor, constant: 12)
+
+        // Domain pill top constraints (mutually exclusive)
+        domainTopToImageConstraint = domainPill.topAnchor.constraint(equalTo: imageContainer.bottomAnchor, constant: 12)
+        domainTopToCardConstraint = domainPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 14)
+
+        // Start with no-image layout
+        domainTopToCardConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
-            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
-            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            // Card
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
 
-            thumbnail.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            thumbnail.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            thumbnail.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            thumbnail.heightAnchor.constraint(equalToConstant: 190),
+            // Image container
+            imageContainer.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+            imageContainer.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
 
-            urlLabel.topAnchor.constraint(equalTo: thumbnail.bottomAnchor, constant: 10),
-            urlLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            urlLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            heroImage.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            heroImage.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            heroImage.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            heroImage.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
 
-            titleButton.topAnchor.constraint(equalTo: urlLabel.bottomAnchor, constant: 10),
-            titleButton.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            titleButton.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            shimmerView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            shimmerView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            shimmerView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            shimmerView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
 
-            timeUserLabel.topAnchor.constraint(equalTo: titleButton.bottomAnchor, constant: 12),
-            timeUserLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            timeUserLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            placeholderIcon.centerXAnchor.constraint(equalTo: shimmerView.centerXAnchor),
+            placeholderIcon.centerYAnchor.constraint(equalTo: shimmerView.centerYAnchor),
 
-            footerRow.topAnchor.constraint(equalTo: timeUserLabel.bottomAnchor, constant: 18),
-            footerRow.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            footerRow.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            footerRow.bottomAnchor.constraint(equalTo: divider.topAnchor, constant: -10),
+            // Domain pill
+            domainPill.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            domainPill.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -14),
+            domainLabel.topAnchor.constraint(equalTo: domainPill.topAnchor, constant: 4),
+            domainLabel.leadingAnchor.constraint(equalTo: domainPill.leadingAnchor, constant: 8),
+            domainLabel.trailingAnchor.constraint(equalTo: domainPill.trailingAnchor, constant: -8),
+            domainLabel.bottomAnchor.constraint(equalTo: domainPill.bottomAnchor, constant: -4),
 
+            // Title row
+            titleRow.topAnchor.constraint(equalTo: domainPill.bottomAnchor, constant: 8),
+            titleRow.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            titleRow.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+
+            titleLabel.topAnchor.constraint(equalTo: titleRow.topAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: titleRow.leadingAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: titleRow.bottomAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: safariIndicator.leadingAnchor, constant: -6),
+
+            safariIndicator.centerYAnchor.constraint(equalTo: titleLabel.firstBaselineAnchor, constant: -2),
+            safariIndicator.trailingAnchor.constraint(equalTo: titleRow.trailingAnchor),
+            safariIndicator.widthAnchor.constraint(equalToConstant: 14),
+            safariIndicator.heightAnchor.constraint(equalToConstant: 14),
+
+            // Meta
+            metaLabel.topAnchor.constraint(equalTo: titleRow.bottomAnchor, constant: 6),
+            metaLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            metaLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+
+            // Divider
+            divider.topAnchor.constraint(equalTo: metaLabel.bottomAnchor, constant: 12),
             divider.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
             divider.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            divider.bottomAnchor.constraint(equalTo: card.bottomAnchor),
-            divider.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale)
+            divider.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
+
+            // Actions bar
+            actionsBar.topAnchor.constraint(equalTo: divider.bottomAnchor, constant: 8),
+            actionsBar.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 10),
+            actionsBar.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -10),
+            actionsBar.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -10),
+
+            // Points badge internal
+            pointsIcon.leadingAnchor.constraint(equalTo: pointsBadge.leadingAnchor),
+            pointsIcon.centerYAnchor.constraint(equalTo: pointsBadge.centerYAnchor),
+            pointsIcon.widthAnchor.constraint(equalToConstant: 14),
+            pointsIcon.heightAnchor.constraint(equalToConstant: 14),
+            pointsLabel.leadingAnchor.constraint(equalTo: pointsIcon.trailingAnchor, constant: 2),
+            pointsLabel.trailingAnchor.constraint(equalTo: pointsBadge.trailingAnchor),
+            pointsLabel.centerYAnchor.constraint(equalTo: pointsBadge.centerYAnchor),
+            pointsBadge.heightAnchor.constraint(equalToConstant: 28),
+
+            commentsButton.heightAnchor.constraint(equalToConstant: 34),
+            shareButton.heightAnchor.constraint(equalToConstant: 34),
+            bookmarkButton.heightAnchor.constraint(equalToConstant: 34),
         ])
     }
 
+    // MARK: - Configure
+
     func configure(story: Story, isRead: Bool, isSaved: Bool, style: Settings.CardStyle) {
+        currentStoryID = story.id
+
+        // Domain
+        let domain = story.url.flatMap(URL.init(string:))?.host?.replacingOccurrences(of: "www.", with: "") ?? "news.ycombinator.com"
+        domainLabel.text = domain
+
+        // Title
         titleLabel.text = story.title
         titleLabel.textColor = isRead ? .secondaryLabel : .label
-        urlLabel.text = (story.url.flatMap(URL.init(string:))?.host) ?? "news.ycombinator.com"
-        timeUserLabel.text = "\(Date.getTimeInterval(with: story.time)) | \(story.by)"
-        pointsLabel.text = "\(story.score) points"
 
-        var titleConfig = UIButton.Configuration.plain()
-        titleConfig.contentInsets = .zero
-        titleConfig.image = UIImage(
-            systemName: "arrow.up.right.circle.fill",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
-        )
-        titleConfig.imagePlacement = .trailing
-        titleConfig.imagePadding = 8
-        titleConfig.baseForegroundColor = .secondaryLabel
-        titleButton.configuration = titleConfig
-        titleButton.setTitle(nil, for: .normal)
-        titleButton.setAttributedTitle(
-            NSAttributedString(
-                string: story.title,
-                attributes: [
-                    .font: UIFont.preferredFont(forTextStyle: .headline),
-                    .foregroundColor: isRead ? UIColor.secondaryLabel : UIColor.label
-                ]
-            ),
-            for: .normal
-        )
-        titleButton.titleLabel?.numberOfLines = 0
-        titleButton.titleLabel?.lineBreakMode = .byWordWrapping
+        // Safari indicator visibility
+        safariIndicator.isHidden = story.url == nil || story.url?.isEmpty == true
 
+        // Meta
+        metaLabel.text = "\(story.by) · \(Date.getTimeInterval(with: story.time))"
+
+        // Points
+        pointsLabel.text = "\(story.score)"
+
+        // Comments button
         let comments = story.descendants ?? 0
-        commentsButton.configuration?.title = "\(comments)"
+        commentsButton.configuration = makeActionButton(systemName: "bubble.right", title: "\(comments)")
 
-        var bookmarkConfig = UIButton.Configuration.tinted()
-        bookmarkConfig.cornerStyle = .capsule
-        bookmarkConfig.buttonSize = .small
-        bookmarkConfig.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10)
-        bookmarkConfig.baseBackgroundColor = UIColor.secondarySystemFill
-        bookmarkConfig.baseForegroundColor = isSaved ? .tertiaryLabel : .secondaryLabel
-        bookmarkConfig.image = UIImage(systemName: isSaved ? "bookmark.fill" : "bookmark")
-        bookmarkButton.configuration = bookmarkConfig
+        // Share button
+        shareButton.configuration = makeActionButton(systemName: "square.and.arrow.up")
+
+        // Bookmark button
+        var bmConfig = makeActionButton(systemName: isSaved ? "bookmark.fill" : "bookmark")
+        if isSaved {
+            bmConfig.baseForegroundColor = .systemOrange
+            bmConfig.baseBackgroundColor = UIColor.systemOrange.withAlphaComponent(0.12)
+        }
+        bookmarkButton.configuration = bmConfig
         bookmarkButton.isEnabled = !isSaved
-        bookmarkButton.tintColor = isSaved ? .tertiaryLabel : .secondaryLabel
 
-        _ = style
+        // Read state
+        card.alpha = isRead ? 0.75 : 1.0
+
         loadThumbnail(for: story)
     }
 
+    @objc private func titleTapped() {
+        onOpenSource?()
+    }
+
+    // MARK: - Image Loading
+
+    private func setImageVisible(_ visible: Bool, animated: Bool) {
+        let showImage = visible
+        let height: CGFloat = showImage ? Self.imageHeight : 0
+
+        imageHeightConstraint?.constant = height
+
+        // Toggle which top constraint is active
+        if showImage {
+            domainTopToCardConstraint?.isActive = false
+            imageContainerTopConstraint?.isActive = true
+            domainTopToImageConstraint?.isActive = true
+        } else {
+            imageContainerTopConstraint?.isActive = false
+            domainTopToImageConstraint?.isActive = false
+            domainTopToCardConstraint?.isActive = true
+        }
+
+        imageContainer.isHidden = !showImage
+        shimmerView.isHidden = !showImage
+        placeholderIcon.isHidden = !showImage
+
+        if showImage {
+            shimmerLayer.startAnimating()
+        } else {
+            shimmerLayer.stopAnimating()
+        }
+
+        if animated {
+            UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseInOut) {
+                self.contentView.layoutIfNeeded()
+            }
+        }
+    }
+
     private func loadThumbnail(for story: Story) {
-        guard let raw = story.url, !raw.isEmpty else {
-            thumbnail.isHidden = true
+        guard story.url?.isEmpty == false else {
+            heroImage.image = nil
+            heroImage.alpha = 0
+            setImageVisible(false, animated: false)
             return
         }
 
-        thumbnail.isHidden = false
+        if let cached = FeedImagePipeline.cachedImage(for: story.id) {
+            heroImage.image = cached
+            heroImage.alpha = 1
+            shimmerView.isHidden = true
+            placeholderIcon.isHidden = true
+            shimmerLayer.stopAnimating()
+            setImageVisible(true, animated: false)
+            return
+        }
+
+        // Show shimmer placeholder
+        heroImage.image = nil
+        heroImage.alpha = 0
+        setImageVisible(true, animated: false)
+
         imageTask?.cancel()
         imageTask = Task { [weak self] in
-            guard let self else { return }
-            guard let ogURL = await NetworkManager.instance.getImage(fromUrl: raw) else {
-                await MainActor.run { self.thumbnail.isHidden = true }
+            guard let self, let pipeline = self.imagePipeline else {
+                await MainActor.run { [weak self] in
+                    self?.setImageVisible(false, animated: false)
+                }
                 return
             }
 
-            do {
-                let (data, _) = try await URLSession.shared.data(from: ogURL)
-                guard !Task.isCancelled else { return }
-                if let image = UIImage(data: data) {
-                    await MainActor.run {
-                        self.thumbnail.isHidden = false
-                        self.thumbnail.image = image
+            let image = await pipeline.image(for: story)
+            guard !Task.isCancelled else { return }
+            await MainActor.run { [weak self] in
+                guard let self, self.currentStoryID == story.id else { return }
+                if let image {
+                    self.heroImage.image = image
+                    self.shimmerLayer.stopAnimating()
+                    self.shimmerView.isHidden = true
+                    self.placeholderIcon.isHidden = true
+                    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
+                        self.heroImage.alpha = 1
                     }
                 } else {
-                    await MainActor.run { self.thumbnail.isHidden = true }
+                    self.setImageVisible(false, animated: false)
                 }
-            } catch {
-                await MainActor.run { self.thumbnail.isHidden = true }
             }
         }
     }

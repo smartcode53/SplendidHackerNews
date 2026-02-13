@@ -5,53 +5,8 @@
 //  Created by Taha Broachwala on 8/26/22.
 //
 
-import SwiftUI
 import UIKit
 import Combine
-
-struct CommentsView<T>: View where T: CommentsButtonProtocol, T: SafariViewLoader {
-    @ObservedObject var vm: T
-    var onOpenReader: ((Story) -> Void)? = nil
-
-    var body: some View {
-        if vm.story != nil {
-            CommentsUIKitScreen(vm: vm, onOpenReader: onOpenReader)
-                .accessibilityElement(children: .contain)
-                .accessibilityLabel("Comments View")
-                .accessibilityIdentifier("comments.view")
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(isPresented: $vm.showStoryInComments) {
-                    SafariView(vm: vm, url: vm.story?.url)
-                }
-        } else {
-            ProgressView("Loading comments...")
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-//
-//  CommentsUIKitScreen.swift
-//  HackerNewsApp
-//
-
-import SwiftUI
-import UIKit
-import Combine
-
-struct CommentsUIKitScreen<VM>: UIViewControllerRepresentable where VM: CommentsButtonProtocol, VM: SafariViewLoader {
-    @ObservedObject var vm: VM
-    let onOpenReader: ((Story) -> Void)?
-
-    func makeUIViewController(context: Context) -> CommentsUIKitViewController<VM> {
-        CommentsUIKitViewController(vm: vm, onOpenReader: onOpenReader)
-    }
-
-    func updateUIViewController(_ uiViewController: CommentsUIKitViewController<VM>, context: Context) {
-        uiViewController.updateCallbacks(onOpenReader: onOpenReader)
-        uiViewController.refreshStoryMetadata()
-    }
-}
 
 @MainActor
 final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate, UISearchResultsUpdating where VM: CommentsButtonProtocol, VM: SafariViewLoader {
