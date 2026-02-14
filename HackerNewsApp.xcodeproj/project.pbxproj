@@ -1082,6 +1082,8 @@
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LegalPrivacyURL = "https://smartcodeapps-website.vercel.app/hackerpillar/privacy";
+				INFOPLIST_KEY_LegalTermsURL = "https://smartcodeapps-website.vercel.app/hackerpillar/terms";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1114,6 +1116,8 @@
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LegalPrivacyURL = "https://smartcodeapps-website.vercel.app/hackerpillar/privacy";
+				INFOPLIST_KEY_LegalTermsURL = "https://smartcodeapps-website.vercel.app/hackerpillar/terms";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
