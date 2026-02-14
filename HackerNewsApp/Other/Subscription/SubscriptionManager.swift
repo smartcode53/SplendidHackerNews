@@ -5,8 +5,8 @@ actor SubscriptionManager {
     static let shared = SubscriptionManager()
 
     enum ProductID {
-        static let monthly = "pro.monthly"
-        static let yearly = "pro.yearly"
+        static let monthly = "hackerpillar.pro.monthly"
+        static let yearly = "hackerpillar.pro.yearly"
 
         static let all = [monthly, yearly]
     }
@@ -24,14 +24,16 @@ actor SubscriptionManager {
         updatesTask?.cancel()
     }
 
-    func startTransactionListener() {
+    func startTransactionListener(onEntitlementChange: (@Sendable () async -> Void)? = nil) {
         guard updatesTask == nil else { return }
 
         updatesTask = Task.detached(priority: .background) {
             for await update in Transaction.updates {
                 do {
                     let transaction = try Self.checkVerified(update)
+                    guard ProductID.all.contains(transaction.productID) else { continue }
                     await transaction.finish()
+                    await onEntitlementChange?()
                 } catch {
                     continue
                 }

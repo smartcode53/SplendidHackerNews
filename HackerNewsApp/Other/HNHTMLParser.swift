@@ -3,6 +3,7 @@ import SwiftSoup
 
 enum HNHTMLParser {
     static let loginSelector = ".pagetop a[href^=user?id=]"
+    static let loginFormSelector = "form"
     static let replyFormSelector = "form"
     static let commentRowSelector = "tr.athing.comtr"
 
@@ -16,6 +17,11 @@ enum HNHTMLParser {
     }
 
     struct ReplyForm {
+        let action: String
+        let fields: [String: String]
+    }
+
+    struct LoginForm {
         let action: String
         let fields: [String: String]
     }
@@ -88,6 +94,42 @@ enum HNHTMLParser {
             }
 
             return ReplyForm(action: action, fields: fields)
+        } catch let parseError as HNHTMLParseError {
+            throw parseError
+        } catch {
+            throw HNHTMLParseError(pageURL: pageURL, itemID: nil, selector: "form input[name]", underlying: error)
+        }
+    }
+
+    static func loginForm(in html: String, pageURL: String) throws -> LoginForm {
+        do {
+            let doc = try SwiftSoup.parse(html)
+            let forms = try doc.select(loginFormSelector).array()
+            let form = forms.first { form in
+                let hasAcct = (try? form.select("input[name=acct]").first()) != nil
+                let hasPassword = (try? form.select("input[name=pw]").first()) != nil
+                return hasAcct && hasPassword
+            } ?? forms.first
+            guard let form else {
+                throw HNHTMLParseError(pageURL: pageURL, itemID: nil, selector: loginFormSelector, underlying: nil)
+            }
+
+            let action = try form.attr("action")
+            if action.isEmpty {
+                throw HNHTMLParseError(pageURL: pageURL, itemID: nil, selector: "form[action]", underlying: nil)
+            }
+
+            var fields: [String: String] = [:]
+            let inputs = try form.select("input[name]")
+            for input in inputs.array() {
+                let name = try input.attr("name")
+                let value = try input.attr("value")
+                if !name.isEmpty {
+                    fields[name] = value
+                }
+            }
+
+            return LoginForm(action: action, fields: fields)
         } catch let parseError as HNHTMLParseError {
             throw parseError
         } catch {

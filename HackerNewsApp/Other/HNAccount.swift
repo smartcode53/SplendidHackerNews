@@ -2,6 +2,8 @@ import Foundation
 
 @MainActor
 final class HNAccount: ObservableObject {
+    static let shared = HNAccount()
+
     @Published private(set) var isLoggedIn = false
     @Published private(set) var username: String?
     @Published private(set) var lastVerifiedAt: Date?
@@ -35,6 +37,43 @@ final class HNAccount: ObservableObject {
         let html: String
         let statusCode: Int
         let url: URL
+    }
+
+    func login(username: String, password: String) async throws -> HNVerifySessionResult {
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedUsername.isEmpty, !password.isEmpty else {
+            throw HNWriteError.writeFailed(reason: "Username and password are required")
+        }
+
+        let (loginData, loginResponse) = try await writeClient.get(path: "login")
+        guard loginResponse.statusCode == 200 else {
+            throw HNWriteError.serverError(status: loginResponse.statusCode)
+        }
+
+        let loginHTML = String(decoding: loginData, as: UTF8.self)
+        let form = try HNHTMLParser.loginForm(in: loginHTML, pageURL: "https://news.ycombinator.com/login")
+        let actionPath = form.action.hasPrefix("/") ? String(form.action.dropFirst()) : form.action
+
+        var fields = form.fields
+        fields["acct"] = trimmedUsername
+        fields["pw"] = password
+        if fields["goto"] == nil {
+            fields["goto"] = "news"
+        }
+
+        let (_, postResponse) = try await writeClient.post(path: actionPath, body: fields)
+        guard (200...399).contains(postResponse.statusCode) else {
+            throw HNWriteError.serverError(status: postResponse.statusCode)
+        }
+
+        let cookies = cookieStorage.cookies ?? []
+        handleLoginCookies(cookies)
+
+        let verification = await verifySession()
+        if !verification.isLoggedIn {
+            throw HNWriteError.writeFailed(reason: "Login failed. Check username/password.")
+        }
+        return verification
     }
 
     func fetchHTML(path: String, queryItems: [URLQueryItem] = []) async throws -> HNFetchResponse {
@@ -110,10 +149,20 @@ final class HNAccount: ObservableObject {
             throw HNWriteError.writeFailed(reason: "Reply returned error")
         }
 
-        guard let storyId else {
-            return .verificationFailed
+        guard let storyId, let nonce else {
+            return .posted
         }
         return try await verifyReply(storyId: storyId, nonce: nonce)
+    }
+
+    func fetchKarma(for username: String) async -> Int? {
+        do {
+            let response = try await fetchHTML(path: "user", queryItems: [URLQueryItem(name: "id", value: username)])
+            guard response.statusCode == 200 else { return nil }
+            return parseKarma(from: response.html)
+        } catch {
+            return nil
+        }
     }
 
     private func upvote(itemId: Int, kind: String) async throws -> HNVoteVerificationResult {
@@ -264,6 +313,16 @@ final class HNAccount: ObservableObject {
         || domain.hasSuffix(".news.ycombinator.com")
         || domain == "ycombinator.com"
         || domain.hasSuffix(".ycombinator.com")
+    }
+
+    private func parseKarma(from html: String) -> Int? {
+        guard let range = html.range(
+            of: #"karma:</td><td[^>]*>(\d+)"#,
+            options: .regularExpression
+        ) else { return nil }
+        let snippet = String(html[range])
+        let digits = snippet.filter(\.isNumber)
+        return Int(digits)
     }
 }
 

@@ -5,7 +5,7 @@ struct HNWriteClient {
     let session: URLSession
     let userAgent: String
 
-    init(session: URLSession, userAgent: String = "HackerPillarDebug/1.0") {
+    init(session: URLSession, userAgent: String = "SplendidHN/1.0") {
         self.session = session
         self.userAgent = userAgent
     }

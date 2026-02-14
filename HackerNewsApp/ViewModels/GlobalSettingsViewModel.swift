@@ -17,6 +17,11 @@ class GlobalSettingsViewModel: ObservableObject {
     @Published private(set) var bookmarkedStoryIDs: Set<Int>
     private let persistence: SettingsPersistenceCoordinator<Settings>
     private var settingsCancellable: AnyCancellable?
+    private var iCloudObserver: NSObjectProtocol?
+    private let syncManager = iCloudSyncManager.shared
+    private let readStateStore = ReadStateStore.shared
+    private var settingsLastUpdatedAt: Date = Date()
+    private var isApplyingRemoteSettings = false
 #if DEBUG
     @Published var debugSettings: DebugSettings
     private let debugPersistence: SettingsPersistenceCoordinator<DebugSettings>
@@ -46,12 +51,16 @@ class GlobalSettingsViewModel: ObservableObject {
         }
     }
 
+    var selectedAccentColor: Settings.AccentColor {
+        Settings.AccentColor(rawValue: settings.accentColorRawValue) ?? .orange
+    }
+
+    var selectedFontFamily: Settings.FontFamily {
+        Settings.FontFamily(rawValue: settings.fontFamilyRawValue) ?? .system
+    }
+
     var isHNWriteEnabled: Bool {
-        #if DEBUG
-        return debugSettings.enableHNWriteActions
-        #else
-        return false
-        #endif
+        ProFeatureGate.shared.isPro
     }
     
     let url: URL
@@ -76,6 +85,7 @@ class GlobalSettingsViewModel: ObservableObject {
             loadedSettings = Settings(cardStyleString: Settings.CardStyle.normal.rawValue, themeString: Settings.Theme.automatic.rawValue)
         }
         self.settings = loadedSettings
+        self.settingsLastUpdatedAt = Date()
 
 #if DEBUG
         let debugFileURL = FileManager.default.documentsDirectory.appending(component: "debug-settings.json")
@@ -103,9 +113,17 @@ class GlobalSettingsViewModel: ObservableObject {
             self.bookmarkedStoryIDs = []
         }
         startObservingSettings()
+        setupICloudSyncObservation()
+        Task { await configureSyncServicesIfNeeded() }
 #if DEBUG
         startObservingDebugSettings()
 #endif
+    }
+
+    deinit {
+        if let iCloudObserver {
+            NotificationCenter.default.removeObserver(iCloudObserver)
+        }
     }
     
     func saveSettings() {
@@ -130,7 +148,53 @@ class GlobalSettingsViewModel: ObservableObject {
                 Task { [persistence] in
                     await persistence.scheduleSave(snapshot: updated)
                 }
+
+                guard !self.isApplyingRemoteSettings else { return }
+                self.settingsLastUpdatedAt = Date()
+                Task { await self.configureSyncServicesIfNeeded() }
+                if updated.iCloudSyncEnabled && ProFeatureGate.shared.isPro {
+                    let snapshot = updated
+                    let updatedAt = self.settingsLastUpdatedAt
+                    Task {
+                        await self.syncManager.pushSettings(snapshot, updatedAt: updatedAt)
+                    }
+                }
             }
+    }
+
+    private func setupICloudSyncObservation() {
+        iCloudObserver = NotificationCenter.default.addObserver(
+            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: NSUbiquitousKeyValueStore.default,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            Task {
+                await self.pullFromICloudIfNeeded()
+            }
+        }
+    }
+
+    private func configureSyncServicesIfNeeded() async {
+        let enabled = settings.iCloudSyncEnabled && ProFeatureGate.shared.isPro
+        await readStateStore.configureICloudSync(enabled: enabled)
+        if enabled {
+            await pullFromICloudIfNeeded()
+        }
+    }
+
+    private func pullFromICloudIfNeeded() async {
+        guard settings.iCloudSyncEnabled, ProFeatureGate.shared.isPro else { return }
+
+        if let remoteSettings = await syncManager.fetchSettingsRecord(),
+           remoteSettings.updatedAt > settingsLastUpdatedAt {
+            isApplyingRemoteSettings = true
+            settings = remoteSettings.settings
+            settingsLastUpdatedAt = remoteSettings.updatedAt
+            isApplyingRemoteSettings = false
+        }
+
+        await readStateStore.pullFromICloudIfNeeded()
     }
 
 #if DEBUG
@@ -169,5 +233,11 @@ class GlobalSettingsViewModel: ObservableObject {
 
     func updateProEntitlementCacheDate(_ date: Date?) {
         settings.proEntitlementCachedAt = date
+    }
+
+    func updateSettings(_ mutate: (inout Settings) -> Void) {
+        var next = settings
+        mutate(&next)
+        settings = next
     }
 }

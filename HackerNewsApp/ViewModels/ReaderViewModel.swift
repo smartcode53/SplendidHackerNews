@@ -39,6 +39,8 @@ final class ReaderContentCache {
 final class ReaderViewModel: ObservableObject {
     @Published var loadState: LoadState = .idle
     @Published var content: ReaderContent?
+    @Published private(set) var estimatedReadTimeMinutes: Int = 0
+    @Published private(set) var tableOfContents: [String] = []
 #if DEBUG
     @Published var lastUpdated: Date?
 #endif
@@ -80,6 +82,7 @@ final class ReaderViewModel: ObservableObject {
             let url = safeURL ?? DebugEnvironment.shared.fixtureURL
             let content = DebugFixtures.readerContent(url: url, title: sourceTitle)
             self.content = content
+            recomputeReaderMetadata()
             loadState = .loaded
             lastUpdated = Date()
             return
@@ -95,6 +98,7 @@ final class ReaderViewModel: ObservableObject {
 
         if !force, let cached = cache.content(for: cacheKey(for: safeURL)) {
             content = cached
+            recomputeReaderMetadata()
             loadState = .loaded
 #if DEBUG
             lastUpdated = Date()
@@ -103,6 +107,8 @@ final class ReaderViewModel: ObservableObject {
         }
 
         content = nil
+        estimatedReadTimeMinutes = 0
+        tableOfContents = []
         loadState = .loading
 
         do {
@@ -133,12 +139,15 @@ final class ReaderViewModel: ObservableObject {
             )
             cache.store(content, for: cacheKey(for: safeURL))
             self.content = content
+            recomputeReaderMetadata()
             loadState = .loaded
 #if DEBUG
             lastUpdated = Date()
 #endif
         } catch {
             content = nil
+            estimatedReadTimeMinutes = 0
+            tableOfContents = []
             if let extractorError = error as? ReaderExtractorError, extractorError == .emptyContent {
                 loadState = .empty
             } else {
@@ -164,5 +173,27 @@ final class ReaderViewModel: ObservableObject {
 
     private func cacheKey(for url: URL) -> String {
         url.absoluteString
+    }
+
+    private func recomputeReaderMetadata() {
+        guard let content else {
+            estimatedReadTimeMinutes = 0
+            tableOfContents = []
+            return
+        }
+
+        let totalWords = content.blocks
+            .map(\.text)
+            .joined(separator: " ")
+            .split { !$0.isLetter && !$0.isNumber }
+            .count
+
+        estimatedReadTimeMinutes = max(1, Int(ceil(Double(totalWords) / 200.0)))
+        tableOfContents = content.blocks.compactMap { block in
+            if case .heading(let text, _) = block {
+                return text
+            }
+            return nil
+        }
     }
 }

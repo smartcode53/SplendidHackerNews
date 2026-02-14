@@ -16,11 +16,17 @@ xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerNewsApp -configuration
 
 XcodeBuildMCP is available — prefer `session-set-defaults` + `build_sim` / `build_run_sim` / `test_sim` over raw xcodebuild commands.
 
+Build widget/share extension schemes (Debug):
+```
+xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerPillarWidgetExtension -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerPillarShareExtension -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+```
+
 There are no automated tests. The project has no test targets. Validate changes by building and running on the simulator.
 
 ## Architecture
 
-**UIKit iOS app** (iOS 15+, iPhone & iPad) using **MVVM** with Combine observation. Fully converted from SwiftUI to UIKit — all UI is pure UIKit with no SwiftUI hosting controllers.
+**UIKit iOS app** (iOS 15+, iPhone & iPad) using **MVVM** with Combine observation. Fully converted from SwiftUI to UIKit — all UI is pure UIKit with no SwiftUI hosting controllers. Product-facing naming is **HackerPillar**.
 
 ### Layers
 
@@ -29,11 +35,13 @@ There are no automated tests. The project has no test targets. Validate changes 
 | Models | `HackerNewsApp/Models/` | `Story`, `Comment`, `Item` (Algolia), `Bookmark`, `Settings`, `HistoryEntry`, `StoryWrapper` |
 | ViewModels | `HackerNewsApp/ViewModels/` | `@MainActor ObservableObject` classes — one per major view, observed via Combine `.sink()` |
 | Services | `HackerNewsApp/Other/` | Networking, caching, persistence, reader extraction |
-| Views | `HackerNewsApp/Other/HackerNewsAppApp.swift` + `HackerNewsApp/Views/` | UIKit view controllers (most live in `HackerNewsAppApp.swift`) |
+| Views | `HackerNewsApp/Other/` + `HackerNewsApp/Views/` | UIKit view controllers (`HackerNewsAppApp.swift` now primarily `AppDelegate`/routing) |
+| Widget Extension | `HackerNewsWidget/` | WidgetKit timeline/provider/view + shared snapshot loader |
+| Share Extension | `ShareExtension/` | URL capture from system share sheet into app-group queue |
 
 ### UIKit View Controllers
 
-Most view controllers live in `HackerNewsAppApp.swift` (the app entry point):
+Core view controllers are split into focused files under `HackerNewsApp/Other/` and `HackerNewsApp/Views/UIKit Views/`:
 
 - **`HNTabBarController`** — root tab bar (Feed, Saved, Settings)
 - **`FeedViewController`** — main feed with `UITableView` (grouped style), prefetching, pull-to-refresh, `FeedStoryCell`, sun gradient overlay
@@ -93,6 +101,12 @@ All file-based, stored in the Documents directory:
 - `history.json` — browsing history with timestamps
 - `debug-settings.json` — debug-only settings
 
+App Group shared data:
+- group id: `group.com.hackerpillar.shared`
+- widget snapshot file: `widget_snapshot.json`
+- pending share URLs key: `share.pending.urls`
+- Apple Developer portal/provisioning alignment for this App Group is completed for app + widget + share targets.
+
 ### Navigation
 
 Tab-based (`HNTabBarController`): **Feed**, **Saved**, **Settings**.
@@ -107,11 +121,12 @@ navigationController?.pushViewController(
 
 `SFSafariViewController` for in-app web browsing. `GlobalSettingsViewModel` is passed to view controllers at creation and available throughout the app.
 
-### Debug-Only Code
+### Pro/Debug Gating
 
-Significant functionality is gated behind `#if DEBUG`: HN account login/session, voting, replying, diagnostics panel, reader preview, and debug logging. When adding debug features, always wrap them in `#if DEBUG`.
-
-**Release verification:** Debug section must not appear in Settings; HN Account, Diagnostics, Reader Preview, vote buttons, and reply actions must be unreachable.
+- Pro gating is implemented via StoreKit 2 and `ProFeatureGate`.
+- HN account login/session, voting, and replying are production features gated by Pro entitlement.
+- Keep diagnostics-style tooling debug-gated where appropriate.
+- Local testing supports a debug/simulator "Force Pro" switch in Settings.
 
 ## Feed Card Design (`FeedStoryCell`)
 
@@ -163,6 +178,37 @@ ViewModels use a `LoadState` enum (`.idle`, `.loading`, `.loaded`, `.empty`, `.e
 - Reader mode entry is detail-first: feed cards don't show a reader button; comments/detail header exposes reader + safari + share actions.
 - Bookmark UX supports save-only-once behavior with visual saved state and haptic feedback.
 - Sun gradient in top-right corner fades on scroll; do not remove or reposition.
+- Theme tint updates are reactive at runtime (no tab-switch needed).
+
+## Roadmap Progress (Current Branch)
+
+- Phase 1/2 core work has been landed (Pro/paywall foundation, HN account promotion, offline reading, advanced filters, smart feed, enhanced reader, iCloud sync, custom feeds, profiles, search, thread tracking core, gestures, custom themes, accessibility, iPad split behavior).
+- Phase 3 currently landed:
+  - onboarding flow
+  - Spotlight indexing
+  - Siri shortcuts
+  - widget extension target + integration
+  - share extension target + integration
+  - Live Activities scaffolding
+  - performance dashboard scaffolding
+
+## Completed Recently
+
+- `HackerNewsAppApp.swift` extraction completed: app entry/routing remains there; major services/controllers are now in focused files.
+- Feed image latency improvements:
+  - wider/earlier image prefetch window
+  - prefetch on viewport settle
+  - safer cell image-task cancellation to avoid stale late completions.
+- Comments load latency improvements:
+  - initial comments async tasks now run in parallel
+  - comment plain-text path now uses `AttributedStringCache` before reparsing HTML.
+- Share import telemetry + user-facing health controls:
+  - app-group-backed telemetry utility
+  - instrumentation in share extension and app import bridge
+  - settings surface + reset.
+- Store-readiness UX additions:
+  - legal links in paywall/settings via `LegalTermsURL` + `LegalPrivacyURL`
+  - improved restore/purchase/load edge-case copy for offline/no-store states.
 
 ## Coding Style
 

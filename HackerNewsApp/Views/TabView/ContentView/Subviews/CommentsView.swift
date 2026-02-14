@@ -12,6 +12,8 @@ import SafariServices
 @MainActor
 final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate, UISearchResultsUpdating where VM: CommentsButtonProtocol, VM: SafariViewLoader {
     private let vm: VM
+    private let hnAccount = HNAccount.shared
+    private let proFeatureGate = ProFeatureGate.shared
     private var onOpenReader: ((Story) -> Void)?
     private let threadVM = CommentsThreadViewModel()
     private var rows: [CommentsThreadViewModel.CommentRow] = []
@@ -36,8 +38,10 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
     private let readerButton = UIButton(type: .system)
     private let safariButton = UIButton(type: .system)
     private let shareButton = UIButton(type: .system)
+    private let trackThreadButton = UIButton(type: .system)
     private let collapseAllButton = UIButton(type: .system)
     private let expandAllButton = UIButton(type: .system)
+    private var isThreadTracked = false
 
     private let compactBar = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
     private let compactThumb = UIImageView()
@@ -67,6 +71,7 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         configureHeader()
         configureCompactBar()
         bindThreadState()
+        bindAccountState()
         Task { await loadInitialState() }
     }
 
@@ -112,6 +117,7 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 132
         tableView.register(UIKitCommentCell.self, forCellReuseIdentifier: UIKitCommentCell.reuseID)
+        tableView.accessibilityLabel = "Comments list"
         view.addSubview(tableView)
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -175,11 +181,21 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         configureIconButton(readerButton, systemName: "text.book.closed", action: #selector(openReader))
         configureIconButton(safariButton, systemName: "safari", action: #selector(openSafari))
         configureIconButton(shareButton, systemName: "square.and.arrow.up", action: #selector(shareStory))
+        configureIconButton(trackThreadButton, systemName: "bell", action: #selector(toggleTrackThread))
+        readerButton.accessibilityLabel = "Open Reader"
+        readerButton.accessibilityHint = "Opens the article in reader mode."
+        safariButton.accessibilityLabel = "Open Safari"
+        safariButton.accessibilityHint = "Opens the source website in Safari."
+        shareButton.accessibilityLabel = "Share story"
+        trackThreadButton.accessibilityLabel = "Track thread"
+        trackThreadButton.accessibilityHint = "Notifies you when new comments are posted."
 
         configurePillButton(collapseAllButton, title: "Collapse All", image: "rectangle.compress.vertical", action: #selector(collapseAll))
         configurePillButton(expandAllButton, title: "Expand All", image: "rectangle.expand.vertical", action: #selector(expandAll))
+        collapseAllButton.accessibilityHint = "Collapses all comment threads."
+        expandAllButton.accessibilityHint = "Expands all comment threads."
 
-        let actionStack = UIStackView(arrangedSubviews: [UIView(), readerButton, safariButton, shareButton])
+        let actionStack = UIStackView(arrangedSubviews: [UIView(), trackThreadButton, readerButton, safariButton, shareButton])
         actionStack.axis = .horizontal
         actionStack.alignment = .center
         actionStack.spacing = 10
@@ -233,12 +249,16 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
             titleLabel.leadingAnchor.constraint(equalTo: contentStack.leadingAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: contentStack.trailingAnchor),
 
-            readerButton.widthAnchor.constraint(equalToConstant: 36),
-            readerButton.heightAnchor.constraint(equalToConstant: 36),
-            safariButton.widthAnchor.constraint(equalToConstant: 36),
-            safariButton.heightAnchor.constraint(equalToConstant: 36),
-            shareButton.widthAnchor.constraint(equalToConstant: 36),
-            shareButton.heightAnchor.constraint(equalToConstant: 36)
+            readerButton.widthAnchor.constraint(equalToConstant: 44),
+            readerButton.heightAnchor.constraint(equalToConstant: 44),
+            safariButton.widthAnchor.constraint(equalToConstant: 44),
+            safariButton.heightAnchor.constraint(equalToConstant: 44),
+            shareButton.widthAnchor.constraint(equalToConstant: 44),
+            shareButton.heightAnchor.constraint(equalToConstant: 44),
+            trackThreadButton.widthAnchor.constraint(equalToConstant: 44),
+            trackThreadButton.heightAnchor.constraint(equalToConstant: 44),
+            collapseAllButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            expandAllButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)
         ])
 
         tableView.tableHeaderView = headerRoot
@@ -305,16 +325,39 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
             .store(in: &cancellables)
     }
 
+    private func bindAccountState() {
+        proFeatureGate.$isPro
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.tableView.reloadData()
+            }
+            .store(in: &cancellables)
+
+        hnAccount.$isLoggedIn
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.tableView.reloadData()
+            }
+            .store(in: &cancellables)
+    }
+
     private func loadInitialState() async {
         guard let story = vm.story else { return }
         applyStory(story)
-        await threadVM.loadComments(using: vm, storyID: story.id)
-        if let counts = await vm.getCommentAndPointCounts(forPostWithId: story.id) {
+        async let trackingRefresh: Void = refreshTrackingButtonState()
+        async let commentsLoad: Void = threadVM.loadComments(using: vm, storyID: story.id)
+        async let countsFetch = vm.getCommentAndPointCounts(forPostWithId: story.id)
+        async let headerImageLoad: Void = loadHeaderImage(for: story)
+
+        await commentsLoad
+        _ = await trackingRefresh
+
+        if let counts = await countsFetch {
             vm.story?.descendants = counts.0
             vm.story?.score = counts.1
             applyStory(vm.story ?? story)
         }
-        await loadHeaderImage(for: story)
+        await headerImageLoad
         resizeHeaderToFit()
     }
 
@@ -329,6 +372,8 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         } else {
             commentCountLabel.text = "Comments"
         }
+        titleLabel.accessibilityLabel = story.title
+        metaLabel.accessibilityLabel = "By \(story.by), \(Date.getTimeInterval(with: story.time))"
     }
 
     private func applyLoadState(_ state: LoadState) {
@@ -376,19 +421,21 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
     }
 
     private func configureIconButton(_ button: UIButton, systemName: String, action: Selector) {
+        let highContrast = HighContrastTheme.shared.isEnabled
         let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
         button.setImage(UIImage(systemName: systemName, withConfiguration: config), for: .normal)
         button.tintColor = .label
         button.backgroundColor = UIColor.tertiarySystemFill
-        button.layer.cornerRadius = 10
+        button.layer.cornerRadius = 12
         button.layer.cornerCurve = .continuous
         button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.label.withAlphaComponent(0.06).cgColor
+        button.layer.borderColor = UIColor.label.withAlphaComponent(highContrast ? 0.24 : 0.06).cgColor
         button.clipsToBounds = true
         button.addTarget(self, action: action, for: .touchUpInside)
     }
 
     private func configurePillButton(_ button: UIButton, title: String, image: String, action: Selector) {
+        let highContrast = HighContrastTheme.shared.isEnabled
         var cfg = UIButton.Configuration.plain()
         cfg.title = title
         cfg.image = UIImage(systemName: image)
@@ -399,7 +446,7 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         button.layer.cornerRadius = 18
         button.layer.cornerCurve = .continuous
         button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.label.withAlphaComponent(0.06).cgColor
+        button.layer.borderColor = UIColor.label.withAlphaComponent(highContrast ? 0.24 : 0.06).cgColor
         button.addTarget(self, action: action, for: .touchUpInside)
     }
 
@@ -459,8 +506,14 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         if let cached = parsedTextCache[html] {
             return cached
         }
+        if let cachedAttributed = AttributedStringCache.instance.get(forKey: html) {
+            let text = String(cachedAttributed.characters)
+            parsedTextCache[html] = text
+            return text
+        }
         let parsed = CommentHTMLParser.parse(html)
         let text = String(parsed.characters)
+        AttributedStringCache.instance.set(parsed, forKey: html)
         parsedTextCache[html] = text
         return text
     }
@@ -493,12 +546,114 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         present(activity, animated: true)
     }
 
+    @objc private func toggleTrackThread() {
+        guard proFeatureGate.isPro else {
+            proFeatureGate.triggerPaywall(from: self)
+            return
+        }
+        guard let story = vm.story else { return }
+
+        Task {
+            await NotificationManager.shared.requestAuthorizationIfNeeded()
+            if await NotificationStore.shared.isTracked(storyID: story.id) {
+                await NotificationStore.shared.remove(storyID: story.id)
+                isThreadTracked = false
+#if canImport(ActivityKit)
+                if #available(iOS 16.1, *) {
+                    await LiveActivityManager.shared.stop(storyID: story.id)
+                }
+#endif
+                showMessage("Thread untracked.")
+            } else {
+                let initialCount = story.descendants ?? 0
+                await NotificationStore.shared.upsert(
+                    TrackedStory(storyID: story.id, title: story.title, lastSeenCommentCount: initialCount)
+                )
+                isThreadTracked = true
+#if canImport(ActivityKit)
+                if #available(iOS 16.1, *) {
+                    await LiveActivityManager.shared.start(story: story)
+                }
+#endif
+                showMessage("Thread tracking enabled.")
+            }
+            await refreshTrackingButtonState()
+        }
+    }
+
     @objc private func collapseAll() {
         threadVM.collapseTopLevel()
     }
 
     @objc private func expandAll() {
         threadVM.expandTopLevel()
+    }
+
+    private func ensureProAndLogin() -> Bool {
+        guard proFeatureGate.isPro else {
+            proFeatureGate.triggerPaywall(from: self)
+            return false
+        }
+        guard hnAccount.isLoggedIn else {
+            navigationController?.pushViewController(HNAccountViewController(), animated: true)
+            return false
+        }
+        return true
+    }
+
+    private func handleCommentUpvote(commentID: Int) {
+        guard ensureProAndLogin() else { return }
+        Task {
+            do {
+                let result = try await hnAccount.upvoteComment(id: commentID)
+                switch result {
+                case .voted:
+                    showMessage("Upvoted.")
+                case .alreadyVoted:
+                    showMessage("Already upvoted.")
+                case .verificationFailed:
+                    showMessage("Upvote sent but verification failed.")
+                }
+            } catch {
+                showMessage(error.localizedDescription)
+            }
+        }
+    }
+
+    private func presentReplyComposer(for comment: Comment) {
+        guard ensureProAndLogin() else { return }
+        let replyVC = ReplyViewController(commentId: comment.id, storyId: vm.story?.id)
+        let navController = UINavigationController(rootViewController: replyVC)
+        navController.modalPresentationStyle = .formSheet
+        present(navController, animated: true)
+    }
+
+    private func openUserProfile(username: String) {
+        guard proFeatureGate.isPro else {
+            proFeatureGate.triggerPaywall(from: self)
+            return
+        }
+        navigationController?.pushViewController(UserProfileViewController(username: username), animated: true)
+    }
+
+    private func showMessage(_ message: String) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        present(alert, animated: true)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_100_000_000)
+            alert.dismiss(animated: true)
+        }
+    }
+
+    private func refreshTrackingButtonState() async {
+        guard let story = vm.story else { return }
+        let tracked = await NotificationStore.shared.isTracked(storyID: story.id)
+        isThreadTracked = tracked
+        let imageName = tracked ? "bell.fill" : "bell"
+        let tint: UIColor = tracked ? .systemOrange : .label
+        trackThreadButton.setImage(UIImage(systemName: imageName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)), for: .normal)
+        trackThreadButton.tintColor = tint
+        trackThreadButton.accessibilityLabel = tracked ? "Thread tracked" : "Track thread"
     }
 
     // MARK: - UITableViewDataSource
@@ -513,10 +668,23 @@ final class CommentsUIKitViewController<VM>: UIViewController, UITableViewDataSo
         }
         let row = rows[indexPath.row]
         let isCollapsed = threadVM.isCollapsed(row.id)
+        let canWriteActions = proFeatureGate.isPro && hnAccount.isLoggedIn
         cell.configure(
             row: row,
             isCollapsed: isCollapsed,
             text: plainText(for: row.comment),
+            canWriteActions: canWriteActions,
+            canOpenAuthorProfile: proFeatureGate.isPro,
+            onUpvote: { [weak self] in
+                self?.handleCommentUpvote(commentID: row.comment.id)
+            },
+            onReply: { [weak self] in
+                self?.presentReplyComposer(for: row.comment)
+            },
+            onOpenAuthorProfile: { [weak self] in
+                guard let author = row.comment.author else { return }
+                self?.openUserProfile(username: author)
+            },
             onToggle: { [weak self] in
                 self?.threadVM.toggleCollapse(row.id)
             }
@@ -596,9 +764,15 @@ private final class UIKitCommentCell: UITableViewCell {
     private let threadLine = UIView()
     private let topMetaLabel = UILabel()
     private let bodyLabel = UILabel()
+    private let actionsRow = UIStackView()
+    private let upvoteButton = UIButton(type: .system)
+    private let replyButton = UIButton(type: .system)
     private let collapseButton = UIButton(type: .system)
     private var indentConstraint: NSLayoutConstraint?
     private var onToggle: (() -> Void)?
+    private var onUpvote: (() -> Void)?
+    private var onReply: (() -> Void)?
+    private var onOpenAuthorProfile: (() -> Void)?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -612,7 +786,7 @@ private final class UIKitCommentCell: UITableViewCell {
         card.layer.cornerCurve = .continuous
         card.clipsToBounds = true
         card.layer.borderWidth = 1
-        card.layer.borderColor = UIColor.label.withAlphaComponent(0.05).cgColor
+        card.layer.borderColor = UIColor.label.withAlphaComponent(HighContrastTheme.shared.isEnabled ? 0.24 : 0.05).cgColor
 
         threadLine.translatesAutoresizingMaskIntoConstraints = false
         threadLine.layer.cornerRadius = 1
@@ -622,6 +796,8 @@ private final class UIKitCommentCell: UITableViewCell {
         topMetaLabel.textColor = .secondaryLabel
         topMetaLabel.numberOfLines = 1
         topMetaLabel.adjustsFontForContentSizeCategory = true
+        topMetaLabel.isUserInteractionEnabled = true
+        topMetaLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(authorTapped)))
 
         bodyLabel.translatesAutoresizingMaskIntoConstraints = false
         bodyLabel.font = .preferredFont(forTextStyle: .body)
@@ -633,12 +809,43 @@ private final class UIKitCommentCell: UITableViewCell {
         collapseButton.setImage(UIImage(systemName: "chevron.up", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)), for: .normal)
         collapseButton.tintColor = .secondaryLabel
         collapseButton.backgroundColor = UIColor.tertiarySystemFill
-        collapseButton.layer.cornerRadius = 14
+        collapseButton.layer.cornerRadius = 22
         collapseButton.layer.cornerCurve = .continuous
         collapseButton.clipsToBounds = true
+        collapseButton.accessibilityLabel = "Collapse thread"
+        collapseButton.accessibilityHint = "Toggles collapsed state for this comment branch."
         collapseButton.addTarget(self, action: #selector(toggleTapped), for: .touchUpInside)
 
-        let metaRow = UIStackView(arrangedSubviews: [topMetaLabel, UIView(), collapseButton])
+        upvoteButton.translatesAutoresizingMaskIntoConstraints = false
+        upvoteButton.setImage(UIImage(systemName: "arrow.up"), for: .normal)
+        upvoteButton.tintColor = .systemOrange
+        upvoteButton.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.12)
+        upvoteButton.layer.cornerRadius = 22
+        upvoteButton.layer.cornerCurve = .continuous
+        upvoteButton.clipsToBounds = true
+        upvoteButton.accessibilityLabel = "Upvote comment"
+        upvoteButton.accessibilityHint = "Sends an upvote for this comment."
+        upvoteButton.addTarget(self, action: #selector(upvoteTapped), for: .touchUpInside)
+
+        replyButton.translatesAutoresizingMaskIntoConstraints = false
+        replyButton.setImage(UIImage(systemName: "arrowshape.turn.up.left"), for: .normal)
+        replyButton.tintColor = .systemOrange
+        replyButton.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.12)
+        replyButton.layer.cornerRadius = 22
+        replyButton.layer.cornerCurve = .continuous
+        replyButton.clipsToBounds = true
+        replyButton.accessibilityLabel = "Reply to comment"
+        replyButton.accessibilityHint = "Composes a reply."
+        replyButton.addTarget(self, action: #selector(replyTapped), for: .touchUpInside)
+
+        actionsRow.translatesAutoresizingMaskIntoConstraints = false
+        actionsRow.axis = .horizontal
+        actionsRow.spacing = 8
+        actionsRow.alignment = .center
+        actionsRow.addArrangedSubview(upvoteButton)
+        actionsRow.addArrangedSubview(replyButton)
+
+        let metaRow = UIStackView(arrangedSubviews: [topMetaLabel, UIView(), actionsRow, collapseButton])
         metaRow.axis = .horizontal
         metaRow.alignment = .center
         metaRow.spacing = 8
@@ -672,8 +879,12 @@ private final class UIKitCommentCell: UITableViewCell {
             bodyLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
             bodyLabel.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
 
-            collapseButton.widthAnchor.constraint(equalToConstant: 28),
-            collapseButton.heightAnchor.constraint(equalToConstant: 28)
+            upvoteButton.widthAnchor.constraint(equalToConstant: 44),
+            upvoteButton.heightAnchor.constraint(equalToConstant: 44),
+            replyButton.widthAnchor.constraint(equalToConstant: 44),
+            replyButton.heightAnchor.constraint(equalToConstant: 44),
+            collapseButton.widthAnchor.constraint(equalToConstant: 44),
+            collapseButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
 
@@ -687,6 +898,9 @@ private final class UIKitCommentCell: UITableViewCell {
         bodyLabel.text = nil
         topMetaLabel.text = nil
         onToggle = nil
+        onUpvote = nil
+        onReply = nil
+        onOpenAuthorProfile = nil
         alpha = 1
         transform = .identity
     }
@@ -695,25 +909,42 @@ private final class UIKitCommentCell: UITableViewCell {
         row: CommentsThreadViewModel.CommentRow,
         isCollapsed: Bool,
         text: String,
+        canWriteActions: Bool,
+        canOpenAuthorProfile: Bool,
+        onUpvote: @escaping () -> Void,
+        onReply: @escaping () -> Void,
+        onOpenAuthorProfile: @escaping () -> Void,
         onToggle: @escaping () -> Void
     ) {
         self.onToggle = onToggle
+        self.onUpvote = onUpvote
+        self.onReply = onReply
+        self.onOpenAuthorProfile = onOpenAuthorProfile
         let visualDepth = min(row.depth, 6)
         indentConstraint?.constant = CGFloat(visualDepth) * 12 + 12
         threadLine.backgroundColor = Self.threadColor(depth: row.depth)
         threadLine.alpha = visualDepth > 0 ? 1 : 0
+        actionsRow.isHidden = !canWriteActions
+        card.layer.borderColor = UIColor.label.withAlphaComponent(HighContrastTheme.shared.isEnabled ? 0.24 : 0.05).cgColor
 
         let author = row.comment.author ?? "Unknown"
         let interval = Date.getTimeInterval(with: row.comment.createdAtI)
+        topMetaLabel.textColor = canOpenAuthorProfile ? .systemOrange : .secondaryLabel
+        topMetaLabel.isUserInteractionEnabled = canOpenAuthorProfile
+        topMetaLabel.accessibilityTraits = canOpenAuthorProfile ? [.button] : [.staticText]
+        topMetaLabel.accessibilityHint = canOpenAuthorProfile ? "Opens \(author)'s profile." : nil
         if isCollapsed {
             topMetaLabel.text = "\(author) • \(row.descendantCount) \(row.descendantCount == 1 ? "reply" : "replies")"
             bodyLabel.text = nil
             collapseButton.setImage(UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)), for: .normal)
+            collapseButton.accessibilityLabel = "Expand thread"
         } else {
             topMetaLabel.text = "\(author) • \(interval)"
             bodyLabel.text = text
             collapseButton.setImage(UIImage(systemName: "chevron.up", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)), for: .normal)
+            collapseButton.accessibilityLabel = "Collapse thread"
         }
+        accessibilityLabel = "Comment by \(author). \(isCollapsed ? "Collapsed" : "Expanded")"
     }
 
     @objc private func toggleTapped() {
@@ -725,6 +956,18 @@ private final class UIKitCommentCell: UITableViewCell {
             }
         }
         onToggle?()
+    }
+
+    @objc private func upvoteTapped() {
+        onUpvote?()
+    }
+
+    @objc private func replyTapped() {
+        onReply?()
+    }
+
+    @objc private func authorTapped() {
+        onOpenAuthorProfile?()
     }
 
     private static func threadColor(depth: Int) -> UIColor {

@@ -16,6 +16,10 @@ struct Settings: Codable {
     var readerFontScale: Double
     var readerLineSpacing: Double
     var proEntitlementCachedAt: Date?
+    var iCloudSyncEnabled: Bool
+    var highContrastMode: Bool
+    var accentColorRawValue: String
+    var fontFamilyRawValue: String
     
     enum CardStyle: String, CaseIterable {
         case compact = "Compact"
@@ -28,13 +32,31 @@ struct Settings: Codable {
         case automatic = "Automatic"
     }
 
+    enum AccentColor: String, CaseIterable {
+        case orange = "Orange"
+        case blue = "Blue"
+        case green = "Green"
+        case red = "Red"
+        case purple = "Purple"
+    }
+
+    enum FontFamily: String, CaseIterable {
+        case system = "System"
+        case serif = "Serif"
+        case mono = "Mono"
+    }
+
     init(cardStyleString: String,
          themeString: String,
          openInReader: Bool = false,
          openReaderLinksInReader: Bool = false,
          readerFontScale: Double = 1.0,
          readerLineSpacing: Double = 2.0,
-         proEntitlementCachedAt: Date? = nil) {
+         proEntitlementCachedAt: Date? = nil,
+         iCloudSyncEnabled: Bool = false,
+         highContrastMode: Bool = false,
+         accentColorRawValue: String = AccentColor.orange.rawValue,
+         fontFamilyRawValue: String = FontFamily.system.rawValue) {
         self.cardStyleString = cardStyleString
         self.themeString = themeString
         self.openInReader = openInReader
@@ -42,6 +64,10 @@ struct Settings: Codable {
         self.readerFontScale = readerFontScale
         self.readerLineSpacing = readerLineSpacing
         self.proEntitlementCachedAt = proEntitlementCachedAt
+        self.iCloudSyncEnabled = iCloudSyncEnabled
+        self.highContrastMode = highContrastMode
+        self.accentColorRawValue = accentColorRawValue
+        self.fontFamilyRawValue = fontFamilyRawValue
     }
 
     enum CodingKeys: String, CodingKey {
@@ -52,6 +78,10 @@ struct Settings: Codable {
         case readerFontScale
         case readerLineSpacing
         case proEntitlementCachedAt
+        case iCloudSyncEnabled
+        case highContrastMode
+        case accentColorRawValue
+        case fontFamilyRawValue
     }
 
     init(from decoder: Decoder) throws {
@@ -63,6 +93,10 @@ struct Settings: Codable {
         self.readerFontScale = try container.decodeIfPresent(Double.self, forKey: .readerFontScale) ?? 1.0
         self.readerLineSpacing = try container.decodeIfPresent(Double.self, forKey: .readerLineSpacing) ?? 2.0
         self.proEntitlementCachedAt = try container.decodeIfPresent(Date.self, forKey: .proEntitlementCachedAt)
+        self.iCloudSyncEnabled = try container.decodeIfPresent(Bool.self, forKey: .iCloudSyncEnabled) ?? false
+        self.highContrastMode = try container.decodeIfPresent(Bool.self, forKey: .highContrastMode) ?? false
+        self.accentColorRawValue = try container.decodeIfPresent(String.self, forKey: .accentColorRawValue) ?? AccentColor.orange.rawValue
+        self.fontFamilyRawValue = try container.decodeIfPresent(String.self, forKey: .fontFamilyRawValue) ?? FontFamily.system.rawValue
     }
 }
 

@@ -21,7 +21,7 @@ actor HistoryStore {
         }
     }
     
-    func addEntry(story: Story, feed: StoryType) {
+    func addEntry(story: Story, feed: StoryType) async {
         let entry = HistoryEntry(
             id: UUID(),
             storyID: story.id,
@@ -31,16 +31,21 @@ actor HistoryStore {
             feed: feed.rawValue
         )
         entries.insert(entry, at: 0)
+        await SmartFeedStore.shared.recordOpen(story: story)
         saveToDisk()
+        await SpotlightIndexer.shared.indexHistory(entries)
+        await WidgetDataProvider.shared.refreshFromDisk()
     }
     
     func allEntries() -> [HistoryEntry] {
         entries
     }
     
-    func clear() {
+    func clear() async {
         entries.removeAll()
         saveToDisk()
+        await SpotlightIndexer.shared.indexHistory([])
+        await WidgetDataProvider.shared.refreshFromDisk()
     }
     
     nonisolated private static func loadFromDisk(fileUrl: URL) -> [HistoryEntry]? {

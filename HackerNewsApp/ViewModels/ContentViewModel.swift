@@ -45,6 +45,7 @@ enum LoadState: Equatable {
 }
 
 enum StoryType: String, CaseIterable {
+    case smartfeed = "Smart Feed"
     case topstories = "Top Stories"
     case newstories = "New Stories"
     case beststories = "Best Stories"
@@ -54,6 +55,8 @@ enum StoryType: String, CaseIterable {
     
     var endpoint: String {
         switch self {
+        case .smartfeed:
+            return "topstories"
         case .askstories:
             return "askstories"
         case .beststories:
@@ -83,6 +86,7 @@ class ContentViewModel: SafariViewLoader {
     @Published var loadMoreState: LoadState = .idle
     @Published var errorMessage: String?
     @Published var hideRead = false
+    @Published var activeFilter: FeedFilter?
     
     private let repository: StoryRepository
     private let readStateStore: ReadStateStore
@@ -96,6 +100,7 @@ class ContentViewModel: SafariViewLoader {
     private var refreshingRequestID: UUID?
     private var feedChangeTask: Task<Void, Never>?
     private var prefetchTask: Task<Void, Never>?
+    private var initialFeedOverride: (type: StoryType, filter: FeedFilter?)?
     
     let networkManager: NetworkManager = NetworkManager.instance
     
@@ -115,10 +120,26 @@ class ContentViewModel: SafariViewLoader {
                 return
             }
             #endif
+            let initialOverride = initialFeedOverride
             let requestID = UUID()
             activeFeedRequestID = requestID
-            await applyFeedChange(for: storyType, requestID: requestID, preferredHideRead: nil)
+            await applyFeedChange(
+                for: initialOverride?.type ?? storyType,
+                requestID: requestID,
+                preferredHideRead: nil,
+                preferredFilter: initialOverride?.filter,
+                persistFilter: false
+            )
+            initialFeedOverride = nil
         }
+    }
+
+    func configureInitialFeed(type: StoryType, filter: FeedFilter?) {
+        guard stories.isEmpty else { return }
+        let normalizedFilter = filter?.normalized()
+        storyType = type
+        activeFilter = normalizedFilter
+        initialFeedOverride = (type: type, filter: normalizedFilter)
     }
 
     func setStoryType(_ newType: StoryType) {
@@ -133,16 +154,32 @@ class ContentViewModel: SafariViewLoader {
         guard hideRead != newValue else { return }
         beginFeedChange(to: storyType, preferredHideRead: newValue, persistHideRead: true)
     }
+
+    func setActiveFilter(_ filter: FeedFilter?) {
+        let normalized = filter?.normalized()
+        if activeFilter == normalized {
+            return
+        }
+        beginFeedChange(
+            to: storyType,
+            preferredHideRead: nil,
+            persistHideRead: false,
+            preferredFilter: normalized,
+            persistFilter: true
+        )
+    }
     
     func refresh() async {
         let requestID = activeFeedRequestID
         let selectedStoryType = storyType
         let selectedHideRead = hideRead
+        let selectedFilter = activeFilter
         await refresh(
             requestID: requestID,
             force: false,
             storyType: selectedStoryType,
-            hideRead: selectedHideRead
+            hideRead: selectedHideRead,
+            filter: selectedFilter
         )
     }
 
@@ -150,7 +187,8 @@ class ContentViewModel: SafariViewLoader {
         requestID: UUID,
         force: Bool,
         storyType: StoryType,
-        hideRead: Bool
+        hideRead: Bool,
+        filter: FeedFilter?
     ) async {
         #if DEBUG
         if DebugEnvironment.shared.fixtureMode {
@@ -182,8 +220,22 @@ class ContentViewModel: SafariViewLoader {
         readIDs = await readStateStore.readIDsSnapshot()
 
         do {
-            let fetchedIDs = try await RetryPolicy.runWithTransientRetry { [self] in
-                try await repository.fetchIDs(type: storyType)
+            let fetchedIDs: [Int]
+            if storyType == .smartfeed {
+                let baseIDs = try await RetryPolicy.runWithTransientRetry { [self] in
+                    try await repository.fetchIDs(type: .topstories)
+                }
+                let candidateIDs = Array(baseIDs.prefix(500))
+                let candidateStories = try await RetryPolicy.runWithTransientRetry { [self] in
+                    try await repository.fetchStories(ids: candidateIDs)
+                }
+                let affinitySnapshot = await SmartFeedStore.shared.snapshot()
+                let rankedStories = SmartFeedRanker.rank(stories: candidateStories, affinity: affinitySnapshot)
+                fetchedIDs = rankedStories.map(\.id)
+            } else {
+                fetchedIDs = try await RetryPolicy.runWithTransientRetry { [self] in
+                    try await repository.fetchIDs(type: storyType)
+                }
             }
             guard isActiveRequest(requestID), !Task.isCancelled else { return }
             #if DEBUG
@@ -196,7 +248,8 @@ class ContentViewModel: SafariViewLoader {
                 startIndex: 0,
                 loadedIDs: [],
                 readIDs: readIDs,
-                hideRead: hideRead
+                hideRead: hideRead,
+                filter: filter
             )
             guard isActiveRequest(requestID), !Task.isCancelled else { return }
 
@@ -302,6 +355,15 @@ class ContentViewModel: SafariViewLoader {
         }
         return false
     }
+
+    func adjacentStories(for storyID: Int) -> (previous: Story?, next: Story?) {
+        guard let index = stories.firstIndex(where: { $0.id == storyID }) else {
+            return (nil, nil)
+        }
+        let previous = index > 0 ? stories[index - 1] : nil
+        let next = index < stories.count - 1 ? stories[index + 1] : nil
+        return (previous, next)
+    }
     
     func loadNextPage() async {
         #if DEBUG
@@ -321,7 +383,8 @@ class ContentViewModel: SafariViewLoader {
                 startIndex: nextIndex,
                 loadedIDs: loadedIDs,
                 readIDs: readIDs,
-                hideRead: hideRead
+                hideRead: hideRead,
+                filter: activeFilter
             )
 
             // Update state and append stories immediately before prefetching images.
@@ -357,7 +420,9 @@ class ContentViewModel: SafariViewLoader {
     private func beginFeedChange(
         to newType: StoryType,
         preferredHideRead: Bool?,
-        persistHideRead: Bool
+        persistHideRead: Bool,
+        preferredFilter: FeedFilter? = nil,
+        persistFilter: Bool = false
     ) {
         let requestID = UUID()
         activeFeedRequestID = requestID
@@ -368,7 +433,9 @@ class ContentViewModel: SafariViewLoader {
                 for: newType,
                 requestID: requestID,
                 preferredHideRead: preferredHideRead,
-                persistHideRead: persistHideRead
+                persistHideRead: persistHideRead,
+                preferredFilter: preferredFilter,
+                persistFilter: persistFilter
             )
         }
     }
@@ -377,7 +444,9 @@ class ContentViewModel: SafariViewLoader {
         for storyType: StoryType,
         requestID: UUID,
         preferredHideRead: Bool?,
-        persistHideRead: Bool = false
+        persistHideRead: Bool = false,
+        preferredFilter: FeedFilter? = nil,
+        persistFilter: Bool = false
     ) async {
         self.storyType = storyType
 
@@ -394,6 +463,19 @@ class ContentViewModel: SafariViewLoader {
             hideRead = resolvedHideRead
         }
 
+        let resolvedFilter: FeedFilter?
+        if preferredFilter != nil || persistFilter {
+            resolvedFilter = preferredFilter
+            activeFilter = preferredFilter
+            if persistFilter {
+                await readStateStore.setFilter(for: storyType, value: preferredFilter)
+            }
+        } else {
+            resolvedFilter = await readStateStore.filter(for: storyType)
+            guard isActiveRequest(requestID), !Task.isCancelled else { return }
+            activeFilter = resolvedFilter
+        }
+
         guard isActiveRequest(requestID), !Task.isCancelled else { return }
         cancelPrefetch()
         ids.removeAll()
@@ -406,7 +488,8 @@ class ContentViewModel: SafariViewLoader {
             requestID: requestID,
             force: true,
             storyType: storyType,
-            hideRead: resolvedHideRead
+            hideRead: resolvedHideRead,
+            filter: resolvedFilter
         )
     }
 
@@ -512,7 +595,8 @@ class ContentViewModel: SafariViewLoader {
         startIndex: Int,
         loadedIDs: Set<Int>,
         readIDs: Set<Int>,
-        hideRead: Bool
+        hideRead: Bool,
+        filter: FeedFilter?
     ) async throws -> PageResult {
         var appended: [Story] = []
         var nextIndex = startIndex
@@ -546,10 +630,14 @@ class ContentViewModel: SafariViewLoader {
             }
             let byId = Dictionary(uniqueKeysWithValues: fetched.map { ($0.id, $0) })
             let ordered = newIDs.compactMap { byId[$0] }
+            let filtered = ordered.filter { story in
+                guard let filter else { return true }
+                return filter.matches(story)
+            }
             for story in ordered {
                 loadedIDs.insert(story.id)
             }
-            appended.append(contentsOf: ordered)
+            appended.append(contentsOf: filtered)
         }
 
         return PageResult(appended: appended, nextIndex: nextIndex, loadedIDs: loadedIDs)

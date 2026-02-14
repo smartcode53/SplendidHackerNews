@@ -1,4 +1,5 @@
 import UIKit
+import StoreKit
 
 @MainActor
 final class PaywallViewController: UIViewController {
@@ -11,6 +12,8 @@ final class PaywallViewController: UIViewController {
     private let monthlyButton = UIButton(type: .system)
     private let yearlyButton = UIButton(type: .system)
     private let restoreButton = UIButton(type: .system)
+    private let termsButton = UIButton(type: .system)
+    private let privacyButton = UIButton(type: .system)
 
     init(featureGate: ProFeatureGate,
          subscriptionManager: SubscriptionManager = .shared) {
@@ -26,7 +29,7 @@ final class PaywallViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Splendid HN Pro"
+        title = "HackerPillar Pro"
         view.backgroundColor = UIColor(named: "BackgroundColor") ?? .systemBackground
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .close,
@@ -63,7 +66,12 @@ final class PaywallViewController: UIViewController {
 
         loadingIndicator.hidesWhenStopped = true
 
-        [headerLabel, benefitsLabel, monthlyButton, yearlyButton, restoreButton, loadingIndicator, statusLabel].forEach {
+        let legalButtons = UIStackView(arrangedSubviews: [termsButton, privacyButton])
+        legalButtons.axis = .horizontal
+        legalButtons.spacing = 8
+        legalButtons.distribution = .fillEqually
+
+        [headerLabel, benefitsLabel, monthlyButton, yearlyButton, restoreButton, legalButtons, loadingIndicator, statusLabel].forEach {
             stackView.addArrangedSubview($0)
         }
 
@@ -79,16 +87,46 @@ final class PaywallViewController: UIViewController {
         monthlyButton.configuration = .filled()
         monthlyButton.configuration?.baseBackgroundColor = .systemOrange
         monthlyButton.configuration?.title = "Monthly"
+        monthlyButton.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+        monthlyButton.accessibilityLabel = "Buy monthly Pro plan"
         monthlyButton.addTarget(self, action: #selector(monthlyTapped), for: .touchUpInside)
 
         yearlyButton.configuration = .filled()
         yearlyButton.configuration?.baseBackgroundColor = .systemOrange
         yearlyButton.configuration?.title = "Yearly"
+        yearlyButton.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+        yearlyButton.accessibilityLabel = "Buy yearly Pro plan"
         yearlyButton.addTarget(self, action: #selector(yearlyTapped), for: .touchUpInside)
 
         restoreButton.configuration = .plain()
         restoreButton.configuration?.title = "Restore Purchases"
+        restoreButton.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 10, bottom: 12, trailing: 10)
+        restoreButton.accessibilityLabel = "Restore purchases"
         restoreButton.addTarget(self, action: #selector(restoreTapped), for: .touchUpInside)
+
+        termsButton.configuration = .tinted()
+        termsButton.configuration?.title = "Terms"
+        termsButton.configuration?.baseForegroundColor = .systemOrange
+        termsButton.addTarget(self, action: #selector(openTerms), for: .touchUpInside)
+        termsButton.accessibilityLabel = "View terms of use"
+
+        privacyButton.configuration = .tinted()
+        privacyButton.configuration?.title = "Privacy"
+        privacyButton.configuration?.baseForegroundColor = .systemOrange
+        privacyButton.addTarget(self, action: #selector(openPrivacy), for: .touchUpInside)
+        privacyButton.accessibilityLabel = "View privacy policy"
+
+        [monthlyButton, yearlyButton, restoreButton, termsButton, privacyButton].forEach {
+            $0.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        }
+
+        let hasTerms = LegalLinks.termsURL != nil
+        let hasPrivacy = LegalLinks.privacyURL != nil
+        termsButton.isEnabled = hasTerms
+        privacyButton.isEnabled = hasPrivacy
+        if !hasTerms || !hasPrivacy {
+            statusLabel.text = "Legal links are not configured yet."
+        }
     }
 
     private func loadPrices() async {
@@ -101,7 +139,7 @@ final class PaywallViewController: UIViewController {
                 yearlyButton.configuration?.title = "Yearly \(yearly.displayPrice)"
             }
         } catch {
-            statusLabel.text = "Could not load prices. Check your connection and try again."
+            statusLabel.text = messageForStoreError(error, action: "load prices")
         }
     }
 
@@ -133,9 +171,19 @@ final class PaywallViewController: UIViewController {
                     setLoading(false, message: "No active Pro subscription found.")
                 }
             } catch {
-                setLoading(false, message: "Restore failed. Please try again.")
+                setLoading(false, message: messageForStoreError(error, action: "restore purchases"))
             }
         }
+    }
+
+    @objc private func openTerms() {
+        guard let url = LegalLinks.termsURL else { return }
+        UIApplication.shared.open(url)
+    }
+
+    @objc private func openPrivacy() {
+        guard let url = LegalLinks.privacyURL else { return }
+        UIApplication.shared.open(url)
     }
 
     private func purchase(productID: String) async {
@@ -152,7 +200,7 @@ final class PaywallViewController: UIViewController {
                 setLoading(false, message: "Purchase cancelled.")
             }
         } catch {
-            setLoading(false, message: "Purchase failed. Please try again.")
+            setLoading(false, message: messageForStoreError(error, action: "complete purchase"))
         }
     }
 
@@ -168,5 +216,32 @@ final class PaywallViewController: UIViewController {
         }
 
         statusLabel.text = message
+    }
+
+    private func messageForStoreError(_ error: Error, action: String) -> String {
+        let nsError = error as NSError
+
+        if nsError.domain == NSURLErrorDomain,
+           nsError.code == NSURLErrorNotConnectedToInternet {
+            return "You're offline. Connect to the internet to \(action)."
+        }
+
+        if nsError.domain == SKErrorDomain,
+           let code = SKError.Code(rawValue: nsError.code) {
+            switch code {
+            case .paymentCancelled:
+                return "Action cancelled."
+            case .storeProductNotAvailable:
+                return "This product is not available in your App Store region."
+            case .cloudServiceNetworkConnectionFailed:
+                return "App Store connection failed. Check your network and try again."
+            case .overlayTimeout:
+                return "App Store timed out. Please try again."
+            default:
+                break
+            }
+        }
+
+        return "Could not \(action). Please try again."
     }
 }

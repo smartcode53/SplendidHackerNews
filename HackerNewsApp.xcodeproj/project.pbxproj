@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1B2C3D4E5F6071801020301 /* HackerPillarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020201 /* HackerPillarWidget.swift */; };
+		A1B2C3D4E5F6071801020302 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020202 /* WidgetSnapshot.swift */; };
+		A1B2C3D4E5F6071801020303 /* WidgetSnapshotLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020203 /* WidgetSnapshotLoader.swift */; };
+		A1B2C3D4E5F6071801020304 /* HackerPillarWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020204 /* HackerPillarWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A1B2C3D4E5F6071802020301 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071802020201 /* ShareViewController.swift */; };
+		A1B2C3D4E5F6071802020305 /* ShareImportTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011C /* ShareImportTelemetry.swift */; };
+		A1B2C3D4E5F6071802020302 /* HackerPillarShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071802020203 /* HackerPillarShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		80E5CABE0BE3185CD21C5581 /* AttributedStringCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F388AC18CDCCAB5AE414872 /* AttributedStringCache.swift */; };
 		B2B2B2B2B2B2B2B2B2B2B201 /* HNAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */; };
 		B2B2B2B2B2B2B2B2B2B2B202 /* HNKeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A102 /* HNKeychainStore.swift */; };
@@ -61,6 +68,46 @@
 		C7A100000000000000000201 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000101 /* SubscriptionManager.swift */; };
 		C7A100000000000000000202 /* ProFeatureGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000102 /* ProFeatureGate.swift */; };
 		C7A100000000000000000203 /* PaywallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000103 /* PaywallViewController.swift */; };
+		C7A200000000000000000201 /* HNAccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A200000000000000000101 /* HNAccountViewController.swift */; };
+		C7A200000000000000000202 /* ReplyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A200000000000000000102 /* ReplyViewController.swift */; };
+		C7A300000000000000000201 /* OfflineStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A300000000000000000101 /* OfflineStory.swift */; };
+		C7A300000000000000000202 /* OfflineStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A300000000000000000102 /* OfflineStore.swift */; };
+		C7A300000000000000000203 /* OfflineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A300000000000000000103 /* OfflineViewModel.swift */; };
+		C7A300000000000000000204 /* OfflineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A300000000000000000104 /* OfflineViewController.swift */; };
+		C7A400000000000000000201 /* FeedFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A400000000000000000101 /* FeedFilter.swift */; };
+		C7A400000000000000000202 /* FeedFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A400000000000000000102 /* FeedFilterViewController.swift */; };
+		C7A500000000000000000201 /* SmartFeedRanker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A500000000000000000101 /* SmartFeedRanker.swift */; };
+		C7A500000000000000000202 /* SmartFeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A500000000000000000102 /* SmartFeedStore.swift */; };
+		C7A600000000000000000201 /* iCloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A600000000000000000101 /* iCloudSyncManager.swift */; };
+		C7A700000000000000000201 /* FeedImagePipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000101 /* FeedImagePipeline.swift */; };
+		C7A700000000000000000202 /* SunGradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000102 /* SunGradientView.swift */; };
+		C7A700000000000000000203 /* ShimmerLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000103 /* ShimmerLayer.swift */; };
+		C7A700000000000000000204 /* FeedStoryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000104 /* FeedStoryCell.swift */; };
+		C7A700000000000000000205 /* StoryCommentsPagerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000105 /* StoryCommentsPagerViewController.swift */; };
+		C7A700000000000000000206 /* SavedStoriesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000106 /* SavedStoriesViewController.swift */; };
+		C7A700000000000000000207 /* HistoryUIKitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000107 /* HistoryUIKitViewController.swift */; };
+		C7A700000000000000000208 /* SettingsUIKitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000108 /* SettingsUIKitViewController.swift */; };
+		C7A700000000000000000209 /* CustomFeedManagerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000109 /* CustomFeedManagerViewController.swift */; };
+		C7A70000000000000000020A /* TrackedThreadsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000010A /* TrackedThreadsViewController.swift */; };
+		C7A70000000000000000020B /* PerformanceDashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000010B /* PerformanceDashboardViewController.swift */; };
+		C7A70000000000000000020C /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000010C /* SearchViewController.swift */; };
+		C7A70000000000000000020D /* UserProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000010D /* UserProfileViewController.swift */; };
+		C7A70000000000000000020E /* ReaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000010E /* ReaderViewController.swift */; };
+		C7A70000000000000000020F /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000010F /* FeedViewController.swift */; };
+		C7A700000000000000000210 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000110 /* OnboardingViewController.swift */; };
+		C7A700000000000000000211 /* PerformanceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000111 /* PerformanceMonitor.swift */; };
+		C7A700000000000000000212 /* ShortcutsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000112 /* ShortcutsProvider.swift */; };
+		C7A700000000000000000213 /* WidgetShareBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000113 /* WidgetShareBridge.swift */; };
+		C7A700000000000000000214 /* NotificationTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000114 /* NotificationTracking.swift */; };
+		C7A700000000000000000215 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000115 /* LiveActivityManager.swift */; };
+		C7A700000000000000000216 /* HNAlgoliaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000116 /* HNAlgoliaClient.swift */; };
+		C7A700000000000000000217 /* CustomFeedManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000117 /* CustomFeedManager.swift */; };
+		C7A700000000000000000218 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000118 /* ThemeManager.swift */; };
+		C7A700000000000000000219 /* SpotlightIndexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A700000000000000000119 /* SpotlightIndexer.swift */; };
+		C7A70000000000000000021A /* HNTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011A /* HNTabBarController.swift */; };
+		C7A70000000000000000021B /* HNIPadSplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011B /* HNIPadSplitViewController.swift */; };
+		C7A70000000000000000021C /* ShareImportTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011C /* ShareImportTelemetry.swift */; };
+		C7A70000000000000000021D /* LegalLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011D /* LegalLinks.swift */; };
 		C1C1C1C1C1C1C1C1C1C1C102 /* HNDiagnosticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */; };
 		C1C1C1C1C1C1C1C1C1C1C103 /* HNDiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */; };
 		D1D1D1D1D1D1D1D1D1D1D101 /* FeedScrollStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */; };
@@ -69,6 +116,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		A1B2C3D4E5F6071801020401 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A1B2C3D4E5F6071801020304 /* HackerPillarWidgetExtension.appex in Embed App Extensions */,
+				A1B2C3D4E5F6071802020302 /* HackerPillarShareExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B46E0AFC28C0FFDC00ECAD45 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -81,7 +140,32 @@
 		};
 /* End PBXCopyFilesBuildPhase section */
 
+/* Begin PBXContainerItemProxy section */
+		A1B2C3D4E5F6071801020A01 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B478F9B528AD77CA002B893C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1B2C3D4E5F6071801020701;
+			remoteInfo = HackerPillarWidgetExtension;
+		};
+		A1B2C3D4E5F6071802020A01 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B478F9B528AD77CA002B893C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1B2C3D4E5F6071802020701;
+			remoteInfo = HackerPillarShareExtension;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		A1B2C3D4E5F6071801020201 /* HackerPillarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HackerPillarWidget.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071801020202 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071801020203 /* WidgetSnapshotLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotLoader.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071801020204 /* HackerPillarWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HackerPillarWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F6071801020205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071802020201 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071802020202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071802020203 /* HackerPillarShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HackerPillarShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F388AC18CDCCAB5AE414872 /* AttributedStringCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AttributedStringCache.swift; sourceTree = "<group>"; };
 		9B7DFAC023516C5E18BE87B7 /* CommentHTMLParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommentHTMLParser.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAccount.swift; sourceTree = "<group>"; };
@@ -133,6 +217,46 @@
 		C7A100000000000000000101 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		C7A100000000000000000102 /* ProFeatureGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProFeatureGate.swift; sourceTree = "<group>"; };
 		C7A100000000000000000103 /* PaywallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViewController.swift; sourceTree = "<group>"; };
+		C7A200000000000000000101 /* HNAccountViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAccountViewController.swift; sourceTree = "<group>"; };
+		C7A200000000000000000102 /* ReplyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyViewController.swift; sourceTree = "<group>"; };
+		C7A300000000000000000101 /* OfflineStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineStory.swift; sourceTree = "<group>"; };
+		C7A300000000000000000102 /* OfflineStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineStore.swift; sourceTree = "<group>"; };
+		C7A300000000000000000103 /* OfflineViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineViewModel.swift; sourceTree = "<group>"; };
+		C7A300000000000000000104 /* OfflineViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineViewController.swift; sourceTree = "<group>"; };
+		C7A400000000000000000101 /* FeedFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedFilter.swift; sourceTree = "<group>"; };
+		C7A400000000000000000102 /* FeedFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedFilterViewController.swift; sourceTree = "<group>"; };
+		C7A500000000000000000101 /* SmartFeedRanker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartFeedRanker.swift; sourceTree = "<group>"; };
+		C7A500000000000000000102 /* SmartFeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartFeedStore.swift; sourceTree = "<group>"; };
+		C7A600000000000000000101 /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
+		C7A700000000000000000101 /* FeedImagePipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedImagePipeline.swift; sourceTree = "<group>"; };
+		C7A700000000000000000102 /* SunGradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunGradientView.swift; sourceTree = "<group>"; };
+		C7A700000000000000000103 /* ShimmerLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmerLayer.swift; sourceTree = "<group>"; };
+		C7A700000000000000000104 /* FeedStoryCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedStoryCell.swift; sourceTree = "<group>"; };
+		C7A700000000000000000105 /* StoryCommentsPagerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCommentsPagerViewController.swift; sourceTree = "<group>"; };
+		C7A700000000000000000106 /* SavedStoriesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedStoriesViewController.swift; sourceTree = "<group>"; };
+		C7A700000000000000000107 /* HistoryUIKitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryUIKitViewController.swift; sourceTree = "<group>"; };
+		C7A700000000000000000108 /* SettingsUIKitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsUIKitViewController.swift; sourceTree = "<group>"; };
+		C7A700000000000000000109 /* CustomFeedManagerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomFeedManagerViewController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000010A /* TrackedThreadsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackedThreadsViewController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000010B /* PerformanceDashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceDashboardViewController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000010C /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000010D /* UserProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000010E /* ReaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderViewController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000010F /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewController.swift; sourceTree = "<group>"; };
+		C7A700000000000000000110 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
+		C7A700000000000000000111 /* PerformanceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceMonitor.swift; sourceTree = "<group>"; };
+		C7A700000000000000000112 /* ShortcutsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsProvider.swift; sourceTree = "<group>"; };
+		C7A700000000000000000113 /* WidgetShareBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetShareBridge.swift; sourceTree = "<group>"; };
+		C7A700000000000000000114 /* NotificationTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationTracking.swift; sourceTree = "<group>"; };
+		C7A700000000000000000115 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
+		C7A700000000000000000116 /* HNAlgoliaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAlgoliaClient.swift; sourceTree = "<group>"; };
+		C7A700000000000000000117 /* CustomFeedManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomFeedManager.swift; sourceTree = "<group>"; };
+		C7A700000000000000000118 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		C7A700000000000000000119 /* SpotlightIndexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotlightIndexer.swift; sourceTree = "<group>"; };
+		C7A70000000000000000011A /* HNTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNTabBarController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000011B /* HNIPadSplitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNIPadSplitViewController.swift; sourceTree = "<group>"; };
+		C7A70000000000000000011C /* ShareImportTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImportTelemetry.swift; sourceTree = "<group>"; };
+		C7A70000000000000000011D /* LegalLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalLinks.swift; sourceTree = "<group>"; };
 		C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsViewModel.swift; sourceTree = "<group>"; };
 		C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsReport.swift; sourceTree = "<group>"; };
 		D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedScrollStore.swift; sourceTree = "<group>"; };
@@ -140,6 +264,20 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A1B2C3D4E5F6071801020502 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F6071802020502 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B478F9BA28AD77CA002B893C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -229,6 +367,8 @@
 		B478F9B428AD77CA002B893C = {
 			isa = PBXGroup;
 			children = (
+				A1B2C3D4E5F6071802020601 /* ShareExtension */,
+				A1B2C3D4E5F6071801020601 /* HackerNewsWidget */,
 				B478F9BF28AD77CA002B893C /* HackerNewsApp */,
 				B478F9BE28AD77CA002B893C /* Products */,
 				B46E0AF928C0FFDC00ECAD45 /* Frameworks */,
@@ -239,8 +379,30 @@
 			isa = PBXGroup;
 			children = (
 				B478F9BD28AD77CA002B893C /* HackerNewsApp.app */,
+				A1B2C3D4E5F6071801020204 /* HackerPillarWidgetExtension.appex */,
+				A1B2C3D4E5F6071802020203 /* HackerPillarShareExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6071802020601 /* ShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6071802020201 /* ShareViewController.swift */,
+				A1B2C3D4E5F6071802020202 /* Info.plist */,
+			);
+			path = ShareExtension;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6071801020601 /* HackerNewsWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6071801020201 /* HackerPillarWidget.swift */,
+				A1B2C3D4E5F6071801020202 /* WidgetSnapshot.swift */,
+				A1B2C3D4E5F6071801020203 /* WidgetSnapshotLoader.swift */,
+				A1B2C3D4E5F6071801020205 /* Info.plist */,
+			);
+			path = HackerNewsWidget;
 			sourceTree = "<group>";
 		};
 		B478F9BF28AD77CA002B893C /* HackerNewsApp */ = {
@@ -286,6 +448,9 @@
 		B4F0327128C07B1F00E463BF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C7A500000000000000000101 /* SmartFeedRanker.swift */,
+				C7A400000000000000000101 /* FeedFilter.swift */,
+				C7A300000000000000000101 /* OfflineStory.swift */,
 				B4F0327228C07B4300E463BF /* Results.swift */,
 				B46F2CFA28C9DEF300DE0D19 /* Story.swift */,
 				B4BF5D2428EE97EF00A393CC /* StoryWrapper.swift */,
@@ -300,6 +465,7 @@
 		B4F0327A28C07D6800E463BF /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				C7A300000000000000000103 /* OfflineViewModel.swift */,
 				B4FF101828F0000000A1B2D1 /* CommentsThreadViewModel.swift */,
 				B4FF102128F0000000A1B2D3 /* RouteViewModels.swift */,
 				B4FF101728F0000000A1B2D0 /* HistoryViewModel.swift */,
@@ -331,6 +497,25 @@
 		B4F0328028C07F4C00E463BF /* UIKit Views */ = {
 			isa = PBXGroup;
 			children = (
+				C7A400000000000000000102 /* FeedFilterViewController.swift */,
+				C7A200000000000000000101 /* HNAccountViewController.swift */,
+				C7A300000000000000000104 /* OfflineViewController.swift */,
+				C7A200000000000000000102 /* ReplyViewController.swift */,
+				C7A700000000000000000103 /* ShimmerLayer.swift */,
+				C7A700000000000000000102 /* SunGradientView.swift */,
+				C7A700000000000000000104 /* FeedStoryCell.swift */,
+				C7A700000000000000000105 /* StoryCommentsPagerViewController.swift */,
+				C7A700000000000000000106 /* SavedStoriesViewController.swift */,
+				C7A700000000000000000107 /* HistoryUIKitViewController.swift */,
+				C7A700000000000000000108 /* SettingsUIKitViewController.swift */,
+				C7A700000000000000000109 /* CustomFeedManagerViewController.swift */,
+				C7A70000000000000000010A /* TrackedThreadsViewController.swift */,
+				C7A70000000000000000010B /* PerformanceDashboardViewController.swift */,
+				C7A70000000000000000010C /* SearchViewController.swift */,
+				C7A70000000000000000010D /* UserProfileViewController.swift */,
+				C7A70000000000000000010E /* ReaderViewController.swift */,
+				C7A70000000000000000010F /* FeedViewController.swift */,
+				C7A700000000000000000110 /* OnboardingViewController.swift */,
 			);
 			path = "UIKit Views";
 			sourceTree = "<group>";
@@ -338,9 +523,19 @@
 		B4F0328128C07F6D00E463BF /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				C7A600000000000000000301 /* Sync */,
+				C7A300000000000000000301 /* Offline */,
 				C7A100000000000000000301 /* Subscription */,
 				B4FF101F28F0000000A1B2D2 /* AppRoute.swift */,
 				B478F9C028AD77CA002B893C /* HackerNewsAppApp.swift */,
+				C7A700000000000000000116 /* HNAlgoliaClient.swift */,
+				C7A700000000000000000117 /* CustomFeedManager.swift */,
+				C7A700000000000000000118 /* ThemeManager.swift */,
+				C7A700000000000000000119 /* SpotlightIndexer.swift */,
+				C7A70000000000000000011A /* HNTabBarController.swift */,
+				C7A70000000000000000011B /* HNIPadSplitViewController.swift */,
+				C7A70000000000000000011C /* ShareImportTelemetry.swift */,
+				C7A70000000000000000011D /* LegalLinks.swift */,
 				B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */,
 				B4E6C9E728C639E300A2982B /* Protocols.swift */,
 				B4FF100128F0000000A1B2C3 /* HNAPIClient.swift */,
@@ -351,6 +546,12 @@
 				B5A1C2D3E4F5060708090A1E /* ReaderLinkPolicy.swift */,
 				B5A1C2D3E4F5060708090A23 /* ReaderLinkHandler.swift */,
 				B5A1C2D3E4F5060708090A1F /* ReaderTypography.swift */,
+				C7A700000000000000000101 /* FeedImagePipeline.swift */,
+				C7A700000000000000000111 /* PerformanceMonitor.swift */,
+				C7A700000000000000000112 /* ShortcutsProvider.swift */,
+				C7A700000000000000000113 /* WidgetShareBridge.swift */,
+				C7A700000000000000000114 /* NotificationTracking.swift */,
+				C7A700000000000000000115 /* LiveActivityManager.swift */,
 				A1A1A1A1A1A1A1A1A1A1A104 /* HNWriteClient.swift */,
 				A1A1A1A1A1A1A1A1A1A1A105 /* HNDebugLog.swift */,
 				C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */,
@@ -366,6 +567,23 @@
 			path = Other;
 			sourceTree = "<group>";
 		};
+		C7A600000000000000000301 /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				C7A600000000000000000101 /* iCloudSyncManager.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		C7A300000000000000000301 /* Offline */ = {
+			isa = PBXGroup;
+			children = (
+				C7A300000000000000000102 /* OfflineStore.swift */,
+				C7A500000000000000000102 /* SmartFeedStore.swift */,
+			);
+			path = Offline;
+			sourceTree = "<group>";
+		};
 		C7A100000000000000000301 /* Subscription */ = {
 			isa = PBXGroup;
 			children = (
@@ -379,6 +597,44 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		A1B2C3D4E5F6071801020701 /* HackerPillarWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F6071801020D01 /* Build configuration list for PBXNativeTarget "HackerPillarWidgetExtension" */;
+			buildPhases = (
+				A1B2C3D4E5F6071801020501 /* Sources */,
+				A1B2C3D4E5F6071801020502 /* Frameworks */,
+				A1B2C3D4E5F6071801020503 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HackerPillarWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = HackerPillarWidgetExtension;
+			productReference = A1B2C3D4E5F6071801020204 /* HackerPillarWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A1B2C3D4E5F6071802020701 /* HackerPillarShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F6071802020D01 /* Build configuration list for PBXNativeTarget "HackerPillarShareExtension" */;
+			buildPhases = (
+				A1B2C3D4E5F6071802020501 /* Sources */,
+				A1B2C3D4E5F6071802020502 /* Frameworks */,
+				A1B2C3D4E5F6071802020503 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HackerPillarShareExtension;
+			packageProductDependencies = (
+			);
+			productName = HackerPillarShareExtension;
+			productReference = A1B2C3D4E5F6071802020203 /* HackerPillarShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		B478F9BC28AD77CA002B893C /* HackerNewsApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B478F9CB28AD77CB002B893C /* Build configuration list for PBXNativeTarget "HackerNewsApp" */;
@@ -386,11 +642,14 @@
 				B478F9B928AD77CA002B893C /* Sources */,
 				B478F9BA28AD77CA002B893C /* Frameworks */,
 				B478F9BB28AD77CA002B893C /* Resources */,
+				A1B2C3D4E5F6071801020401 /* Embed App Extensions */,
 				B46E0AFC28C0FFDC00ECAD45 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A1B2C3D4E5F6071801020B01 /* PBXTargetDependency */,
+				A1B2C3D4E5F6071802020B01 /* PBXTargetDependency */,
 			);
 			name = HackerNewsApp;
 			packageProductDependencies = (
@@ -414,6 +673,12 @@
 				LastSwiftUpdateCheck = 1340;
 				LastUpgradeCheck = 1340;
 				TargetAttributes = {
+					A1B2C3D4E5F6071801020701 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					A1B2C3D4E5F6071802020701 = {
+						CreatedOnToolsVersion = 16.0;
+					};
 					B478F9BC28AD77CA002B893C = {
 						CreatedOnToolsVersion = 13.4.1;
 					};
@@ -440,11 +705,27 @@
 			projectRoot = "";
 			targets = (
 				B478F9BC28AD77CA002B893C /* HackerNewsApp */,
+				A1B2C3D4E5F6071801020701 /* HackerPillarWidgetExtension */,
+				A1B2C3D4E5F6071802020701 /* HackerPillarShareExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A1B2C3D4E5F6071801020503 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F6071802020503 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B478F9BB28AD77CA002B893C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -457,10 +738,40 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A1B2C3D4E5F6071801020501 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F6071801020301 /* HackerPillarWidget.swift in Sources */,
+				A1B2C3D4E5F6071801020302 /* WidgetSnapshot.swift in Sources */,
+				A1B2C3D4E5F6071801020303 /* WidgetSnapshotLoader.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F6071802020501 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F6071802020305 /* ShareImportTelemetry.swift in Sources */,
+				A1B2C3D4E5F6071802020301 /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B478F9B928AD77CA002B893C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7A600000000000000000201 /* iCloudSyncManager.swift in Sources */,
+				C7A500000000000000000201 /* SmartFeedRanker.swift in Sources */,
+				C7A500000000000000000202 /* SmartFeedStore.swift in Sources */,
+				C7A400000000000000000201 /* FeedFilter.swift in Sources */,
+				C7A400000000000000000202 /* FeedFilterViewController.swift in Sources */,
+				C7A300000000000000000201 /* OfflineStory.swift in Sources */,
+				C7A300000000000000000202 /* OfflineStore.swift in Sources */,
+				C7A300000000000000000203 /* OfflineViewModel.swift in Sources */,
+				C7A300000000000000000204 /* OfflineViewController.swift in Sources */,
+				C7A200000000000000000201 /* HNAccountViewController.swift in Sources */,
+				C7A200000000000000000202 /* ReplyViewController.swift in Sources */,
 				C7A100000000000000000201 /* SubscriptionManager.swift in Sources */,
 				C7A100000000000000000202 /* ProFeatureGate.swift in Sources */,
 				C7A100000000000000000203 /* PaywallViewController.swift in Sources */,
@@ -469,6 +780,35 @@
 				B5A1C2D3E4F5060708090B1E /* ReaderLinkPolicy.swift in Sources */,
 				B5A1C2D3E4F5060708090B23 /* ReaderLinkHandler.swift in Sources */,
 				B5A1C2D3E4F5060708090B1F /* ReaderTypography.swift in Sources */,
+				C7A700000000000000000201 /* FeedImagePipeline.swift in Sources */,
+				C7A700000000000000000202 /* SunGradientView.swift in Sources */,
+				C7A700000000000000000203 /* ShimmerLayer.swift in Sources */,
+				C7A700000000000000000204 /* FeedStoryCell.swift in Sources */,
+				C7A700000000000000000205 /* StoryCommentsPagerViewController.swift in Sources */,
+				C7A700000000000000000206 /* SavedStoriesViewController.swift in Sources */,
+				C7A700000000000000000207 /* HistoryUIKitViewController.swift in Sources */,
+				C7A700000000000000000208 /* SettingsUIKitViewController.swift in Sources */,
+				C7A700000000000000000209 /* CustomFeedManagerViewController.swift in Sources */,
+				C7A70000000000000000020A /* TrackedThreadsViewController.swift in Sources */,
+				C7A70000000000000000020B /* PerformanceDashboardViewController.swift in Sources */,
+				C7A70000000000000000020C /* SearchViewController.swift in Sources */,
+				C7A70000000000000000020D /* UserProfileViewController.swift in Sources */,
+				C7A70000000000000000020E /* ReaderViewController.swift in Sources */,
+				C7A70000000000000000020F /* FeedViewController.swift in Sources */,
+				C7A700000000000000000210 /* OnboardingViewController.swift in Sources */,
+				C7A700000000000000000211 /* PerformanceMonitor.swift in Sources */,
+				C7A700000000000000000212 /* ShortcutsProvider.swift in Sources */,
+				C7A700000000000000000213 /* WidgetShareBridge.swift in Sources */,
+				C7A700000000000000000214 /* NotificationTracking.swift in Sources */,
+				C7A700000000000000000215 /* LiveActivityManager.swift in Sources */,
+				C7A700000000000000000216 /* HNAlgoliaClient.swift in Sources */,
+				C7A700000000000000000217 /* CustomFeedManager.swift in Sources */,
+				C7A700000000000000000218 /* ThemeManager.swift in Sources */,
+				C7A700000000000000000219 /* SpotlightIndexer.swift in Sources */,
+				C7A70000000000000000021A /* HNTabBarController.swift in Sources */,
+				C7A70000000000000000021B /* HNIPadSplitViewController.swift in Sources */,
+				C7A70000000000000000021C /* ShareImportTelemetry.swift in Sources */,
+				C7A70000000000000000021D /* LegalLinks.swift in Sources */,
 				B7A1C2D3E4F5060708090B11 /* SettingsPersistenceCoordinator.swift in Sources */,
 				B4FF102028F0000000A1B2D2 /* AppRoute.swift in Sources */,
 				B4FF102228F0000000A1B2D3 /* RouteViewModels.swift in Sources */,
@@ -518,7 +858,104 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		A1B2C3D4E5F6071801020B01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1B2C3D4E5F6071801020701 /* HackerPillarWidgetExtension */;
+			targetProxy = A1B2C3D4E5F6071801020A01 /* PBXContainerItemProxy */;
+		};
+		A1B2C3D4E5F6071802020B01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1B2C3D4E5F6071802020701 /* HackerPillarShareExtension */;
+			targetProxy = A1B2C3D4E5F6071802020A01 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		A1B2C3D4E5F6071801020C01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = HackerNewsWidget/HackerNewsWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = Z7DD293MY9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HackerNewsWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp.HackerPillarWidgetExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F6071801020C02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = HackerNewsWidget/HackerNewsWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = Z7DD293MY9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HackerNewsWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp.HackerPillarWidgetExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A1B2C3D4E5F6071802020C01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = Z7DD293MY9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp.HackerPillarShareExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F6071802020C02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = Z7DD293MY9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp.HackerPillarShareExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		B478F9C928AD77CB002B893C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -639,11 +1076,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = HackerNewsApp/HackerNewsApp.entitlements;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"HackerNewsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -669,11 +1108,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = HackerNewsApp/HackerNewsApp.entitlements;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"HackerNewsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -696,6 +1137,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A1B2C3D4E5F6071801020D01 /* Build configuration list for PBXNativeTarget "HackerPillarWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F6071801020C01 /* Debug */,
+				A1B2C3D4E5F6071801020C02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D4E5F6071802020D01 /* Build configuration list for PBXNativeTarget "HackerPillarShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F6071802020C01 /* Debug */,
+				A1B2C3D4E5F6071802020C02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B478F9B828AD77CA002B893C /* Build configuration list for PBXProject "HackerNewsApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -1,5 +1,41 @@
 import Foundation
 
+struct HNUser: Codable {
+    let id: String
+    let created: Int
+    let karma: Int
+    let about: String?
+    let submitted: [Int]
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case created
+        case karma
+        case about
+        case submitted
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        created = try container.decodeIfPresent(Int.self, forKey: .created) ?? 0
+        karma = try container.decodeIfPresent(Int.self, forKey: .karma) ?? 0
+        about = try container.decodeIfPresent(String.self, forKey: .about)
+        submitted = try container.decodeIfPresent([Int].self, forKey: .submitted) ?? []
+    }
+}
+
+struct HNUserSubmission: Codable, Identifiable {
+    let id: Int
+    let by: String?
+    let type: String?
+    let time: Int?
+    let title: String?
+    let text: String?
+    let url: String?
+    let score: Int?
+}
+
 struct HNAPIClient {
     private let defaultBaseURL = URL(string: "https://hacker-news.firebaseio.com/v0")!
 #if DEBUG
@@ -48,6 +84,21 @@ struct HNAPIClient {
         let url = baseURL.appendingPathComponent("item/\(id).json")
         let (data, _) = try await session.data(from: url)
         return try decoder.decode(Story.self, from: data)
+    }
+
+    func fetchUser(id: String) async throws -> HNUser {
+        let url = baseURL.appendingPathComponent("user/\(id).json")
+        let (data, _) = try await session.data(from: url)
+        guard let user = try decoder.decode(HNUser?.self, from: data) else {
+            throw URLError(.resourceUnavailable)
+        }
+        return user
+    }
+
+    func fetchUserSubmission(id: Int) async throws -> HNUserSubmission? {
+        let url = baseURL.appendingPathComponent("item/\(id).json")
+        let (data, _) = try await session.data(from: url)
+        return try decoder.decode(HNUserSubmission?.self, from: data)
     }
     
     /// Fetches stories for the given IDs with bounded concurrency.

@@ -6,6 +6,8 @@ enum ReaderBlock: Hashable {
     case paragraph([ReaderSpan])
     case code(String)
     case quote(String)
+    case image(url: URL, alt: String?)
+    case listItem(text: String, ordered: Bool)
 
     var text: String {
         switch self {
@@ -16,6 +18,10 @@ enum ReaderBlock: Hashable {
         case .code(let text):
             return text
         case .quote(let text):
+            return text
+        case .image(_, let alt):
+            return alt ?? ""
+        case .listItem(let text, _):
             return text
         }
     }
@@ -30,6 +36,10 @@ enum ReaderBlock: Hashable {
             return .code(text)
         case .quote:
             return .quote(text)
+        case .image(let url, _):
+            return .image(url: url, alt: text)
+        case .listItem(_, let ordered):
+            return .listItem(text: text, ordered: ordered)
         }
     }
 
@@ -39,6 +49,8 @@ enum ReaderBlock: Hashable {
         case .paragraph(let spans):
             let truncatedSpans = ReaderBlock.truncatedSpans(spans, to: length)
             return truncatedSpans.isEmpty ? nil : .paragraph(truncatedSpans)
+        case .image:
+            return self
         default:
             let clipped = String(text.prefix(length))
             return clipped.isEmpty ? nil : withText(clipped)
@@ -258,10 +270,17 @@ final class ReaderExtractor {
                 }
                 return
             case "li":
-                var spans = inlineSpans(from: element, baseURL: baseURL)
-                if !spans.isEmpty {
-                    spans.insert(.text("• "), at: 0)
-                    blocks.append(.paragraph(spans))
+                let text = normalizedText(from: element)
+                if !text.isEmpty {
+                    let isOrdered = element.parent()?.tagName().lowercased() == "ol"
+                    blocks.append(.listItem(text: text, ordered: isOrdered))
+                }
+                return
+            case "img":
+                let src = (try? element.attr("src"))?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if let imageURL = resolvedLinkURL(href: src, baseURL: baseURL), isSupportedLink(imageURL) {
+                    let alt = (try? element.attr("alt"))?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    blocks.append(.image(url: imageURL, alt: alt?.isEmpty == true ? nil : alt))
                 }
                 return
             case "code":

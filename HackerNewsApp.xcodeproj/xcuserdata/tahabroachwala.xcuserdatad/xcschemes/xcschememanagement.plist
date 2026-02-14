@@ -7,7 +7,17 @@
 		<key>HackerNewsApp.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>HackerPillarShareExtension.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+		<key>HackerPillarWidgetExtension.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
 		</dict>
 		<key>SimpleStorage (Playground) 1.xcscheme</key>
 		<dict>
@@ -113,6 +123,24 @@
 			<false/>
 			<key>orderHint</key>
 			<integer>4</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>A1B2C3D4E5F6071801020701</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>A1B2C3D4E5F6071802020701</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B478F9BC28AD77CA002B893C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
