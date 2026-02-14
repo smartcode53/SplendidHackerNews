@@ -28,10 +28,9 @@ final class ThemeManager {
         UITabBar.appearance().tintColor = accent
         UINavigationBar.appearance().tintColor = accent
 
-        let titleFont = font(for: fontFamily, textStyle: .headline)
         let bodyFont = font(for: fontFamily, textStyle: .body)
-        UINavigationBar.appearance().titleTextAttributes = [.font: titleFont]
-        UINavigationBar.appearance().largeTitleTextAttributes = [.font: titleFont]
+        UINavigationBar.appearance().titleTextAttributes = [:]
+        UINavigationBar.appearance().largeTitleTextAttributes = [:]
         UIBarButtonItem.appearance().setTitleTextAttributes([.font: bodyFont], for: .normal)
 
         applyLiveTint(window: window, accent: accent)

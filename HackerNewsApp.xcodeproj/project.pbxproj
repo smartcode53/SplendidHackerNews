@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		80E5CABE0BE3185CD21C5581 /* AttributedStringCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F388AC18CDCCAB5AE414872 /* AttributedStringCache.swift */; };
 		A1B2C3D4E5F6071801020301 /* HackerPillarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020201 /* HackerPillarWidget.swift */; };
 		A1B2C3D4E5F6071801020302 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020202 /* WidgetSnapshot.swift */; };
 		A1B2C3D4E5F6071801020303 /* WidgetSnapshotLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020203 /* WidgetSnapshotLoader.swift */; };
 		A1B2C3D4E5F6071801020304 /* HackerPillarWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071801020204 /* HackerPillarWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A1B2C3D4E5F6071802020301 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071802020201 /* ShareViewController.swift */; };
-		A1B2C3D4E5F6071802020305 /* ShareImportTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011C /* ShareImportTelemetry.swift */; };
 		A1B2C3D4E5F6071802020302 /* HackerPillarShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071802020203 /* HackerPillarShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		80E5CABE0BE3185CD21C5581 /* AttributedStringCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F388AC18CDCCAB5AE414872 /* AttributedStringCache.swift */; };
+		A1B2C3D4E5F6071802020305 /* ShareImportTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011C /* ShareImportTelemetry.swift */; };
 		B2B2B2B2B2B2B2B2B2B2B201 /* HNAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */; };
 		B2B2B2B2B2B2B2B2B2B2B202 /* HNKeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A102 /* HNKeychainStore.swift */; };
 		B2B2B2B2B2B2B2B2B2B2B203 /* HNHTMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A103 /* HNHTMLParser.swift */; };
@@ -65,6 +65,8 @@
 		B5A1C2D3E4F5060708090B1F /* ReaderTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A1C2D3E4F5060708090A1F /* ReaderTypography.swift */; };
 		B5A1C2D3E4F5060708090B23 /* ReaderLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A1C2D3E4F5060708090A23 /* ReaderLinkHandler.swift */; };
 		B7A1C2D3E4F5060708090B11 /* SettingsPersistenceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */; };
+		C1C1C1C1C1C1C1C1C1C1C102 /* HNDiagnosticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */; };
+		C1C1C1C1C1C1C1C1C1C1C103 /* HNDiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */; };
 		C7A100000000000000000201 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000101 /* SubscriptionManager.swift */; };
 		C7A100000000000000000202 /* ProFeatureGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000102 /* ProFeatureGate.swift */; };
 		C7A100000000000000000203 /* PaywallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A100000000000000000103 /* PaywallViewController.swift */; };
@@ -108,12 +110,27 @@
 		C7A70000000000000000021B /* HNIPadSplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011B /* HNIPadSplitViewController.swift */; };
 		C7A70000000000000000021C /* ShareImportTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011C /* ShareImportTelemetry.swift */; };
 		C7A70000000000000000021D /* LegalLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A70000000000000000011D /* LegalLinks.swift */; };
-		C1C1C1C1C1C1C1C1C1C1C102 /* HNDiagnosticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */; };
-		C1C1C1C1C1C1C1C1C1C1C103 /* HNDiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */; };
 		D1D1D1D1D1D1D1D1D1D1D101 /* FeedScrollStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */; };
 		D1D1D1D1D1D1D1D1D1D1D102 /* CommentsScrollStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D1D1D1D1D1D1D1D1D1D002 /* CommentsScrollStore.swift */; };
 		F468238BA89191CCDF91A353 /* CommentHTMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7DFAC023516C5E18BE87B7 /* CommentHTMLParser.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A1B2C3D4E5F6071801020A01 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B478F9B528AD77CA002B893C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1B2C3D4E5F6071801020701;
+			remoteInfo = HackerPillarWidgetExtension;
+		};
+		A1B2C3D4E5F6071802020A01 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B478F9B528AD77CA002B893C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1B2C3D4E5F6071802020701;
+			remoteInfo = HackerPillarShareExtension;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		A1B2C3D4E5F6071801020401 /* Embed App Extensions */ = {
@@ -140,24 +157,14 @@
 		};
 /* End PBXCopyFilesBuildPhase section */
 
-/* Begin PBXContainerItemProxy section */
-		A1B2C3D4E5F6071801020A01 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B478F9B528AD77CA002B893C /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A1B2C3D4E5F6071801020701;
-			remoteInfo = HackerPillarWidgetExtension;
-		};
-		A1B2C3D4E5F6071802020A01 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B478F9B528AD77CA002B893C /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A1B2C3D4E5F6071802020701;
-			remoteInfo = HackerPillarShareExtension;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
+		4F388AC18CDCCAB5AE414872 /* AttributedStringCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AttributedStringCache.swift; sourceTree = "<group>"; };
+		9B7DFAC023516C5E18BE87B7 /* CommentHTMLParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommentHTMLParser.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAccount.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A102 /* HNKeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNKeychainStore.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A103 /* HNHTMLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNHTMLParser.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A104 /* HNWriteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNWriteClient.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A105 /* HNDebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDebugLog.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071801020201 /* HackerPillarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HackerPillarWidget.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071801020202 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071801020203 /* WidgetSnapshotLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotLoader.swift; sourceTree = "<group>"; };
@@ -166,13 +173,6 @@
 		A1B2C3D4E5F6071802020201 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071802020202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071802020203 /* HackerPillarShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HackerPillarShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		4F388AC18CDCCAB5AE414872 /* AttributedStringCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AttributedStringCache.swift; sourceTree = "<group>"; };
-		9B7DFAC023516C5E18BE87B7 /* CommentHTMLParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommentHTMLParser.swift; sourceTree = "<group>"; };
-		A1A1A1A1A1A1A1A1A1A1A101 /* HNAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNAccount.swift; sourceTree = "<group>"; };
-		A1A1A1A1A1A1A1A1A1A1A102 /* HNKeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNKeychainStore.swift; sourceTree = "<group>"; };
-		A1A1A1A1A1A1A1A1A1A1A103 /* HNHTMLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNHTMLParser.swift; sourceTree = "<group>"; };
-		A1A1A1A1A1A1A1A1A1A1A104 /* HNWriteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNWriteClient.swift; sourceTree = "<group>"; };
-		A1A1A1A1A1A1A1A1A1A1A105 /* HNDebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDebugLog.swift; sourceTree = "<group>"; };
 		B41CD14828DF3E1C0091E865 /* BookmarksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksViewModel.swift; sourceTree = "<group>"; };
 		B43473E128EB34AF0074A8BA /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		B44EB1D228DD8D6100CC72EE /* CommentsCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsCache.swift; sourceTree = "<group>"; };
@@ -214,6 +214,8 @@
 		B5A1C2D3E4F5060708090A1F /* ReaderTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderTypography.swift; sourceTree = "<group>"; };
 		B5A1C2D3E4F5060708090A23 /* ReaderLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderLinkHandler.swift; sourceTree = "<group>"; };
 		B7A1C2D3E4F5060708090B10 /* SettingsPersistenceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPersistenceCoordinator.swift; sourceTree = "<group>"; };
+		C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsViewModel.swift; sourceTree = "<group>"; };
+		C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsReport.swift; sourceTree = "<group>"; };
 		C7A100000000000000000101 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		C7A100000000000000000102 /* ProFeatureGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProFeatureGate.swift; sourceTree = "<group>"; };
 		C7A100000000000000000103 /* PaywallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViewController.swift; sourceTree = "<group>"; };
@@ -257,8 +259,6 @@
 		C7A70000000000000000011B /* HNIPadSplitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNIPadSplitViewController.swift; sourceTree = "<group>"; };
 		C7A70000000000000000011C /* ShareImportTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImportTelemetry.swift; sourceTree = "<group>"; };
 		C7A70000000000000000011D /* LegalLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalLinks.swift; sourceTree = "<group>"; };
-		C1C1C1C1C1C1C1C1C1C1C002 /* HNDiagnosticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsViewModel.swift; sourceTree = "<group>"; };
-		C1C1C1C1C1C1C1C1C1C1C003 /* HNDiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HNDiagnosticsReport.swift; sourceTree = "<group>"; };
 		D1D1D1D1D1D1D1D1D1D1D001 /* FeedScrollStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedScrollStore.swift; sourceTree = "<group>"; };
 		D1D1D1D1D1D1D1D1D1D1D002 /* CommentsScrollStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsScrollStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -293,6 +293,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A1B2C3D4E5F6071801020601 /* HackerNewsWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6071801020201 /* HackerPillarWidget.swift */,
+				A1B2C3D4E5F6071801020202 /* WidgetSnapshot.swift */,
+				A1B2C3D4E5F6071801020203 /* WidgetSnapshotLoader.swift */,
+				A1B2C3D4E5F6071801020205 /* Info.plist */,
+			);
+			path = HackerNewsWidget;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6071802020601 /* ShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6071802020201 /* ShareViewController.swift */,
+				A1B2C3D4E5F6071802020202 /* Info.plist */,
+			);
+			path = ShareExtension;
+			sourceTree = "<group>";
+		};
 		B4191D3A28C3299F00B86618 /* ViewModifiers */ = {
 			isa = PBXGroup;
 			children = (
@@ -383,26 +403,6 @@
 				A1B2C3D4E5F6071802020203 /* HackerPillarShareExtension.appex */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		A1B2C3D4E5F6071802020601 /* ShareExtension */ = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F6071802020201 /* ShareViewController.swift */,
-				A1B2C3D4E5F6071802020202 /* Info.plist */,
-			);
-			path = ShareExtension;
-			sourceTree = "<group>";
-		};
-		A1B2C3D4E5F6071801020601 /* HackerNewsWidget */ = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F6071801020201 /* HackerPillarWidget.swift */,
-				A1B2C3D4E5F6071801020202 /* WidgetSnapshot.swift */,
-				A1B2C3D4E5F6071801020203 /* WidgetSnapshotLoader.swift */,
-				A1B2C3D4E5F6071801020205 /* Info.plist */,
-			);
-			path = HackerNewsWidget;
 			sourceTree = "<group>";
 		};
 		B478F9BF28AD77CA002B893C /* HackerNewsApp */ = {
@@ -567,12 +567,14 @@
 			path = Other;
 			sourceTree = "<group>";
 		};
-		C7A600000000000000000301 /* Sync */ = {
+		C7A100000000000000000301 /* Subscription */ = {
 			isa = PBXGroup;
 			children = (
-				C7A600000000000000000101 /* iCloudSyncManager.swift */,
+				C7A100000000000000000101 /* SubscriptionManager.swift */,
+				C7A100000000000000000102 /* ProFeatureGate.swift */,
+				C7A100000000000000000103 /* PaywallViewController.swift */,
 			);
-			path = Sync;
+			path = Subscription;
 			sourceTree = "<group>";
 		};
 		C7A300000000000000000301 /* Offline */ = {
@@ -584,14 +586,12 @@
 			path = Offline;
 			sourceTree = "<group>";
 		};
-		C7A100000000000000000301 /* Subscription */ = {
+		C7A600000000000000000301 /* Sync */ = {
 			isa = PBXGroup;
 			children = (
-				C7A100000000000000000101 /* SubscriptionManager.swift */,
-				C7A100000000000000000102 /* ProFeatureGate.swift */,
-				C7A100000000000000000103 /* PaywallViewController.swift */,
+				C7A600000000000000000101 /* iCloudSyncManager.swift */,
 			);
-			path = Subscription;
+			path = Sync;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -876,8 +876,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = HackerNewsWidget/HackerNewsWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -897,8 +897,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = HackerNewsWidget/HackerNewsWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -918,8 +918,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -939,8 +939,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1075,9 +1075,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = HackerNewsApp/HackerNewsApp.entitlements;
-				CURRENT_PROJECT_VERSION = 2;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"HackerNewsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
@@ -1095,7 +1095,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1109,9 +1109,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = HackerNewsApp/HackerNewsApp.entitlements;
-				CURRENT_PROJECT_VERSION = 2;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"HackerNewsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = Z7DD293MY9;
 				ENABLE_PREVIEWS = YES;
@@ -1129,7 +1129,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.the8-bit.HackerNewsApp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

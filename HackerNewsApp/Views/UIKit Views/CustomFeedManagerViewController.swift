@@ -12,6 +12,7 @@ final class CustomFeedManagerViewController: UITableViewController {
         tableView.backgroundColor = UIColor(named: "BackgroundColor") ?? .systemBackground
         tableView.separatorStyle = .singleLine
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTapped))
+        navigationItem.leftItemsSupplementBackButton = true
         navigationItem.leftBarButtonItem = editButtonItem
         bind()
     }

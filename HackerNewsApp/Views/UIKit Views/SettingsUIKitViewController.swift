@@ -2,7 +2,57 @@ import UIKit
 import Combine
 
 @MainActor
-final class SettingsUIKitViewController: UIViewController {
+final class SettingsUIKitViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    private enum Section: Int, CaseIterable {
+        case appearance
+        case reading
+        case subscription
+        case features
+        case legal
+        case diagnostics
+#if DEBUG
+        case debug
+#endif
+
+        var title: String {
+            switch self {
+            case .appearance: return "Appearance"
+            case .reading: return "Reading"
+            case .subscription: return "HackerPillar Pro"
+            case .features: return "Features"
+            case .legal: return "Legal"
+            case .diagnostics: return "Diagnostics"
+#if DEBUG
+            case .debug: return "Debug"
+#endif
+            }
+        }
+    }
+
+    private enum Row {
+        case theme
+        case accentColor
+        case fontFamily
+        case highContrast
+        case openInReader
+        case openReaderLinks
+        case fontScale
+        case lineSpacing
+        case iCloudSync
+        case proPrimary
+        case proRestore
+        case hnAccount
+        case customFeeds
+        case trackedThreads
+        case performance
+        case terms
+        case privacy
+        case shareImportReset
+#if DEBUG
+        case debugForcePro
+#endif
+    }
+
     private let globalSettings: GlobalSettingsViewModel
     private let hnAccount = HNAccount.shared
     private let proFeatureGate = ProFeatureGate.shared
@@ -10,33 +60,33 @@ final class SettingsUIKitViewController: UIViewController {
     private let customFeedManager = CustomFeedManager.shared
     private var cancellables: Set<AnyCancellable> = []
 
-    private let scrollView = UIScrollView()
-    private let stack = UIStackView()
-    private let cardStyleControl = UISegmentedControl(items: Settings.CardStyle.allCases.map(\.rawValue))
-    private let themeControl = UISegmentedControl(items: Settings.Theme.allCases.map(\.rawValue))
-    private let accentColorControl = UISegmentedControl(items: Settings.AccentColor.allCases.map(\.rawValue))
-    private let fontFamilyControl = UISegmentedControl(items: Settings.FontFamily.allCases.map(\.rawValue))
+    private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+
     private let openInReaderSwitch = UISwitch()
     private let openReaderLinksSwitch = UISwitch()
     private let iCloudSyncSwitch = UISwitch()
     private let highContrastSwitch = UISwitch()
-#if DEBUG || targetEnvironment(simulator)
+#if DEBUG
     private let debugForceProSwitch = UISwitch()
 #endif
-    private let fontScaleSlider = UISlider()
-    private let lineSpacingSlider = UISlider()
-    private let fontScaleValueLabel = UILabel()
-    private let lineSpacingValueLabel = UILabel()
-    private let hnAccountSubtitleLabel = UILabel()
-    private let proSubscriptionSubtitleLabel = UILabel()
-    private let customFeedsSubtitleLabel = UILabel()
-    private let trackedThreadsSubtitleLabel = UILabel()
-    private let legalSubtitleLabel = UILabel()
-    private let shareImportSubtitleLabel = UILabel()
-    private let performanceSubtitleLabel = UILabel()
-    private let proPrimaryButton = UIButton(type: .system)
-    private let proRestoreButton = UIButton(type: .system)
+
     private var proSubscriptionStatusMessage: String?
+    private var shareImportStatusMessage: String {
+        let snapshot = ShareImportTelemetry.snapshot()
+        if snapshot.failureCount == 0 {
+            if let successAt = snapshot.lastSuccessAt {
+                let time = DateFormatter.localizedString(from: successAt, dateStyle: .short, timeStyle: .short)
+                return "No failures. Last import: \(time) (\(snapshot.lastImportedCount) items). Pending: \(snapshot.pendingCount)."
+            }
+            return "No failures recorded. Pending queue: \(snapshot.pendingCount)."
+        }
+
+        let lastTime = snapshot.lastFailureAt.map {
+            DateFormatter.localizedString(from: $0, dateStyle: .short, timeStyle: .short)
+        } ?? "unknown time"
+        let message = snapshot.lastFailureMessage ?? "Unknown failure"
+        return "\(snapshot.failureCount) failure\(snapshot.failureCount == 1 ? "" : "s"). Last: \(lastTime) • \(message)"
+    }
 
     init(globalSettings: GlobalSettingsViewModel) {
         self.globalSettings = globalSettings
@@ -51,20 +101,17 @@ final class SettingsUIKitViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Settings"
-        view.backgroundColor = UIColor(named: "BackgroundColor") ?? .systemBackground
-        configureLayout()
+        navigationItem.largeTitleDisplayMode = .always
+        view.backgroundColor = .systemGroupedBackground
+        configureTableView()
         configureState()
         wireActions()
-        bindAccountState()
+        bindState()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        refreshProSubscriptionCard()
-        refreshTrackedThreadsSubtitle()
-        refreshLegalSubtitle()
-        refreshShareImportSubtitle()
-        refreshPerformanceSubtitle()
+        tableView.reloadData()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -72,336 +119,58 @@ final class SettingsUIKitViewController: UIViewController {
         globalSettings.saveSettings()
     }
 
-    private func configureLayout() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.spacing = 14
-        stack.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 24, right: 16)
-        stack.isLayoutMarginsRelativeArrangement = true
+    private func configureTableView() {
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 60
 
-        view.addSubview(scrollView)
-        scrollView.addSubview(stack)
-
+        view.addSubview(tableView)
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
-            stack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor),
-            stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor)
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
 
-        stack.addArrangedSubview(makeCard(title: "Story Feed Card Style", body: cardStyleControl))
-        stack.addArrangedSubview(makeCard(title: "Theme", body: themeControl))
-        stack.addArrangedSubview(makeCard(title: "Accent Color (Pro)", body: accentColorControl))
-        stack.addArrangedSubview(makeCard(title: "Font Family (Pro)", body: fontFamilyControl))
-        stack.addArrangedSubview(makeProSubscriptionCard())
-
-        stack.addArrangedSubview(makeSwitchCard(
-            title: "Open stories in Reader",
-            subtitle: "Open story taps in in-app reader by default.",
-            control: openInReaderSwitch
-        ))
-
-        stack.addArrangedSubview(makeSwitchCard(
-            title: "Open reader links in Reader",
-            subtitle: "In Reader, open article links in Reader when possible.",
-            control: openReaderLinksSwitch
-        ))
-
-        stack.addArrangedSubview(makeSwitchCard(
-            title: "iCloud Sync",
-            subtitle: "Sync settings, read state, and bookmarks across devices (Pro).",
-            control: iCloudSyncSwitch
-        ))
-
-        stack.addArrangedSubview(makeSwitchCard(
-            title: "High Contrast",
-            subtitle: "Increase borders and contrast for stronger readability.",
-            control: highContrastSwitch
-        ))
-
-#if DEBUG || targetEnvironment(simulator)
-        stack.addArrangedSubview(makeSwitchCard(
-            title: "DEBUG: Force Pro",
-            subtitle: "Local-only entitlement override for simulator testing.",
-            control: debugForceProSwitch
-        ))
+    private func rows(for section: Section) -> [Row] {
+        switch section {
+        case .appearance:
+            return [.theme, .accentColor, .fontFamily, .highContrast]
+        case .reading:
+            return [.openInReader, .openReaderLinks, .fontScale, .lineSpacing]
+        case .subscription:
+            return [.proPrimary, .proRestore, .iCloudSync]
+        case .features:
+            return [.hnAccount, .customFeeds, .trackedThreads, .performance]
+        case .legal:
+            return [.terms, .privacy]
+        case .diagnostics:
+            return [.shareImportReset]
+#if DEBUG
+        case .debug:
+            return [.debugForcePro]
 #endif
-
-        fontScaleSlider.minimumValue = 0.9
-        fontScaleSlider.maximumValue = 1.4
-        fontScaleSlider.isContinuous = true
-        stack.addArrangedSubview(makeSliderCard(
-            title: "Reader Font Scale",
-            subtitleLabel: fontScaleValueLabel,
-            slider: fontScaleSlider
-        ))
-
-        lineSpacingSlider.minimumValue = 0
-        lineSpacingSlider.maximumValue = 6
-        stack.addArrangedSubview(makeSliderCard(
-            title: "Reader Line Spacing",
-            subtitleLabel: lineSpacingValueLabel,
-            slider: lineSpacingSlider
-        ))
-
-        stack.addArrangedSubview(makeActionCard(
-            title: "HN Account",
-            subtitleLabel: hnAccountSubtitleLabel,
-            buttonTitle: "Manage Account",
-            action: #selector(openHNAccount)
-        ))
-
-        stack.addArrangedSubview(makeActionCard(
-            title: "Custom Feeds",
-            subtitleLabel: customFeedsSubtitleLabel,
-            buttonTitle: "Manage Feeds",
-            action: #selector(openCustomFeeds)
-        ))
-
-        stack.addArrangedSubview(makeActionCard(
-            title: "Tracked Threads",
-            subtitleLabel: trackedThreadsSubtitleLabel,
-            buttonTitle: "View Tracked",
-            action: #selector(openTrackedThreads)
-        ))
-
-        stack.addArrangedSubview(makeLegalLinksCard())
-
-        stack.addArrangedSubview(makeActionCard(
-            title: "Share Import Health",
-            subtitleLabel: shareImportSubtitleLabel,
-            buttonTitle: "Reset Failures",
-            action: #selector(resetShareImportFailures)
-        ))
-
-        stack.addArrangedSubview(makeActionCard(
-            title: "Performance Dashboard",
-            subtitleLabel: performanceSubtitleLabel,
-            buttonTitle: "Open Dashboard",
-            action: #selector(openPerformanceDashboard)
-        ))
-    }
-
-    private func makeCard(title: String, body: UIView) -> UIView {
-        let highContrast = globalSettings.settings.highContrastMode
-        let card = UIView()
-        card.backgroundColor = UIColor(named: "CardColor") ?? .secondarySystemBackground
-        card.layer.cornerRadius = 14
-        card.layer.cornerCurve = .continuous
-        card.layer.borderWidth = highContrast ? 1 : 0
-        card.layer.borderColor = UIColor.label.withAlphaComponent(highContrast ? 0.22 : 0.08).cgColor
-
-        let titleLabel = UILabel()
-        titleLabel.font = .preferredFont(forTextStyle: .headline)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.text = title
-
-        let stack = UIStackView(arrangedSubviews: [titleLabel, body])
-        stack.axis = .vertical
-        stack.spacing = 10
-        stack.translatesAutoresizingMaskIntoConstraints = false
-
-        card.addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
-        ])
-        return card
-    }
-
-    private func makeSwitchCard(title: String, subtitle: String, control: UISwitch) -> UIView {
-        let highContrast = globalSettings.settings.highContrastMode
-        let card = UIView()
-        card.backgroundColor = UIColor(named: "CardColor") ?? .secondarySystemBackground
-        card.layer.cornerRadius = 14
-        card.layer.borderWidth = highContrast ? 1 : 0
-        card.layer.borderColor = UIColor.label.withAlphaComponent(highContrast ? 0.22 : 0.08).cgColor
-
-        let titleLabel = UILabel()
-        titleLabel.font = .preferredFont(forTextStyle: .headline)
-        titleLabel.text = title
-        titleLabel.numberOfLines = 0
-
-        let subtitleLabel = UILabel()
-        subtitleLabel.font = .preferredFont(forTextStyle: .caption1)
-        subtitleLabel.textColor = .secondaryLabel
-        subtitleLabel.numberOfLines = 0
-        subtitleLabel.text = subtitle
-
-        let top = UIStackView(arrangedSubviews: [titleLabel, UIView(), control])
-        top.axis = .horizontal
-        top.alignment = .center
-
-        let stack = UIStackView(arrangedSubviews: [top, subtitleLabel])
-        stack.axis = .vertical
-        stack.spacing = 8
-        stack.translatesAutoresizingMaskIntoConstraints = false
-
-        card.addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
-        ])
-        return card
-    }
-
-    private func makeSliderCard(title: String, subtitleLabel: UILabel, slider: UISlider) -> UIView {
-        subtitleLabel.font = .preferredFont(forTextStyle: .caption1)
-        subtitleLabel.textColor = .secondaryLabel
-
-        let v = UIStackView(arrangedSubviews: [subtitleLabel, slider])
-        v.axis = .vertical
-        v.spacing = 8
-        return makeCard(title: title, body: v)
-    }
-
-    private func makeActionCard(title: String, subtitleLabel: UILabel, buttonTitle: String, action: Selector) -> UIView {
-        subtitleLabel.font = .preferredFont(forTextStyle: .caption1)
-        subtitleLabel.textColor = .secondaryLabel
-        subtitleLabel.numberOfLines = 0
-
-        let button = UIButton(type: .system)
-        button.configuration = .filled()
-        button.configuration?.baseBackgroundColor = .systemOrange
-        button.configuration?.title = buttonTitle
-        button.addTarget(self, action: action, for: .touchUpInside)
-
-        let body = UIStackView(arrangedSubviews: [subtitleLabel, button])
-        body.axis = .vertical
-        body.spacing = 10
-        return makeCard(title: title, body: body)
-    }
-
-    private func makeLegalLinksCard() -> UIView {
-        legalSubtitleLabel.font = .preferredFont(forTextStyle: .caption1)
-        legalSubtitleLabel.textColor = .secondaryLabel
-        legalSubtitleLabel.numberOfLines = 0
-
-        let termsButton = UIButton(type: .system)
-        termsButton.configuration = .tinted()
-        termsButton.configuration?.title = "Terms"
-        termsButton.configuration?.baseForegroundColor = .systemOrange
-        termsButton.addTarget(self, action: #selector(openTerms), for: .touchUpInside)
-        termsButton.isEnabled = LegalLinks.termsURL != nil
-
-        let privacyButton = UIButton(type: .system)
-        privacyButton.configuration = .tinted()
-        privacyButton.configuration?.title = "Privacy"
-        privacyButton.configuration?.baseForegroundColor = .systemOrange
-        privacyButton.addTarget(self, action: #selector(openPrivacy), for: .touchUpInside)
-        privacyButton.isEnabled = LegalLinks.privacyURL != nil
-
-        let linksRow = UIStackView(arrangedSubviews: [termsButton, privacyButton])
-        linksRow.axis = .horizontal
-        linksRow.spacing = 10
-        linksRow.distribution = .fillEqually
-
-        let body = UIStackView(arrangedSubviews: [legalSubtitleLabel, linksRow])
-        body.axis = .vertical
-        body.spacing = 10
-        return makeCard(title: "Legal", body: body)
-    }
-
-    private func makeProSubscriptionCard() -> UIView {
-        proSubscriptionSubtitleLabel.font = .preferredFont(forTextStyle: .caption1)
-        proSubscriptionSubtitleLabel.textColor = .secondaryLabel
-        proSubscriptionSubtitleLabel.numberOfLines = 0
-
-        proPrimaryButton.configuration = .filled()
-        proPrimaryButton.configuration?.baseBackgroundColor = .systemOrange
-        proPrimaryButton.addTarget(self, action: #selector(openProSubscriptionPrimaryAction), for: .touchUpInside)
-
-        proRestoreButton.configuration = .plain()
-        proRestoreButton.configuration?.title = "Restore Purchases"
-        proRestoreButton.addTarget(self, action: #selector(restorePurchasesFromSettings), for: .touchUpInside)
-
-        let buttonsRow = UIStackView(arrangedSubviews: [proPrimaryButton, proRestoreButton])
-        buttonsRow.axis = .horizontal
-        buttonsRow.spacing = 10
-        buttonsRow.distribution = .fillEqually
-
-        let body = UIStackView(arrangedSubviews: [proSubscriptionSubtitleLabel, buttonsRow])
-        body.axis = .vertical
-        body.spacing = 10
-        return makeCard(title: "HackerPillar Pro", body: body)
+        }
     }
 
     private func configureState() {
-        cardStyleControl.selectedSegmentIndex = Settings.CardStyle.allCases.firstIndex(of: globalSettings.selectedCardStyle) ?? 0
-        themeControl.selectedSegmentIndex = Settings.Theme.allCases.firstIndex(of: globalSettings.selectedTheme) ?? 0
-        accentColorControl.selectedSegmentIndex = Settings.AccentColor.allCases.firstIndex(of: globalSettings.selectedAccentColor) ?? 0
-        fontFamilyControl.selectedSegmentIndex = Settings.FontFamily.allCases.firstIndex(of: globalSettings.selectedFontFamily) ?? 0
-
+        [openInReaderSwitch, openReaderLinksSwitch, iCloudSyncSwitch, highContrastSwitch].forEach {
+            $0.onTintColor = .systemGreen
+        }
         openInReaderSwitch.isOn = globalSettings.settings.openInReader
         openReaderLinksSwitch.isOn = globalSettings.settings.openReaderLinksInReader
         iCloudSyncSwitch.isOn = globalSettings.settings.iCloudSyncEnabled && proFeatureGate.isPro
         highContrastSwitch.isOn = globalSettings.settings.highContrastMode
-#if DEBUG || targetEnvironment(simulator)
+#if DEBUG
         debugForceProSwitch.isOn = globalSettings.settings.proEntitlementCachedAt != nil
+        debugForceProSwitch.onTintColor = .systemGreen
 #endif
-
-        fontScaleSlider.value = Float(globalSettings.settings.readerFontScale)
-        lineSpacingSlider.value = Float(globalSettings.settings.readerLineSpacing)
-        refreshTypographyLabels()
-        refreshHNAccountSubtitle()
-        refreshProSubscriptionCard()
-        refreshCustomFeedsSubtitle()
-        refreshTrackedThreadsSubtitle()
-        refreshLegalSubtitle()
-        refreshShareImportSubtitle()
-        refreshPerformanceSubtitle()
-        refreshThemeProControls()
     }
 
     private func wireActions() {
-        cardStyleControl.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            self.globalSettings.updateSettings {
-                $0.cardStyleString = Settings.CardStyle.allCases[self.cardStyleControl.selectedSegmentIndex].rawValue
-            }
-        }, for: .valueChanged)
-
-        themeControl.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            self.globalSettings.updateSettings {
-                $0.themeString = Settings.Theme.allCases[self.themeControl.selectedSegmentIndex].rawValue
-            }
-        }, for: .valueChanged)
-
-        accentColorControl.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            guard self.proFeatureGate.isPro else {
-                self.accentColorControl.selectedSegmentIndex = Settings.AccentColor.allCases.firstIndex(of: self.globalSettings.selectedAccentColor) ?? 0
-                self.proFeatureGate.triggerPaywall(from: self)
-                return
-            }
-            self.globalSettings.updateSettings {
-                $0.accentColorRawValue = Settings.AccentColor.allCases[self.accentColorControl.selectedSegmentIndex].rawValue
-            }
-        }, for: .valueChanged)
-
-        fontFamilyControl.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            guard self.proFeatureGate.isPro else {
-                self.fontFamilyControl.selectedSegmentIndex = Settings.FontFamily.allCases.firstIndex(of: self.globalSettings.selectedFontFamily) ?? 0
-                self.proFeatureGate.triggerPaywall(from: self)
-                return
-            }
-            self.globalSettings.updateSettings {
-                $0.fontFamilyRawValue = Settings.FontFamily.allCases[self.fontFamilyControl.selectedSegmentIndex].rawValue
-            }
-        }, for: .valueChanged)
-
         openInReaderSwitch.addAction(UIAction { [weak self] _ in
             guard let self else { return }
             self.globalSettings.updateSettings {
@@ -435,7 +204,7 @@ final class SettingsUIKitViewController: UIViewController {
             }
         }, for: .valueChanged)
 
-#if DEBUG || targetEnvironment(simulator)
+#if DEBUG
         debugForceProSwitch.addAction(UIAction { [weak self] _ in
             guard let self else { return }
             if self.debugForceProSwitch.isOn {
@@ -446,170 +215,416 @@ final class SettingsUIKitViewController: UIViewController {
             Task { await self.proFeatureGate.refreshEntitlement() }
         }, for: .valueChanged)
 #endif
-
-        fontScaleSlider.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            self.globalSettings.updateSettings {
-                $0.readerFontScale = Double(self.fontScaleSlider.value)
-            }
-            self.refreshTypographyLabels()
-        }, for: .valueChanged)
-
-        lineSpacingSlider.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            self.globalSettings.updateSettings {
-                $0.readerLineSpacing = Double(self.lineSpacingSlider.value)
-            }
-            self.refreshTypographyLabels()
-        }, for: .valueChanged)
     }
 
-    private func bindAccountState() {
+    private func bindState() {
         proFeatureGate.$isPro
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.refreshHNAccountSubtitle()
-                self?.refreshProSubscriptionCard()
-                self?.refreshICloudSyncControl()
-                self?.refreshCustomFeedsSubtitle()
-                self?.refreshTrackedThreadsSubtitle()
-                self?.refreshLegalSubtitle()
-                self?.refreshShareImportSubtitle()
-                self?.refreshPerformanceSubtitle()
-                self?.refreshThemeProControls()
+                self?.tableView.reloadData()
             }
             .store(in: &cancellables)
 
         hnAccount.$isLoggedIn
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.refreshHNAccountSubtitle()
+                self?.reloadRow(.hnAccount)
             }
             .store(in: &cancellables)
 
         hnAccount.$username
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.refreshHNAccountSubtitle()
+                self?.reloadRow(.hnAccount)
             }
             .store(in: &cancellables)
 
         customFeedManager.$feeds
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.refreshCustomFeedsSubtitle()
+                self?.reloadRow(.customFeeds)
             }
             .store(in: &cancellables)
     }
 
-    private func refreshTypographyLabels() {
-        fontScaleValueLabel.text = String(format: "Scale %.2f", globalSettings.settings.readerFontScale)
-        lineSpacingValueLabel.text = String(format: "Spacing %.1f", globalSettings.settings.readerLineSpacing)
+    private func reloadRow(_ row: Row) {
+        for section in Section.allCases {
+            let rows = rows(for: section)
+            if let rowIndex = rows.firstIndex(where: { $0 == row }) {
+                tableView.reloadRows(at: [IndexPath(row: rowIndex, section: section.rawValue)], with: .none)
+                return
+            }
+        }
     }
 
-    private func refreshHNAccountSubtitle() {
+    private func subtitleForProPrimary() -> String {
+        if let status = proSubscriptionStatusMessage {
+            return status
+        }
+        return proFeatureGate.isPro
+            ? "Pro is active on this device."
+            : "Unlock HN account, offline reading, advanced search, custom feeds, and more."
+    }
+
+    private func subtitleForHNAccount() -> String {
         if !proFeatureGate.isPro {
-            hnAccountSubtitleLabel.text = "Pro required. Upgrade to unlock login, voting, and replies."
-            return
+            return "Pro required. Upgrade to unlock login, voting, and replies."
         }
         if hnAccount.isLoggedIn {
-            hnAccountSubtitleLabel.text = "Logged in as \(hnAccount.username ?? "Unknown")."
-        } else {
-            hnAccountSubtitleLabel.text = "Not logged in."
+            return "Logged in as \(hnAccount.username ?? "Unknown")."
         }
+        return "Not logged in."
     }
 
-    private func refreshProSubscriptionCard() {
-        if proFeatureGate.isPro {
-            proPrimaryButton.configuration?.title = "Manage Subscription"
-            proSubscriptionSubtitleLabel.text = proSubscriptionStatusMessage ?? "Pro is active on this device."
-        } else {
-            proPrimaryButton.configuration?.title = "Upgrade to Pro"
-            proSubscriptionSubtitleLabel.text = proSubscriptionStatusMessage ?? "Unlock HN account, offline reading, advanced search, custom feeds, and more."
-        }
-        proRestoreButton.isEnabled = true
-    }
-
-    private func refreshICloudSyncControl() {
+    private func subtitleForCustomFeeds() -> String {
         if !proFeatureGate.isPro {
-            iCloudSyncSwitch.setOn(false, animated: true)
-            iCloudSyncSwitch.isEnabled = true
-            return
+            return "Pro required. Create pinned feed tabs with saved filters."
         }
-        iCloudSyncSwitch.setOn(globalSettings.settings.iCloudSyncEnabled, animated: false)
+        let count = customFeedManager.feeds.count
+        return count == 0 ? "No custom feeds yet." : "\(count) custom feed\(count == 1 ? "" : "s") configured."
     }
 
-    private func refreshCustomFeedsSubtitle() {
+    private func subtitleForTrackedThreads() -> String {
         if !proFeatureGate.isPro {
-            customFeedsSubtitleLabel.text = "Pro required. Create pinned feed tabs with saved filters."
-            return
+            return "Pro required. Track threads and get notified on new comments."
         }
-        let count = CustomFeedManager.shared.feeds.count
-        customFeedsSubtitleLabel.text = count == 0 ? "No custom feeds yet." : "\(count) custom feed\(count == 1 ? "" : "s") configured."
+        return "View and manage tracked threads."
     }
 
-    private func refreshTrackedThreadsSubtitle() {
-        guard proFeatureGate.isPro else {
-            trackedThreadsSubtitleLabel.text = "Pro required. Track threads and get notified on new comments."
-            return
-        }
-        Task { @MainActor in
-            let count = await NotificationStore.shared.allTrackedStories().count
-            trackedThreadsSubtitleLabel.text = count == 0 ? "No tracked stories." : "\(count) tracked thread\(count == 1 ? "" : "s")."
-        }
-    }
-
-    private func refreshPerformanceSubtitle() {
-        guard proFeatureGate.isPro else {
-            performanceSubtitleLabel.text = "Pro required. View local launch and diagnostics samples."
-            return
+    private func subtitleForPerformance() -> String {
+        if !proFeatureGate.isPro {
+            return "Pro required. View local launch and diagnostics samples."
         }
         let samples = PerformanceMonitor.shared.snapshot()
-        performanceSubtitleLabel.text = samples.isEmpty ? "No performance samples yet." : "\(samples.count) samples collected on device."
+        return samples.isEmpty ? "No performance samples yet." : "\(samples.count) samples collected on device."
     }
 
-    private func refreshLegalSubtitle() {
-        if LegalLinks.isConfigured {
-            legalSubtitleLabel.text = "Terms and Privacy links are configured."
-        } else {
-            legalSubtitleLabel.text = "Set `LegalTermsURL` and `LegalPrivacyURL` in Info.plist before release."
+    private func valueText(for row: Row) -> String {
+        switch row {
+        case .theme:
+            return globalSettings.selectedTheme.rawValue
+        case .accentColor:
+            return proFeatureGate.isPro ? globalSettings.selectedAccentColor.rawValue : "Pro"
+        case .fontFamily:
+            return proFeatureGate.isPro ? globalSettings.selectedFontFamily.rawValue : "Pro"
+        case .fontScale:
+            return String(format: "%.2fx", globalSettings.settings.readerFontScale)
+        case .lineSpacing:
+            return String(format: "%.1f", globalSettings.settings.readerLineSpacing)
+        default:
+            return ""
         }
     }
 
-    private func refreshShareImportSubtitle() {
-        let snapshot = ShareImportTelemetry.snapshot()
-        if snapshot.failureCount == 0 {
-            if let successAt = snapshot.lastSuccessAt {
-                let time = DateFormatter.localizedString(from: successAt, dateStyle: .short, timeStyle: .short)
-                shareImportSubtitleLabel.text = "No failures. Last import at \(time) (\(snapshot.lastImportedCount) items). Pending queue: \(snapshot.pendingCount)."
-            } else {
-                shareImportSubtitleLabel.text = "No failures recorded. Pending queue: \(snapshot.pendingCount)."
+    private func makeSubtitleCell(reuseID: String, title: String, subtitle: String, accessoryType: UITableViewCell.AccessoryType = .none, tintColor: UIColor? = nil) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: reuseID) ?? UITableViewCell(style: .subtitle, reuseIdentifier: reuseID)
+        var content = cell.defaultContentConfiguration()
+        content.text = title
+        content.secondaryText = subtitle
+        content.secondaryTextProperties.numberOfLines = 0
+        cell.contentConfiguration = content
+        cell.accessoryType = accessoryType
+        cell.textLabel?.textColor = tintColor
+        if let tintColor {
+            content.textProperties.color = tintColor
+            cell.contentConfiguration = content
+        }
+        return cell
+    }
+
+    private func makeControlCell(reuseID: String, title: String, subtitle: String? = nil, control: UIView) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: reuseID) ?? UITableViewCell(style: .default, reuseIdentifier: reuseID)
+        var content = cell.defaultContentConfiguration()
+        content.text = title
+        content.secondaryText = subtitle
+        content.secondaryTextProperties.numberOfLines = 0
+        cell.contentConfiguration = content
+
+        if control.superview != nil {
+            control.removeFromSuperview()
+        }
+        cell.accessoryView = control
+        cell.selectionStyle = .none
+        return cell
+    }
+
+    private func makeValueCell(
+        reuseID: String,
+        title: String,
+        value: String,
+        accessoryType: UITableViewCell.AccessoryType = .disclosureIndicator,
+        enabled: Bool = true
+    ) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: reuseID) ?? UITableViewCell(style: .value1, reuseIdentifier: reuseID)
+        var content = cell.defaultContentConfiguration()
+        content.text = title
+        content.secondaryText = value
+        cell.contentConfiguration = content
+        cell.accessoryType = accessoryType
+        cell.selectionStyle = enabled ? .default : .none
+        cell.isUserInteractionEnabled = enabled
+        cell.textLabel?.isEnabled = enabled
+        cell.detailTextLabel?.isEnabled = enabled
+        return cell
+    }
+
+    func numberOfSections(in tableView: UITableView) -> Int {
+        Section.allCases.count
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard let section = Section(rawValue: section) else { return 0 }
+        return rows(for: section).count
+    }
+
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        Section(rawValue: section)?.title
+    }
+
+    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        guard let section = Section(rawValue: section) else { return nil }
+
+        switch section {
+        case .subscription:
+            return subtitleForProPrimary()
+        case .reading:
+            return "Reader typography controls are applied in Reader Mode."
+        case .legal:
+            return LegalLinks.isConfigured
+                ? "Terms and Privacy links are configured."
+                : "Terms and Privacy links are currently unavailable."
+        case .diagnostics:
+            return shareImportStatusMessage
+        default:
+            return nil
+        }
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let section = Section(rawValue: indexPath.section) else {
+            return UITableViewCell()
+        }
+        let row = rows(for: section)[indexPath.row]
+
+        switch row {
+        case .theme:
+            return makeValueCell(reuseID: "theme", title: "Theme", value: valueText(for: .theme))
+        case .accentColor:
+            return makeValueCell(reuseID: "accentColor", title: "Accent Color", value: valueText(for: .accentColor))
+        case .fontFamily:
+            return makeValueCell(reuseID: "fontFamily", title: "Font Family", value: valueText(for: .fontFamily))
+        case .highContrast:
+            return makeControlCell(reuseID: "highContrast", title: "High Contrast", control: highContrastSwitch)
+        case .openInReader:
+            return makeControlCell(reuseID: "openInReader", title: "Open Stories in Reader", control: openInReaderSwitch)
+        case .openReaderLinks:
+            return makeControlCell(reuseID: "openReaderLinks", title: "Open Reader Links in Reader", control: openReaderLinksSwitch)
+        case .fontScale:
+            return makeValueCell(reuseID: "fontScale", title: "Reader Font Scale", value: valueText(for: .fontScale))
+        case .lineSpacing:
+            return makeValueCell(reuseID: "lineSpacing", title: "Reader Line Spacing", value: valueText(for: .lineSpacing))
+        case .iCloudSync:
+            return makeControlCell(reuseID: "icloud", title: "iCloud Sync", control: iCloudSyncSwitch)
+        case .proPrimary:
+            let title = proFeatureGate.isPro ? "Manage Subscription" : "Upgrade to Pro"
+            let subtitle = proFeatureGate.isPro ? "Open Apple subscription management." : "Open the Pro paywall."
+            let cell = makeSubtitleCell(reuseID: "proPrimary", title: title, subtitle: subtitle, accessoryType: .disclosureIndicator, tintColor: .systemOrange)
+            return cell
+        case .proRestore:
+            return makeSubtitleCell(reuseID: "proRestore", title: "Restore Purchases", subtitle: "Restore an existing subscription on this Apple ID.", accessoryType: .none, tintColor: .systemOrange)
+        case .hnAccount:
+            return makeSubtitleCell(reuseID: "hnAccount", title: "HN Account", subtitle: subtitleForHNAccount(), accessoryType: .disclosureIndicator)
+        case .customFeeds:
+            return makeSubtitleCell(reuseID: "customFeeds", title: "Custom Feeds", subtitle: subtitleForCustomFeeds(), accessoryType: .disclosureIndicator)
+        case .trackedThreads:
+            return makeSubtitleCell(reuseID: "trackedThreads", title: "Tracked Threads", subtitle: subtitleForTrackedThreads(), accessoryType: .disclosureIndicator)
+        case .performance:
+            return makeSubtitleCell(reuseID: "performance", title: "Performance Dashboard", subtitle: subtitleForPerformance(), accessoryType: .disclosureIndicator)
+        case .terms:
+            let enabled = LegalLinks.termsURL != nil
+            let cell = makeSubtitleCell(reuseID: "terms", title: "Terms", subtitle: enabled ? "View terms of use." : "Unavailable", accessoryType: enabled ? .disclosureIndicator : .none, tintColor: enabled ? .systemOrange : .secondaryLabel)
+            cell.selectionStyle = enabled ? .default : .none
+            return cell
+        case .privacy:
+            let enabled = LegalLinks.privacyURL != nil
+            let cell = makeSubtitleCell(reuseID: "privacy", title: "Privacy", subtitle: enabled ? "View privacy policy." : "Unavailable", accessoryType: enabled ? .disclosureIndicator : .none, tintColor: enabled ? .systemOrange : .secondaryLabel)
+            cell.selectionStyle = enabled ? .default : .none
+            return cell
+        case .shareImportReset:
+            return makeSubtitleCell(reuseID: "shareImport", title: "Reset Share Import Failures", subtitle: "Clear share import failure telemetry.", accessoryType: .none, tintColor: .systemOrange)
+#if DEBUG
+        case .debugForcePro:
+            return makeControlCell(reuseID: "debugPro", title: "Force Pro", subtitle: "Local-only entitlement override for simulator testing.", control: debugForceProSwitch)
+#endif
+        }
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        defer { tableView.deselectRow(at: indexPath, animated: true) }
+        guard let section = Section(rawValue: indexPath.section) else { return }
+        let row = rows(for: section)[indexPath.row]
+
+        switch row {
+        case .theme:
+            presentThemeOptions()
+        case .accentColor:
+            presentAccentColorOptions()
+        case .fontFamily:
+            presentFontFamilyOptions()
+        case .fontScale:
+            presentFontScaleOptions()
+        case .lineSpacing:
+            presentLineSpacingOptions()
+        case .proPrimary:
+            openProSubscriptionPrimaryAction()
+        case .proRestore:
+            restorePurchasesFromSettings()
+        case .hnAccount:
+            navigationController?.pushViewController(HNAccountViewController(), animated: true)
+        case .customFeeds:
+            guard proFeatureGate.isPro else {
+                proFeatureGate.triggerPaywall(from: self)
+                return
             }
+            navigationController?.pushViewController(CustomFeedManagerViewController(), animated: true)
+        case .trackedThreads:
+            guard proFeatureGate.isPro else {
+                proFeatureGate.triggerPaywall(from: self)
+                return
+            }
+            navigationController?.pushViewController(TrackedThreadsViewController(), animated: true)
+        case .performance:
+            guard proFeatureGate.isPro else {
+                proFeatureGate.triggerPaywall(from: self)
+                return
+            }
+            navigationController?.pushViewController(PerformanceDashboardViewController(), animated: true)
+        case .terms:
+            guard let url = LegalLinks.termsURL else { return }
+            UIApplication.shared.open(url)
+        case .privacy:
+            guard let url = LegalLinks.privacyURL else { return }
+            UIApplication.shared.open(url)
+        case .shareImportReset:
+            ShareImportTelemetry.clearFailures()
+            tableView.reloadSections(IndexSet(integer: Section.diagnostics.rawValue), with: .none)
+        default:
+            break
+        }
+    }
+
+    private func presentOptionSheet(
+        title: String,
+        options: [String],
+        selectedIndex: Int,
+        onSelect: @escaping (Int) -> Void
+    ) {
+        let alert = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+        for (index, option) in options.enumerated() {
+            let displayTitle = index == selectedIndex ? "\(option) ✓" : option
+            alert.addAction(UIAlertAction(title: displayTitle, style: .default) { _ in
+                onSelect(index)
+            })
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
+        }
+        present(alert, animated: true)
+    }
+
+    private func presentThemeOptions() {
+        let all = Settings.Theme.allCases
+        let selectedIndex = all.firstIndex(of: globalSettings.selectedTheme) ?? 0
+        presentOptionSheet(
+            title: "Theme",
+            options: all.map(\.rawValue),
+            selectedIndex: selectedIndex
+        ) { [weak self] index in
+            guard let self else { return }
+            self.globalSettings.updateSettings {
+                $0.themeString = all[index].rawValue
+            }
+            self.reloadRow(.theme)
+        }
+    }
+
+    private func presentAccentColorOptions() {
+        guard proFeatureGate.isPro else {
+            proFeatureGate.triggerPaywall(from: self)
             return
         }
-
-        let lastTime = snapshot.lastFailureAt.map {
-            DateFormatter.localizedString(from: $0, dateStyle: .short, timeStyle: .short)
-        } ?? "unknown time"
-        let message = snapshot.lastFailureMessage ?? "Unknown failure"
-        shareImportSubtitleLabel.text = "\(snapshot.failureCount) failure\(snapshot.failureCount == 1 ? "" : "s"). Last: \(lastTime) • \(message)"
-    }
-
-    private func refreshThemeProControls() {
-        let isPro = proFeatureGate.isPro
-        accentColorControl.isEnabled = isPro
-        fontFamilyControl.isEnabled = isPro
-        if !isPro {
-            accentColorControl.selectedSegmentIndex = Settings.AccentColor.allCases.firstIndex(of: globalSettings.selectedAccentColor) ?? 0
-            fontFamilyControl.selectedSegmentIndex = Settings.FontFamily.allCases.firstIndex(of: globalSettings.selectedFontFamily) ?? 0
+        let all = Settings.AccentColor.allCases
+        let selectedIndex = all.firstIndex(of: globalSettings.selectedAccentColor) ?? 0
+        presentOptionSheet(
+            title: "Accent Color",
+            options: all.map(\.rawValue),
+            selectedIndex: selectedIndex
+        ) { [weak self] index in
+            guard let self else { return }
+            self.globalSettings.updateSettings {
+                $0.accentColorRawValue = all[index].rawValue
+            }
+            self.reloadRow(.accentColor)
         }
     }
 
-    @objc private func openHNAccount() {
-        navigationController?.pushViewController(HNAccountViewController(), animated: true)
+    private func presentFontFamilyOptions() {
+        guard proFeatureGate.isPro else {
+            proFeatureGate.triggerPaywall(from: self)
+            return
+        }
+        let all = Settings.FontFamily.allCases
+        let selectedIndex = all.firstIndex(of: globalSettings.selectedFontFamily) ?? 0
+        presentOptionSheet(
+            title: "Font Family",
+            options: all.map(\.rawValue),
+            selectedIndex: selectedIndex
+        ) { [weak self] index in
+            guard let self else { return }
+            self.globalSettings.updateSettings {
+                $0.fontFamilyRawValue = all[index].rawValue
+            }
+            self.reloadRow(.fontFamily)
+        }
     }
 
-    @objc private func openProSubscriptionPrimaryAction() {
+    private func presentFontScaleOptions() {
+        let values = stride(from: 0.9, through: 1.4, by: 0.1).map { Double(round($0 * 100) / 100) }
+        let options = values.map { String(format: "%.2fx", $0) }
+        let selectedIndex = values.firstIndex(where: { abs($0 - globalSettings.settings.readerFontScale) < 0.001 }) ?? 1
+        presentOptionSheet(
+            title: "Reader Font Scale",
+            options: options,
+            selectedIndex: selectedIndex
+        ) { [weak self] index in
+            guard let self else { return }
+            self.globalSettings.updateSettings {
+                $0.readerFontScale = values[index]
+            }
+            self.reloadRow(.fontScale)
+        }
+    }
+
+    private func presentLineSpacingOptions() {
+        let values = stride(from: 0.0, through: 6.0, by: 0.5).map { Double(round($0 * 10) / 10) }
+        let options = values.map { String(format: "%.1f", $0) }
+        let selectedIndex = values.firstIndex(where: { abs($0 - globalSettings.settings.readerLineSpacing) < 0.001 }) ?? 4
+        presentOptionSheet(
+            title: "Reader Line Spacing",
+            options: options,
+            selectedIndex: selectedIndex
+        ) { [weak self] index in
+            guard let self else { return }
+            self.globalSettings.updateSettings {
+                $0.readerLineSpacing = values[index]
+            }
+            self.reloadRow(.lineSpacing)
+        }
+    }
+
+    private func openProSubscriptionPrimaryAction() {
         proSubscriptionStatusMessage = nil
         if proFeatureGate.isPro {
             guard let url = URL(string: "https://apps.apple.com/account/subscriptions") else { return }
@@ -619,67 +634,20 @@ final class SettingsUIKitViewController: UIViewController {
         proFeatureGate.triggerPaywall(from: self)
     }
 
-    @objc private func restorePurchasesFromSettings() {
-        proRestoreButton.isEnabled = false
+    private func restorePurchasesFromSettings() {
         proSubscriptionStatusMessage = "Restoring purchases..."
-        refreshProSubscriptionCard()
+        tableView.reloadSections(IndexSet(integer: Section.subscription.rawValue), with: .none)
 
         Task { [weak self] in
             guard let self else { return }
-            defer {
-                self.proRestoreButton.isEnabled = true
-                self.refreshProSubscriptionCard()
-            }
             do {
                 let restored = try await self.subscriptionManager.restorePurchases()
                 await self.proFeatureGate.refreshEntitlement()
-                if restored {
-                    self.proSubscriptionStatusMessage = "Purchases restored successfully."
-                } else {
-                    self.proSubscriptionStatusMessage = "No active Pro subscription found."
-                }
+                self.proSubscriptionStatusMessage = restored ? "Purchases restored successfully." : "No active Pro subscription found."
             } catch {
                 self.proSubscriptionStatusMessage = "Could not restore purchases. Please try again."
             }
+            self.tableView.reloadSections(IndexSet(integer: Section.subscription.rawValue), with: .none)
         }
-    }
-
-    @objc private func openCustomFeeds() {
-        guard proFeatureGate.isPro else {
-            proFeatureGate.triggerPaywall(from: self)
-            return
-        }
-        navigationController?.pushViewController(CustomFeedManagerViewController(), animated: true)
-    }
-
-    @objc private func openTrackedThreads() {
-        guard proFeatureGate.isPro else {
-            proFeatureGate.triggerPaywall(from: self)
-            return
-        }
-        navigationController?.pushViewController(TrackedThreadsViewController(), animated: true)
-    }
-
-    @objc private func openPerformanceDashboard() {
-        guard proFeatureGate.isPro else {
-            proFeatureGate.triggerPaywall(from: self)
-            return
-        }
-        navigationController?.pushViewController(PerformanceDashboardViewController(), animated: true)
-    }
-
-    @objc private func resetShareImportFailures() {
-        ShareImportTelemetry.clearFailures()
-        refreshShareImportSubtitle()
-    }
-
-    @objc private func openTerms() {
-        guard let url = LegalLinks.termsURL else { return }
-        UIApplication.shared.open(url)
-    }
-
-    @objc private func openPrivacy() {
-        guard let url = LegalLinks.privacyURL else { return }
-        UIApplication.shared.open(url)
     }
 }

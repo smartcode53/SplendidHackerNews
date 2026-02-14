@@ -51,7 +51,7 @@ Core view controllers are split into focused files under `HackerNewsApp/Other/` 
 - **`CommentsUIKitViewController`** (in `CommentsView.swift`) — comment threads with hero image parallax, search via `UISearchController`, `UIKitCommentCell`
 - **`SavedStoriesViewController`** — bookmarks list
 - **`HistoryUIKitViewController`** — browsing history
-- **`SettingsUIKitViewController`** — settings with UIScrollView/UIStackView layout
+- **`SettingsUIKitViewController`** — settings in native iOS `.insetGrouped` table layout
 - **`ReaderViewController`** — article reader with UITextView and typography controls
 
 ### ViewModel-UIKit Binding Pattern
@@ -209,6 +209,13 @@ ViewModels use a `LoadState` enum (`.idle`, `.loading`, `.loaded`, `.empty`, `.e
 - Store-readiness UX additions:
   - legal links in paywall/settings via `LegalTermsURL` + `LegalPrivacyURL`
   - improved restore/purchase/load edge-case copy for offline/no-store states.
+- Subscription shipping hardening:
+  - product IDs aligned to `hackerpillar.pro.monthly` / `hackerpillar.pro.yearly`
+  - entitlement refresh on transaction updates and app foreground
+  - first-class Pro management in Settings (upgrade/manage + restore)
+  - legal-link runtime fallback URLs added for resilience.
+- Device build compatibility fix:
+  - removed `NSUserActivity.suggestedInvocationPhrase` usage in `ShortcutsProvider` for current SDK/device builds.
 
 ## Coding Style
 

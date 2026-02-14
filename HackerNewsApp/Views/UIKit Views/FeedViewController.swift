@@ -564,7 +564,7 @@ final class FeedViewController: UIViewController, UITableViewDataSource, UITable
             story: story,
             isRead: isRead,
             isSaved: isSaved,
-            style: globalSettings.selectedCardStyle,
+            style: .normal,
             canWriteActions: canWriteActions,
             canOpenAuthorProfile: canOpenAuthorProfile,
             canSaveOffline: canSaveOffline,

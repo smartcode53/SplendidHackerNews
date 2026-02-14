@@ -12,6 +12,18 @@ xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerNewsApp -configuration
 xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerNewsApp -configuration Release -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
+## Physical Device Build
+
+Debug (generic iOS device):
+```
+xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerNewsApp -configuration Debug -destination 'generic/platform=iOS' build
+```
+
+Release (generic iOS device):
+```
+xcodebuild -project HackerNewsApp.xcodeproj -scheme HackerNewsApp -configuration Release -destination 'generic/platform=iOS' build
+```
+
 ## Verify Debug Features Are Absent In Release
 
 - Run the Release build on a simulator.

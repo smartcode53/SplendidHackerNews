@@ -15,6 +15,7 @@ Xcode project: `HackerNewsApp.xcodeproj`. UIKit app target + extension targets.
 
 ## Current Baseline (Important Context)
 - Product naming in UI is **HackerPillar** / **HackerPillar Pro**.
+- StoreKit product IDs are **`hackerpillar.pro.monthly`** and **`hackerpillar.pro.yearly`**.
 - **UIKit throughout** — the app was fully converted from SwiftUI to UIKit. ViewModels are `ObservableObject` observed via Combine `.sink()`. No SwiftUI views remain.
 - Freemium/Pro infrastructure is in place (StoreKit 2 manager + paywall + feature gating + offline entitlement grace).
 - HN account functionality (login/vote/reply) has been promoted from debug-only to production, gated by Pro entitlement.
@@ -51,6 +52,7 @@ Xcode project: `HackerNewsApp.xcodeproj`. UIKit app target + extension targets.
   - default `readerLineSpacing` is `2.0`
   - line-spacing controls use `0...6` with `0.5` step
 - Theme changes are now reactive at runtime (tint updates immediately without tab switching).
+- Settings screen now uses a native iOS `UITableView` with `.insetGrouped` layout (no custom card-stack UI).
 
 ## Roadmap Progress Snapshot
 - Implemented major Phase 1 and Phase 2 features in current branch, including offline reading, advanced filters, smart feed, enhanced reader, iCloud sync, custom feeds, user profiles, advanced search, thread tracking/notifications core, custom themes, accessibility pass, and iPad split behavior.
@@ -81,6 +83,14 @@ Xcode project: `HackerNewsApp.xcodeproj`. UIKit app target + extension targets.
 - Store-readiness UX improvements shipped:
   - legal links support in paywall/settings via `LegalTermsURL` and `LegalPrivacyURL`
   - clearer offline/no-store restore/purchase/load messaging in paywall.
+- Subscription shipping hardening shipped:
+  - product IDs updated to `hackerpillar.pro.monthly` / `hackerpillar.pro.yearly`
+  - entitlement now refreshes when StoreKit transaction updates are received
+  - entitlement now refreshes again when app becomes active
+  - first-class Pro management surface added in Settings (upgrade/manage + restore)
+  - legal links now have runtime fallback URLs for release safety if Info keys are absent.
+- Device build compatibility fix shipped:
+  - removed `NSUserActivity.suggestedInvocationPhrase` usage from `ShortcutsProvider` for current SDK compatibility.
 
 ## Build, Test, and Development Commands
 Use from repo root:

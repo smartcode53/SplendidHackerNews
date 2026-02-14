@@ -16,7 +16,6 @@ final class ShortcutsProvider {
         donate(
             activityType: ShortcutActivityType.showTopStories,
             title: "Show Top Stories",
-            phrase: "Show top stories in HackerPillar",
             userInfo: nil
         )
     }
@@ -25,7 +24,6 @@ final class ShortcutsProvider {
         donate(
             activityType: ShortcutActivityType.openBookmarks,
             title: "Open Bookmarks",
-            phrase: "Open bookmarks in HackerPillar",
             userInfo: nil
         )
     }
@@ -35,15 +33,13 @@ final class ShortcutsProvider {
         donate(
             activityType: ShortcutActivityType.searchHN,
             title: "Search HN",
-            phrase: "Search HackerPillar",
             userInfo: [ShortcutActivityType.searchQueryKey: query]
         )
     }
 
-    private func donate(activityType: String, title: String, phrase: String, userInfo: [AnyHashable: Any]?) {
+    private func donate(activityType: String, title: String, userInfo: [AnyHashable: Any]?) {
         let activity = NSUserActivity(activityType: activityType)
         activity.title = title
-        activity.suggestedInvocationPhrase = phrase
         activity.isEligibleForSearch = true
         activity.isEligibleForPrediction = true
         activity.userInfo = userInfo

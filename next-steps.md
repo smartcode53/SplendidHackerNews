@@ -10,6 +10,13 @@ Completed in current branch:
 - Offline reading, advanced filters, smart feed, enhanced reader, iCloud sync, custom feeds
 - User profiles, advanced search, thread tracking/notification core, custom themes, accessibility pass, iPad split behavior
 - Phase 3 partial: onboarding, Spotlight, Siri shortcuts, widget extension target, share extension target, Live Activities scaffolding, performance dashboard scaffolding
+- App Store subscription shipping pass:
+  - product IDs aligned to `hackerpillar.pro.monthly` and `hackerpillar.pro.yearly`
+  - entitlement refresh on transaction updates + app foreground
+  - Settings includes first-class Pro upgrade/manage + restore surface
+  - legal links configured and fallback URLs added in code
+  - Settings UI migrated to native iOS `.insetGrouped` table layout
+  - device build blocker in `ShortcutsProvider` fixed (`suggestedInvocationPhrase` removal)
 
 ## Remaining Plan
 
@@ -58,11 +65,11 @@ Completed in current branch:
 
 ### 5. Store Readiness (Medium Priority)
 1. Finalize subscription product metadata and review paywall copy.
-2. Add/verify Terms and Privacy links in paywall + settings.
-   - Status: implemented in-branch with `Info.plist`-driven legal links (`LegalTermsURL`, `LegalPrivacyURL`) surfaced in paywall and settings; still needs production URLs configured and QA verification.
-3. Add restore-purchase edge case handling UI copy for offline/no-store states.
-   - Status: implemented in-branch with context-aware StoreKit/network messaging for price load, purchase, and restore flows (offline/store availability/cancelled cases).
-4. Prepare App Store screenshots for free and Pro surfaces.
+   - Status: in progress. Product IDs and baseline localization copy are set; continue App Store Connect completion.
+2. Complete sandbox purchase QA checklist.
+   - Status: step 1 completed (sandbox setup). Continue purchase/restore/cancel/offline validation.
+3. Prepare App Store screenshots for free and Pro surfaces.
+4. Final TestFlight smoke pass on physical devices before submission.
 
 ### 6. Technical Debt Cleanup (Medium Priority)
 1. Address key deprecations/warnings seen in builds:
